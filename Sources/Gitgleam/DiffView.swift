@@ -18,6 +18,10 @@ struct DiffView: View {
     @State private var previewText: AttributedString?
     @State private var isLoading = true
 
+    // Matches viewmd's rendered palette (including the `viewmd:mark` highlight
+    // background) to the window's actual appearance — see `Viewmd.render`.
+    @Environment(\.colorScheme) private var colorScheme
+
     init(change: FileChange, repoPath: String, preview: AppConfig.PreviewSettings?) {
         self.change = change
         self.repoPath = repoPath
@@ -130,9 +134,9 @@ struct DiffView: View {
         let marked = MarkdownHighlighter.mark(content, unifiedDiff: diff)
         if case let .success(ansi) = await Viewmd.render(
             markdown: marked, width: preview.width, viewmdPath: preview.viewmdPath,
-            keepDebugFile: preview.debugKeepFiles
+            theme: colorScheme == .dark ? .dark : .light, keepDebugFile: preview.debugKeepFiles
         ) {
-            previewText = ANSIText.attributed(from: ansi)
+            previewText = ANSIText.attributed(from: ansi, colorScheme: colorScheme)
         }
     }
 

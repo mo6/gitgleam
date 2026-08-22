@@ -12,6 +12,12 @@ enum Viewmd {
         case failure(String)
     }
 
+    /// viewmd's `--theme` values Gitgleam can request. Mirrors the window's
+    /// `colorScheme` — see `render(theme:)`.
+    enum Theme: String {
+        case dark, light
+    }
+
     /// Renders `markdown` through the `viewmd` launcher at `viewmdPath`.
     ///
     /// The content is written to a temporary `.md` file and passed as viewmd's
@@ -22,14 +28,21 @@ enum Viewmd {
     /// generated heading table of contents (the file's own content is what we
     /// want to preview, not a navigation aid); `VIEWMD_NO_CONFIG` makes the
     /// render independent of any per-user viewmd config file so width/color/toc
-    /// are exactly what we ask for.
+    /// are exactly what we ask for. `--theme` selects viewmd's dark- or
+    /// light-tuned palette (its own default is `dark`, and `auto`-detection
+    /// relies on a terminal OSC 11 query that a `Process` pipe can't answer,
+    /// so the caller must pass the window's actual `colorScheme` explicitly —
+    /// otherwise viewmd's dark palette, including its `viewmd:mark` highlight
+    /// background, renders muddy against a light-mode window).
     ///
     /// When `keepDebugFile` is set (the Settings window's debug toggle), the
     /// input file is written to `/tmp/` instead of the private, auto-cleaned
     /// temporary directory, and is left there instead of being removed — so
     /// the exact Markdown (including `viewmd:mark` sentinels) fed to viewmd
     /// can be inspected afterwards.
-    static func render(markdown: String, width: Int, viewmdPath: String, keepDebugFile: Bool = false) async -> RenderResult {
+    static func render(
+        markdown: String, width: Int, viewmdPath: String, theme: Theme, keepDebugFile: Bool = false
+    ) async -> RenderResult {
         let directory = keepDebugFile
             ? URL(fileURLWithPath: "/tmp")
             : FileManager.default.temporaryDirectory
@@ -46,7 +59,8 @@ enum Viewmd {
         // matter in a GUI app that doesn't inherit the shell environment.
         process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = [
-            viewmdPath, "--no-pager", "--color=always", "--no-toc", "--width", "\(width)", tmp.path,
+            viewmdPath, "--no-pager", "--color=always", "--no-toc",
+            "--width", "\(width)", "--theme", theme.rawValue, tmp.path,
         ]
         var env = ProcessInfo.processInfo.environment
         env["VIEWMD_NO_CONFIG"] = "1"

@@ -98,6 +98,24 @@ final class ANSITextTests: XCTestCase {
         XCTAssertNotNil(backgroundColors("\u{1B}[48;2;10;20;30mY\u{1B}[0m").first ?? nil)
     }
 
+    func testExtendedBackgroundIsLightenedInLightModeOnly() {
+        let ansi = "\u{1B}[48;2;90;62;0mX\u{1B}[0m" // viewmd's dark-tuned mark highlight
+        let dark = ANSIText.attributed(from: ansi, colorScheme: .dark).runs.first?.backgroundColor
+        let light = ANSIText.attributed(from: ansi, colorScheme: .light).runs.first?.backgroundColor
+        XCTAssertEqual(dark, Color(.sRGB, red: 90.0 / 255, green: 62.0 / 255, blue: 0, opacity: 1))
+        XCTAssertNotEqual(light, dark, "the light-mode background should be blended lighter")
+    }
+
+    func testBasicBackgroundIsUnaffectedByColorScheme() {
+        // The semantic 16-color codes (already theme-aware via .primary, etc.)
+        // must not be touched by the light-mode blend.
+        let ansi = "\u{1B}[41mX\u{1B}[0m"
+        let dark = ANSIText.attributed(from: ansi, colorScheme: .dark).runs.first?.backgroundColor
+        let light = ANSIText.attributed(from: ansi, colorScheme: .light).runs.first?.backgroundColor
+        XCTAssertEqual(dark, .red)
+        XCTAssertEqual(light, .red)
+    }
+
     func testForegroundAndBackgroundColorTogether() {
         let s = ANSIText.attributed(from: "\u{1B}[31;42mboth\u{1B}[0m")
         XCTAssertEqual(s.runs.first?.foregroundColor, .red)

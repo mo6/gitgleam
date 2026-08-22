@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Converts ANSI (SGR) escape sequences into a colored `AttributedString` for
 /// display in a monospaced `Text`.
@@ -14,7 +15,17 @@ import SwiftUI
 /// machinery is removed.
 enum ANSIText {
     /// Builds a colored `AttributedString` from ANSI text.
-    static func attributed(from ansi: String) -> AttributedString {
+    ///
+    /// `colorScheme` only affects 256-color/truecolor *backgrounds*
+    /// (`48;5;n` / `48;2;r;g;b`) — viewmd's fixed palette (including the
+    /// `viewmd:mark` highlight) is tuned for a dark terminal and, as of this
+    /// writing, renders identically regardless of the `--theme` flag Gitgleam
+    /// passes it (see `Viewmd.render`). Left as-is, those backgrounds read as
+    /// a muddy dark box on a light-mode window, so in `.light` they're
+    /// blended toward white here. The 16 basic ANSI colors (`40`-`47`,
+    /// `100`-`107`) already map to semantic, theme-aware colors (`.primary`,
+    /// `.secondary`, …) and are untouched.
+    static func attributed(from ansi: String, colorScheme: ColorScheme = .dark) -> AttributedString {
         var result = AttributedString()
         var style = Style()
         let scalars = Array(ansi.unicodeScalars)
@@ -25,7 +36,7 @@ enum ANSIText {
             guard end > runStart else { return }
             let text = String(String.UnicodeScalarView(scalars[runStart..<end]))
             var run = AttributedString(text)
-            style.apply(to: &run)
+            style.apply(to: &run, colorScheme: colorScheme)
             result.append(run)
         }
 
@@ -83,6 +94,11 @@ enum ANSIText {
     private struct Style {
         var color: Color?
         var backgroundColor: Color?
+        /// True when `backgroundColor` came from `48;5;n`/`48;2;r;g;b` (a
+        /// fixed, non-theme-aware RGB), as opposed to the semantic `40`-`47`/
+        /// `100`-`107` codes. Only an extended background gets lightened for
+        /// `.light` — see `attributed(from:colorScheme:)`.
+        var backgroundIsExtended = false
         var bold = false
         var dim = false
         var italic = false
@@ -111,16 +127,16 @@ enum ANSIText {
                 case 30...37: color = Self.basic[codes[k] - 30]
                 case 90...97: color = Self.bright[codes[k] - 90]
                 case 39: color = nil
-                case 40...47: backgroundColor = Self.basic[codes[k] - 40]
-                case 100...107: backgroundColor = Self.bright[codes[k] - 100]
-                case 49: backgroundColor = nil
+                case 40...47: backgroundColor = Self.basic[codes[k] - 40]; backgroundIsExtended = false
+                case 100...107: backgroundColor = Self.bright[codes[k] - 100]; backgroundIsExtended = false
+                case 49: backgroundColor = nil; backgroundIsExtended = false
                 case 38: // extended foreground: 38;5;n or 38;2;r;g;b
                     let ext = Self.parseExtendedColor(codes, from: k)
                     if let c = ext.color { color = c }
                     k += ext.advance
                 case 48: // extended background: 48;5;n or 48;2;r;g;b
                     let ext = Self.parseExtendedColor(codes, from: k)
-                    if let c = ext.color { backgroundColor = c }
+                    if let c = ext.color { backgroundColor = c; backgroundIsExtended = true }
                     k += ext.advance
                 default: break // other codes ignored
                 }
@@ -128,14 +144,16 @@ enum ANSIText {
             }
         }
 
-        func apply(to run: inout AttributedString) {
+        func apply(to run: inout AttributedString, colorScheme: ColorScheme) {
             if let color {
                 run.foregroundColor = dim ? color.opacity(0.6) : color
             } else if dim {
                 run.foregroundColor = Color.primary.opacity(0.6)
             }
             if let backgroundColor {
-                run.backgroundColor = dim ? backgroundColor.opacity(0.6) : backgroundColor
+                let bg = (backgroundIsExtended && colorScheme == .light)
+                    ? Self.lightened(backgroundColor) : backgroundColor
+                run.backgroundColor = dim ? bg.opacity(0.6) : bg
             }
             if bold || italic {
                 var font = Font.system(.body, design: .monospaced)
@@ -145,6 +163,19 @@ enum ANSIText {
             }
             if underline { run.underlineStyle = .single }
             if strikethrough { run.strikethroughStyle = .single }
+        }
+
+        /// Blends `color` toward white by `fraction`, for an extended
+        /// background rendered in `.light`. Falls back to the original color
+        /// if it can't be converted to device RGB (shouldn't happen for the
+        /// sRGB colors this file constructs).
+        static func lightened(_ color: Color, by fraction: Double = 0.55) -> Color {
+            guard let rgb = NSColor(color).usingColorSpace(.deviceRGB) else { return color }
+            func mix(_ c: CGFloat) -> Double { Double(c) * (1 - fraction) + fraction }
+            return Color(
+                .sRGB, red: mix(rgb.redComponent), green: mix(rgb.greenComponent), blue: mix(rgb.blueComponent),
+                opacity: 1
+            )
         }
 
         /// Parses a `5;n` (256-color) or `2;r;g;b` (truecolor) operand that
