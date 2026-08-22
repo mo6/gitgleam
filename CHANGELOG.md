@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-22
+
+### Added
+
+- `SECURITY.md`: vulnerability reporting process and a summary of the
+  security measures taken during development and testing.
+- `CODE_OF_CONDUCT.md`.
+- `LICENSE` (MIT).
+
 ## [1.0.0] - 2026-08-22
 
 Initial release.
@@ -43,5 +52,6 @@ Initial release.
   language and a per-launch `-AppleLanguages` override. English (default) and
   Dutch translations included.
 
-[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/mo6/gitgleam/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/mo6/gitgleam/releases/tag/v1.0.0
