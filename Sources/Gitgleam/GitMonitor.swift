@@ -76,6 +76,14 @@ final class GitMonitor: ObservableObject {
     /// Starts a git status check and refreshes the recent-commit list, updating
     /// `changes`/`errorMessage`/`commits` when done. Coalesced: a trigger that
     /// arrives while a refresh is in flight schedules exactly one more run.
+    ///
+    /// Each `@Published` property is only reassigned when its value actually
+    /// changed. The filesystem watcher fires on any change under the whole
+    /// tree — including `.git`, which `git status` itself touches — so most
+    /// refreshes find nothing different. An unconditional reassignment would
+    /// still fire `objectWillChange` and rebuild the menu on every one of
+    /// those no-op refreshes, which was closing the "Recent commits" submenu
+    /// the instant it opened.
     func refresh() {
         guard !refreshInFlight else { pendingRefresh = true; return }
         refreshInFlight = true
@@ -88,13 +96,14 @@ final class GitMonitor: ObservableObject {
             async let commitList = Git.recentCommits(limit: commitLimit, at: path)
             switch await Git.status(at: path) {
             case .success(let changes):
-                self.changes = changes
-                self.errorMessage = nil
+                if self.changes != changes { self.changes = changes }
+                if self.errorMessage != nil { self.errorMessage = nil }
             case .failure(let message):
-                self.changes = []
-                self.errorMessage = message
+                if !self.changes.isEmpty { self.changes = [] }
+                if self.errorMessage != message { self.errorMessage = message }
             }
-            self.commits = await commitList
+            let commits = await commitList
+            if self.commits != commits { self.commits = commits }
 
             refreshInFlight = false
             if pendingRefresh {
