@@ -1,0 +1,32 @@
+/* Menu */
+"No changes" = "No changes";
+"Refresh" = "Refresh";
+"Quit" = "Quit";
+"Recent commits" = "Recent commits";
+
+/* Overflow / full-list window */
+"All changes" = "All changes";
+"Show all %d changes…" = "Show all %d changes…";
+"%d more not shown" = "%d more not shown";
+
+/* Section headers */
+"Changed" = "Changed";
+"New" = "New";
+"Deleted" = "Deleted";
+
+/* File status descriptions */
+"Modified" = "Modified";
+"Added" = "Added";
+"Renamed" = "Renamed";
+"Copied" = "Copied";
+"Conflict" = "Conflict";
+"New (untracked)" = "New (untracked)";
+
+/* Diff view */
+"No textual differences (possibly binary or mode-only changes)." = "No textual differences (possibly binary or mode-only changes).";
+"git failed" = "git failed";
+
+/* Preview (viewmd) */
+"Diff" = "Diff";
+"Preview" = "Preview";
+"viewmd failed" = "viewmd failed";

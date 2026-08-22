@@ -1,0 +1,32 @@
+/* Menu */
+"No changes" = "Geen wijzigingen";
+"Refresh" = "Ververs";
+"Quit" = "Afsluiten";
+"Recent commits" = "Recente commits";
+
+/* Overflow / full-list window */
+"All changes" = "Alle wijzigingen";
+"Show all %d changes…" = "Toon alle %d wijzigingen…";
+"%d more not shown" = "%d niet getoond";
+
+/* Section headers */
+"Changed" = "Gewijzigd";
+"New" = "Nieuw";
+"Deleted" = "Verwijderd";
+
+/* File status descriptions */
+"Modified" = "Gewijzigd";
+"Added" = "Toegevoegd";
+"Renamed" = "Hernoemd";
+"Copied" = "Gekopieerd";
+"Conflict" = "Conflict";
+"New (untracked)" = "Nieuw (untracked)";
+
+/* Diff view */
+"No textual differences (possibly binary or mode-only changes)." = "Geen tekstuele verschillen (mogelijk binair of alleen rechten/modus).";
+"git failed" = "git faalde";
+
+/* Preview (viewmd) */
+"Diff" = "Diff";
+"Preview" = "Voorbeeld";
+"viewmd failed" = "viewmd faalde";

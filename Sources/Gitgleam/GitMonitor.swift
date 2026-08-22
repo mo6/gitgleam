@@ -1,0 +1,106 @@
+import Foundation
+import Combine
+
+/// Tracks the uncommitted changes of the watched repository.
+///
+/// `@MainActor` because the UI (`@Published`) may only be updated on the main
+/// thread. The actual git work runs in `Git`, off the main actor, so the UI
+/// never blocks.
+@MainActor
+final class GitMonitor: ObservableObject {
+    /// The changed files from the latest status check.
+    @Published var changes: [FileChange] = []
+
+    /// Error message if the git check failed, otherwise `nil`.
+    @Published var errorMessage: String?
+
+    /// The most recent commits, for the "Recent commits" submenu.
+    @Published var commits: [Commit] = []
+
+    /// Severity of the status. Drives the menu-bar icon and its color.
+    enum Status {
+        case error // git check failed: warning
+        case clean // below the warn threshold: green
+        case few   // at/above warn, below critical: yellow
+        case many  // at/above critical: red
+    }
+
+    /// The current severity. An error takes priority over the change count.
+    /// The yellow/red boundaries come from the configured thresholds.
+    var status: Status {
+        if errorMessage != nil { return .error }
+        let count = changes.count
+        if count >= config.criticalThreshold { return .many }
+        if count >= config.warnThreshold { return .few }
+        return .clean
+    }
+
+    /// The changes grouped for the menu sections.
+    var changedFiles: [FileChange] { changes.filter { $0.category == .changed } }
+    var newFiles: [FileChange] { changes.filter { $0.category == .new } }
+    var deletedFiles: [FileChange] { changes.filter { $0.category == .deleted } }
+
+    /// Largest number of file rows the dropdown menu shows before overflowing
+    /// into the "Show all changes" window. Exposes the configured cap without
+    /// widening access to the whole config.
+    var maxMenuEntries: Int { config.maxEntries }
+
+    /// The runtime configuration (path to watch, thresholds, refresh interval).
+    private let config: AppConfig
+
+    private var timer: Timer?
+    /// Filesystem watcher that refreshes the instant the repo changes. The
+    /// timer above is a periodic safety net for anything it misses.
+    private var watcher: RepoWatcher?
+
+    /// True while a refresh is running, so overlapping triggers (timer +
+    /// watcher, or a burst of events) don't stack. `pendingRefresh` records a
+    /// trigger that arrived mid-refresh so it runs once more afterwards — this
+    /// guarantees a change is never dropped and also damps any `git status` →
+    /// `.git/index` → event feedback into a single follow-up.
+    private var refreshInFlight = false
+    private var pendingRefresh = false
+
+    init(config: AppConfig) {
+        self.config = config
+        refresh()
+        timer = Timer.scheduledTimer(withTimeInterval: config.refreshInterval, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refresh() }
+        }
+        // Instant refresh on any change under the watched path.
+        watcher = RepoWatcher(path: config.path) { [weak self] in
+            Task { @MainActor in self?.refresh() }
+        }
+    }
+
+    /// Starts a git status check and refreshes the recent-commit list, updating
+    /// `changes`/`errorMessage`/`commits` when done. Coalesced: a trigger that
+    /// arrives while a refresh is in flight schedules exactly one more run.
+    func refresh() {
+        guard !refreshInFlight else { pendingRefresh = true; return }
+        refreshInFlight = true
+
+        let path = config.path
+        let commitLimit = config.commits
+        Task {
+            // Kick off both reads together, but apply the status first so the
+            // menu-bar icon is never held up by the history read.
+            async let commitList = Git.recentCommits(limit: commitLimit, at: path)
+            switch await Git.status(at: path) {
+            case .success(let changes):
+                self.changes = changes
+                self.errorMessage = nil
+            case .failure(let message):
+                self.changes = []
+                self.errorMessage = message
+            }
+            self.commits = await commitList
+
+            refreshInFlight = false
+            if pendingRefresh {
+                pendingRefresh = false
+                refresh()
+            }
+        }
+    }
+}
