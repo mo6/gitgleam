@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-08-22
+
+### Fixed
+
+- The **Recent commits** submenu still closing immediately in an actively
+  changing repository, even after 1.0.2. That fix only skipped no-op
+  refreshes; a genuine change (e.g. an autosaving file elsewhere in the
+  watched tree) still rebuilt the menu while the submenu was open. Refreshing
+  is now paused for as long as any of the app's own menus is open (tracked
+  via AppKit's `NSMenu` tracking notifications) and caught up once it closes.
+
 ## [1.0.2] - 2026-08-22
 
 ### Fixed
@@ -63,7 +74,8 @@ Initial release.
   language and a per-launch `-AppleLanguages` override. English (default) and
   Dutch translations included.
 
-[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/mo6/gitgleam/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/mo6/gitgleam/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/mo6/gitgleam/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/mo6/gitgleam/releases/tag/v1.0.0
