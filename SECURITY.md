@@ -11,7 +11,7 @@ Please **do not** open a public GitHub issue for a security vulnerability.
 
 Instead, report it privately via
 [GitHub Security Advisories](https://github.com/mo6/gitgleam/security/advisories/new),
-or by emailing g@mo6.nl.
+or by emailing gmo6nl@gmail.com.
 
 Include what you'd include in any bug report: steps to reproduce, the
 version/commit affected, and the potential impact. You should get a response

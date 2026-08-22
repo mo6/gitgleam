@@ -220,6 +220,14 @@ Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, AppCo
 - **Always auto-commit after a change.** Once a change is complete and builds,
   commit it without waiting to be asked. Use a clear, descriptive commit
   message.
+- **Verify `git config user.name`/`user.email` before writing them anywhere.**
+  Never hardcode or assume a name/email (in docs, commit `--author`, SECURITY.md
+  contact, etc.) — always read the current local git config values first and
+  use exactly those, since the user's config is the source of truth and can
+  change.
+- **Never push to `origin` without approval.** Commit locally freely, but
+  always ask before any `git push` (including tags and force-pushes) — pushing
+  is a visible, shared-state action that needs explicit confirmation each time.
 - **Work on `develop`, not `main`.** Commit to `develop` unless explicitly told
   otherwise; do not create additional feature branches by default. `main` is
   reserved for tagged releases only — it advances by merging `develop` into it
