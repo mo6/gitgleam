@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import AppKit
 
 /// Tracks the uncommitted changes of the watched repository.
 ///
@@ -57,9 +58,17 @@ final class GitMonitor: ObservableObject {
     /// watcher, or a burst of events) don't stack. `pendingRefresh` records a
     /// trigger that arrived mid-refresh so it runs once more afterwards — this
     /// guarantees a change is never dropped and also damps any `git status` →
-    /// `.git/index` → event feedback into a single follow-up.
+    /// `.git/index` → event feedback into a single follow-up. It does double
+    /// duty for `menuIsOpen` below, for the same reason.
     private var refreshInFlight = false
     private var pendingRefresh = false
+
+    /// True while one of the app's own menus (the menu-bar dropdown, or a
+    /// submenu/context menu within it) is open. A refresh while a menu is
+    /// open — even one that changes nothing visible — rebuilds the menu and
+    /// dismisses any open submenu (e.g. "Recent commits" closing the instant
+    /// it opens), so refreshes are deferred until the menu closes instead.
+    private var menuIsOpen = false
 
     init(config: AppConfig) {
         self.config = config
@@ -71,6 +80,18 @@ final class GitMonitor: ObservableObject {
         watcher = RepoWatcher(path: config.path) { [weak self] in
             Task { @MainActor in self?.refresh() }
         }
+
+        // Pause refreshing while one of the app's own menus is open — see
+        // `menuIsOpen`. AppKit posts these in-process for any `NSMenu` in this
+        // app, which for this app means only the menu-bar dropdown and its
+        // "Recent commits" submenu. The block-based API (rather than
+        // target/selector) is used because `GitMonitor` isn't an `NSObject`.
+        NotificationCenter.default.addObserver(
+            forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main
+        ) { [weak self] _ in Task { @MainActor in self?.menuOpened() } }
+        NotificationCenter.default.addObserver(
+            forName: NSMenu.didEndTrackingNotification, object: nil, queue: .main
+        ) { [weak self] _ in Task { @MainActor in self?.menuClosed() } }
     }
 
     /// Starts a git status check and refreshes the recent-commit list, updating
@@ -86,6 +107,7 @@ final class GitMonitor: ObservableObject {
     /// the instant it opened.
     func refresh() {
         guard !refreshInFlight else { pendingRefresh = true; return }
+        guard !menuIsOpen else { pendingRefresh = true; return }
         refreshInFlight = true
 
         let path = config.path
@@ -110,6 +132,20 @@ final class GitMonitor: ObservableObject {
                 pendingRefresh = false
                 refresh()
             }
+        }
+    }
+
+    /// Called when one of the app's own menus opens/closes (see `menuIsOpen`).
+    /// Closing catches up on anything that arrived while it was open.
+    func menuOpened() {
+        menuIsOpen = true
+    }
+
+    func menuClosed() {
+        menuIsOpen = false
+        if pendingRefresh {
+            pendingRefresh = false
+            refresh()
         }
     }
 }
