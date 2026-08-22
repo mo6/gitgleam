@@ -27,12 +27,13 @@ final class GitMonitor: ObservableObject {
     }
 
     /// The current severity. An error takes priority over the change count.
-    /// The yellow/red boundaries come from the configured thresholds.
+    /// The yellow/red boundaries come from the live (Settings-editable)
+    /// thresholds.
     var status: Status {
         if errorMessage != nil { return .error }
         let count = changes.count
-        if count >= config.criticalThreshold { return .many }
-        if count >= config.warnThreshold { return .few }
+        if count >= settings.criticalThreshold { return .many }
+        if count >= settings.warnThreshold { return .few }
         return .clean
     }
 
@@ -42,17 +43,23 @@ final class GitMonitor: ObservableObject {
     var deletedFiles: [FileChange] { changes.filter { $0.category == .deleted } }
 
     /// Largest number of file rows the dropdown menu shows before overflowing
-    /// into the "Show all changes" window. Exposes the configured cap without
-    /// widening access to the whole config.
-    var maxMenuEntries: Int { config.maxEntries }
+    /// into the "Show all changes" window. Exposes the live setting without
+    /// widening access to the whole `Settings` object.
+    var maxMenuEntries: Int { settings.maxEntries }
 
-    /// The runtime configuration (path to watch, thresholds, refresh interval).
-    private let config: AppConfig
+    /// The path being watched (fixed for this instance's lifetime — set via
+    /// `--path`, not editable in Settings).
+    private let path: String
+    /// Live, user-editable defaults (thresholds, refresh interval, commit
+    /// count, …). Changing these applies immediately: see the `Combine`
+    /// subscriptions set up in `init`.
+    private let settings: Settings
 
     private var timer: Timer?
     /// Filesystem watcher that refreshes the instant the repo changes. The
     /// timer above is a periodic safety net for anything it misses.
     private var watcher: RepoWatcher?
+    private var cancellables = Set<AnyCancellable>()
 
     /// True while a refresh is running, so overlapping triggers (timer +
     /// watcher, or a burst of events) don't stack. `pendingRefresh` records a
@@ -70,10 +77,11 @@ final class GitMonitor: ObservableObject {
     /// it opens), so refreshes are deferred until the menu closes instead.
     private var menuIsOpen = false
 
-    init(config: AppConfig) {
-        self.config = config
+    init(config: AppConfig, settings: Settings) {
+        self.path = config.path
+        self.settings = settings
         refresh()
-        timer = Timer.scheduledTimer(withTimeInterval: config.refreshInterval, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: settings.refreshInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
         }
         // Instant refresh on any change under the watched path.
@@ -92,6 +100,30 @@ final class GitMonitor: ObservableObject {
         NotificationCenter.default.addObserver(
             forName: NSMenu.didEndTrackingNotification, object: nil, queue: .main
         ) { [weak self] _ in Task { @MainActor in self?.menuClosed() } }
+
+        // `status`/`maxMenuEntries` read `settings` directly, but they're
+        // plain computed properties: a `Settings`-only change wouldn't
+        // otherwise tell SwiftUI views observing `self` to re-render, so
+        // forward it. `commits`/`refreshInterval` additionally need an
+        // actual re-fetch/re-schedule, not just a re-render.
+        settings.objectWillChange
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+        settings.$commits
+            .dropFirst()
+            .sink { [weak self] _ in self?.refresh() }
+            .store(in: &cancellables)
+        settings.$refreshInterval
+            .dropFirst()
+            .sink { [weak self] interval in self?.rescheduleTimer(interval) }
+            .store(in: &cancellables)
+    }
+
+    private func rescheduleTimer(_ interval: TimeInterval) {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refresh() }
+        }
     }
 
     /// Starts a git status check and refreshes the recent-commit list, updating
@@ -110,8 +142,8 @@ final class GitMonitor: ObservableObject {
         guard !menuIsOpen else { pendingRefresh = true; return }
         refreshInFlight = true
 
-        let path = config.path
-        let commitLimit = config.commits
+        let path = self.path
+        let commitLimit = settings.commits
         Task {
             // Kick off both reads together, but apply the status first so the
             // menu-bar icon is never held up by the history read.

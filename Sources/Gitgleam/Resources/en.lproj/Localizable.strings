@@ -3,6 +3,7 @@
 "Refresh" = "Refresh";
 "Quit" = "Quit";
 "Recent commits" = "Recent commits";
+"Settings…" = "Settings…";
 
 /* Overflow / full-list window */
 "All changes" = "All changes";
@@ -30,3 +31,17 @@
 "Diff" = "Diff";
 "Preview" = "Preview";
 "viewmd failed" = "viewmd failed";
+
+/* Settings window */
+"Status icon" = "Status icon";
+"Warn threshold" = "Warn threshold";
+"Critical threshold" = "Critical threshold";
+"Poll interval" = "Poll interval";
+"Max menu entries" = "Max menu entries";
+"Recent commits shown" = "Recent commits shown";
+"Markdown preview" = "Markdown preview";
+"viewmd path" = "viewmd path";
+"Default view" = "Default view";
+"Preview width" = "Preview width";
+"Debug" = "Debug";
+"Keep preview Markdown files in /tmp for review" = "Keep preview Markdown files in /tmp for review";

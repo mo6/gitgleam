@@ -52,6 +52,13 @@ struct MenuContent: View {
             }
         }
 
+        Button(L10n.settings) {
+            openWindow(id: "settings")
+            // The app is an accessory (no Dock icon); bring the window to
+            // the front so it gets focus.
+            NSApp.activate(ignoringOtherApps: true)
+        }
+
         Divider()
 
         Button(L10n.refresh) {

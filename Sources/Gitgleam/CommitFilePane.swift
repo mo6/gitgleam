@@ -128,7 +128,8 @@ struct CommitFilePane: View {
         // (invisible until viewmd supports it). `diff` is already loaded here.
         let marked = MarkdownHighlighter.mark(content, unifiedDiff: diff)
         if case let .success(ansi) = await Viewmd.render(
-            markdown: marked, width: preview.width, viewmdPath: preview.viewmdPath
+            markdown: marked, width: preview.width, viewmdPath: preview.viewmdPath,
+            keepDebugFile: preview.debugKeepFiles
         ) {
             previewText = ANSIText.attributed(from: ansi)
         }

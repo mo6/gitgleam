@@ -13,6 +13,7 @@ enum L10n {
     static var refresh: String { s("Refresh") }
     static var quit: String { s("Quit") }
     static var recentCommits: String { s("Recent commits") }
+    static var settings: String { s("Settings…") }
 
     // Overflow / full-list window
     static var allChanges: String { s("All changes") }
@@ -42,6 +43,21 @@ enum L10n {
     static var diffView: String { s("Diff") }
     static var preview: String { s("Preview") }
     static var viewmdFailed: String { s("viewmd failed") }
+
+    // Settings window
+    static var settingsStatusIcon: String { s("Status icon") }
+    static var warnThreshold: String { s("Warn threshold") }
+    static var criticalThreshold: String { s("Critical threshold") }
+    static var settingsRefresh: String { s("Refresh") }
+    static var refreshInterval: String { s("Poll interval") }
+    static var maxEntries: String { s("Max menu entries") }
+    static var commitsShown: String { s("Recent commits shown") }
+    static var settingsMarkdownPreview: String { s("Markdown preview") }
+    static var viewmdPath: String { s("viewmd path") }
+    static var defaultViewLabel: String { s("Default view") }
+    static var previewWidth: String { s("Preview width") }
+    static var settingsDebug: String { s("Debug") }
+    static var debugKeepPreviewFiles: String { s("Keep preview Markdown files in /tmp for review") }
 
     /// The bundle for the user's preferred language.
     ///

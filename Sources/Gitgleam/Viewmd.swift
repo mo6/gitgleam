@@ -23,15 +23,23 @@ enum Viewmd {
     /// want to preview, not a navigation aid); `VIEWMD_NO_CONFIG` makes the
     /// render independent of any per-user viewmd config file so width/color/toc
     /// are exactly what we ask for.
-    static func render(markdown: String, width: Int, viewmdPath: String) async -> RenderResult {
-        let tmp = FileManager.default.temporaryDirectory
-            .appendingPathComponent("gitgleam-preview-\(UUID().uuidString).md")
+    ///
+    /// When `keepDebugFile` is set (the Settings window's debug toggle), the
+    /// input file is written to `/tmp/` instead of the private, auto-cleaned
+    /// temporary directory, and is left there instead of being removed — so
+    /// the exact Markdown (including `viewmd:mark` sentinels) fed to viewmd
+    /// can be inspected afterwards.
+    static func render(markdown: String, width: Int, viewmdPath: String, keepDebugFile: Bool = false) async -> RenderResult {
+        let directory = keepDebugFile
+            ? URL(fileURLWithPath: "/tmp")
+            : FileManager.default.temporaryDirectory
+        let tmp = directory.appendingPathComponent("gitgleam-preview-\(UUID().uuidString).md")
         do {
             try Data(markdown.utf8).write(to: tmp)
         } catch {
             return .failure(error.localizedDescription)
         }
-        defer { try? FileManager.default.removeItem(at: tmp) }
+        defer { if !keepDebugFile { try? FileManager.default.removeItem(at: tmp) } }
 
         let process = Process()
         // Launch via /bin/bash so viewmd.sh's shebang/PATH assumptions don't

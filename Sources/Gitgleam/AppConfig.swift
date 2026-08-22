@@ -36,6 +36,18 @@ struct AppConfig {
         let width: Int
         /// Resolved initial view for a Markdown file (preview unless overridden).
         let defaultView: ViewMode
+        /// When true, `Viewmd.render` writes its input file to `/tmp/` and
+        /// leaves it there for inspection, instead of a private, auto-cleaned
+        /// temp file. Only ever set from the Settings window's debug toggle
+        /// (see `Settings.previewSettings`); the CLI has no flag for it.
+        let debugKeepFiles: Bool
+
+        init(viewmdPath: String, width: Int, defaultView: ViewMode, debugKeepFiles: Bool = false) {
+            self.viewmdPath = viewmdPath
+            self.width = width
+            self.defaultView = defaultView
+            self.debugKeepFiles = debugKeepFiles
+        }
     }
 
     /// Preview settings for the windows, or nil when `--viewmd-path` is unset.

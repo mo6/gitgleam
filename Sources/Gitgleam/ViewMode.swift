@@ -6,7 +6,7 @@ import Foundation
 /// file rendered as formatted Markdown via `viewmd` (only when a viewmd path is
 /// configured and the file is Markdown). The raw values match the
 /// `--default-view` flag.
-enum ViewMode: String, Hashable {
+enum ViewMode: String, Hashable, Codable {
     case diff
     case preview
 }

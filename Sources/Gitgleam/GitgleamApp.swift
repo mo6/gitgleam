@@ -10,8 +10,22 @@ struct GitgleamApp: App {
     /// Parsed once at launch from the command-line flags.
     static let config = AppConfig.parse(CommandLine.arguments)
 
-    // The observable that tracks git status, configured from the flags.
-    @StateObject private var monitor = GitMonitor(config: GitgleamApp.config)
+    /// Live, user-editable defaults shown in the Settings window — seeded
+    /// from the CLI flags, then persisted independently.
+    @StateObject private var settings: Settings
+    // The observable that tracks git status, configured from the flags and
+    // kept in sync with `settings` (thresholds, refresh interval, …).
+    @StateObject private var monitor: GitMonitor
+
+    init() {
+        // `settings` is built once here (rather than as a plain property
+        // default value) so `monitor` can be constructed with the same
+        // instance — a property's default-value expression can't reference
+        // another property, so the wiring has to happen in `init`.
+        let settings = Settings(config: Self.config)
+        _settings = StateObject(wrappedValue: settings)
+        _monitor = StateObject(wrappedValue: GitMonitor(config: Self.config, settings: settings))
+    }
 
     var body: some Scene {
         MenuBarExtra {
@@ -43,7 +57,7 @@ struct GitgleamApp: App {
         // `FileChange` as its value.
         WindowGroup(id: "diff", for: FileChange.self) { $change in
             if let change {
-                DiffView(change: change, repoPath: Self.config.path, preview: Self.config.previewSettings)
+                DiffView(change: change, repoPath: Self.config.path, preview: settings.previewSettings)
                     .navigationTitle(change.path)
             }
         }
@@ -53,7 +67,7 @@ struct GitgleamApp: App {
         // submenu with the chosen `Commit` as its value.
         WindowGroup(id: "commit", for: Commit.self) { $commit in
             if let commit {
-                CommitDetailView(commit: commit, repoPath: Self.config.path, preview: Self.config.previewSettings)
+                CommitDetailView(commit: commit, repoPath: Self.config.path, preview: settings.previewSettings)
                     .navigationTitle(commit.shortSHA)
             }
         }
@@ -65,6 +79,13 @@ struct GitgleamApp: App {
         Window(L10n.allChanges, id: "all") {
             AllChangesView(monitor: monitor, repoPath: Self.config.path)
         }
+
+        // Settings window: a single reused window for editing the live
+        // defaults (thresholds, refresh interval, viewmd path, …).
+        Window(L10n.settings, id: "settings") {
+            SettingsView(settings: settings)
+        }
+        .windowResizability(.contentSize)
     }
 
     /// The colored circle emoji shown in the menu bar for a given severity.

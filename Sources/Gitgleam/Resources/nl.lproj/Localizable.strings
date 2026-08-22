@@ -3,6 +3,7 @@
 "Refresh" = "Ververs";
 "Quit" = "Afsluiten";
 "Recent commits" = "Recente commits";
+"Settings…" = "Instellingen…";
 
 /* Overflow / full-list window */
 "All changes" = "Alle wijzigingen";
@@ -30,3 +31,17 @@
 "Diff" = "Diff";
 "Preview" = "Voorbeeld";
 "viewmd failed" = "viewmd faalde";
+
+/* Settings window */
+"Status icon" = "Statuspictogram";
+"Warn threshold" = "Waarschuwingsdrempel";
+"Critical threshold" = "Kritieke drempel";
+"Poll interval" = "Pollinterval";
+"Max menu entries" = "Max. menu-items";
+"Recent commits shown" = "Getoonde recente commits";
+"Markdown preview" = "Markdown-voorbeeld";
+"viewmd path" = "viewmd-pad";
+"Default view" = "Standaardweergave";
+"Preview width" = "Voorbeeldbreedte";
+"Debug" = "Debug";
+"Keep preview Markdown files in /tmp for review" = "Bewaar Markdown-voorbeeldbestanden in /tmp ter controle";
