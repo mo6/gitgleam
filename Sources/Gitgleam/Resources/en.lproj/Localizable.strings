@@ -45,3 +45,6 @@
 "Preview width" = "Preview width";
 "Debug" = "Debug";
 "Keep preview Markdown files in /tmp for review" = "Keep preview Markdown files in /tmp for review";
+"seconds" = "seconds";
+"columns" = "columns";
+"Path to viewmd.sh (optional)" = "Path to viewmd.sh (optional)";

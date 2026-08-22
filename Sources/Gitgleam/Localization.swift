@@ -58,6 +58,9 @@ enum L10n {
     static var previewWidth: String { s("Preview width") }
     static var settingsDebug: String { s("Debug") }
     static var debugKeepPreviewFiles: String { s("Keep preview Markdown files in /tmp for review") }
+    static var seconds: String { s("seconds") }
+    static var columns: String { s("columns") }
+    static var viewmdPathPlaceholder: String { s("Path to viewmd.sh (optional)") }
 
     /// The bundle for the user's preferred language.
     ///

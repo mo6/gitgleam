@@ -45,3 +45,6 @@
 "Preview width" = "Voorbeeldbreedte";
 "Debug" = "Debug";
 "Keep preview Markdown files in /tmp for review" = "Bewaar Markdown-voorbeeldbestanden in /tmp ter controle";
+"seconds" = "seconden";
+"columns" = "kolommen";
+"Path to viewmd.sh (optional)" = "Pad naar viewmd.sh (optioneel)";
