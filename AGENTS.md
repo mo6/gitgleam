@@ -220,8 +220,10 @@ Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, AppCo
 - **Always auto-commit after a change.** Once a change is complete and builds,
   commit it without waiting to be asked. Use a clear, descriptive commit
   message.
-- **Work directly on `main`.** Commit to `main` unless explicitly told to use a
-  branch; do not create feature branches by default.
+- **Work on `develop`, not `main`.** Commit to `develop` unless explicitly told
+  otherwise; do not create additional feature branches by default. `main` is
+  reserved for tagged releases only — it advances by merging `develop` into it
+  at release time, then tagging (e.g. `v1.2.0`), not by direct commits.
 - **Always build release and restart the running instances after a change.**
   The user runs Gitgleam via LaunchAgents that launch the optimized binary
   (`.build/release/Gitgleam`), so a plain `swift build` (debug) is not enough to
