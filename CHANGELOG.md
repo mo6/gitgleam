@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-08-22
+
+### Fixed
+
+- The **Recent commits** submenu closing immediately after opening. Each
+  refresh reassigned its `@Published` state unconditionally, which rebuilt
+  the menu even when nothing had changed; since the FSEvents watcher fires
+  on any change under the whole tree (including `.git`, which `git status`
+  itself touches), a no-op refresh could land right as the submenu opened.
+  State is now only reassigned when it actually differs.
+
 ## [1.0.1] - 2026-08-22
 
 ### Added
@@ -52,6 +63,7 @@ Initial release.
   language and a per-launch `-AppleLanguages` override. English (default) and
   Dutch translations included.
 
-[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/mo6/gitgleam/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/mo6/gitgleam/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/mo6/gitgleam/releases/tag/v1.0.0
