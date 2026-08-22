@@ -99,6 +99,8 @@ Sources/Gitgleam/
   Resources/en.lproj/Localizable.strings — English (default)
   Resources/nl.lproj/Localizable.strings — Dutch (example translation)
 Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, AppConfig, MarkdownHighlighter); run with `swift test`
+README.md, CHANGELOG.md                — user-facing docs; CHANGELOG follows Keep a Changelog + SemVer
+SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 ```
 
 ## Architecture notes
@@ -210,6 +212,17 @@ Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, AppCo
   security-scoped bookmark for paths outside its container.
 - **Swift 6 strict concurrency** is on. Keep UI-touching code on `@MainActor`
   and push blocking work into `nonisolated` async functions.
+- **`swift test` needs full Xcode, not just Command Line Tools.** The test
+  target imports `XCTest`, which the bare CLT install
+  (`/Library/Developer/CommandLineTools`) does not ship — it fails with "no
+  such module 'XCTest'". `swift build`/`swift run` work fine under CLT alone;
+  only `swift test` needs `xcode-select -s /Applications/Xcode.app` pointed at
+  a full Xcode install.
+- **The repo is public** (`github.com/mo6/gitgleam`), with `develop` as the
+  GitHub default branch. Treat anything committed as world-readable: no local
+  paths, real usernames, or personal repo names (e.g. the actual watched-vault
+  name) in tracked files — check for these before committing, not just before
+  making the repo public.
 
 ## Conventions
 
@@ -232,6 +245,15 @@ Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, AppCo
   otherwise; do not create additional feature branches by default. `main` is
   reserved for tagged releases only — it advances by merging `develop` into it
   at release time, then tagging (e.g. `v1.2.0`), not by direct commits.
+- **Releasing:** move the `CHANGELOG.md` `[Unreleased]` content under a new
+  `## [x.y.z] - <date>` heading (add the compare-link footer entries too),
+  commit that on `develop`, fast-forward `main` to `develop`
+  (`git merge --ff-only develop`), tag `main` (`git tag -a vX.Y.Z -m "Release
+  vX.Y.Z"`), then — after push approval — push `develop`, `main`, and the tag,
+  and create the GitHub release (`gh release create vX.Y.Z --title vX.Y.Z
+  --notes-file -`) from the same changelog content. Treat an already-pushed
+  tag or `main` commit as more durable than `develop` — prefer amending
+  unpushed local commits over rewriting history that's already public.
 - **Always build release and restart the running instances after a change.**
   The user runs Gitgleam via LaunchAgents that launch the optimized binary
   (`.build/release/Gitgleam`), so a plain `swift build` (debug) is not enough to
