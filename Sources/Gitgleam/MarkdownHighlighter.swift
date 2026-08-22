@@ -10,10 +10,13 @@ import Foundation
 /// them is safe *ahead* of viewmd support — they simply don't highlight yet
 /// (and add a little blank-line spacing around changed blocks in the meantime).
 ///
-/// Granularity is block-level: a "block" is a maximal run of non-blank lines
-/// (a fenced code / Mermaid block is kept whole — blank lines inside a fence do
-/// not split it), which approximates Markdown blocks without a full parser. A
-/// block is marked when any of its lines is an added/changed line in the diff;
+/// Granularity is block-level: a "block" is a maximal run of non-blank lines,
+/// further split at the start of each list item so that one changed item in a
+/// list (which has no blank lines between its siblings) marks just that item,
+/// not the whole list (a fenced code / Mermaid block is kept whole regardless —
+/// blank lines, or lines that look like list items, inside a fence do not split
+/// it). This approximates Markdown blocks without a full parser. A block is
+/// marked when any of its lines is an added/changed line in the diff;
 /// a block whose every line is new is `added`, otherwise `changed`. Pure
 /// deletions have no line in the after-file and are not marked (a known
 /// first-cut limitation, matching VIEWMD-0104's non-goals).
@@ -91,7 +94,9 @@ enum MarkdownHighlighter {
 
     /// Maximal runs of consecutive non-blank lines (1-based, inclusive),
     /// treating a fenced code block as a single block even when it contains
-    /// blank lines.
+    /// blank lines, and additionally splitting a run right before any line
+    /// that starts a new list item (so consecutive list items — which have no
+    /// blank line between them — become separate blocks).
     private static func blockRanges(in lines: [String]) -> [(start: Int, end: Int)] {
         var blocks: [(start: Int, end: Int)] = []
         var i = 0
@@ -105,6 +110,8 @@ enum MarkdownHighlighter {
                     else if marker == fence { fence = nil }      // close
                 } else if fence == nil, isBlank(lines[i]) {
                     break                                        // blank outside a fence ends the block
+                } else if fence == nil, i > start, isListItemStart(lines[i]) {
+                    break                                        // next list item starts its own block
                 }
                 i += 1
             }
@@ -123,5 +130,26 @@ enum MarkdownHighlighter {
         if trimmed.hasPrefix("```") { return "```" }
         if trimmed.hasPrefix("~~~") { return "~~~" }
         return nil
+    }
+
+    /// Whether `line` opens a list item: a bullet (`-`, `*`, `+`) or ordered
+    /// (`1.`, `1)`) marker followed by whitespace, after any leading
+    /// indentation (so a nested sub-item also starts its own block).
+    private static func isListItemStart(_ line: String) -> Bool {
+        let content = line.drop { $0 == " " || $0 == "\t" }
+        guard let first = content.first else { return false }
+
+        if first == "-" || first == "*" || first == "+" {
+            let after = content.dropFirst().first
+            return after == " " || after == "\t"
+        }
+
+        var rest = content[...]
+        let digits = rest.prefix { $0.isNumber }
+        guard !digits.isEmpty else { return false }
+        rest = rest.dropFirst(digits.count)
+        guard let marker = rest.first, marker == "." || marker == ")" else { return false }
+        let after = rest.dropFirst().first
+        return after == " " || after == "\t"
     }
 }

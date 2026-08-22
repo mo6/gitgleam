@@ -100,6 +100,87 @@ final class MarkdownHighlighterTests: XCTestCase {
         XCTAssertFalse(out.contains("start kind=changed -->\nText after"))
     }
 
+    func testOnlyTheChangedListItemIsMarked() {
+        let content = """
+        - Item one
+        - Item two
+        - Item three
+        """
+        // Only "Item two" (line 2) changed. Its whole (one-line) block is
+        // replaced, which the existing "every line is new" heuristic reports
+        // as `added` rather than `changed` — see `testPartialChangeMarksBlockAsChanged`
+        // for the multi-line case where that distinction actually applies.
+        let diff = """
+        @@ -1,3 +1,3 @@
+         - Item one
+        -- Item two old
+        +- Item two
+         - Item three
+        """
+        let out = MarkdownHighlighter.mark(content, unifiedDiff: diff)
+        XCTAssertTrue(out.contains("""
+        <!-- viewmd:mark start kind=added -->
+        - Item two
+        <!-- viewmd:mark end -->
+        """))
+        // The unrelated sibling items are not wrapped.
+        XCTAssertFalse(out.contains("- Item one\n<!-- viewmd:mark end -->"))
+        XCTAssertFalse(out.contains("- Item three\n<!-- viewmd:mark end -->"))
+    }
+
+    func testListItemContinuationLineStaysWithItsItem() {
+        let content = """
+        - Item one
+          continues here
+        - Item two
+        """
+        // Both lines of "Item one" changed; "Item two" is untouched.
+        let diff = """
+        @@ -1,3 +1,3 @@
+        -- Item one old
+        -  continues old
+        +- Item one
+        +  continues here
+         - Item two
+        """
+        let out = MarkdownHighlighter.mark(content, unifiedDiff: diff)
+        // Both of the block's lines were replaced, so — same heuristic as
+        // above — it's reported as `added`.
+        XCTAssertTrue(out.contains("""
+        <!-- viewmd:mark start kind=added -->
+        - Item one
+          continues here
+        <!-- viewmd:mark end -->
+        """))
+        XCTAssertFalse(out.contains("- Item two\n<!-- viewmd:mark end -->"))
+    }
+
+    func testListItemMarkersInsideFenceDoNotSplitTheBlock() {
+        let content = """
+        ```
+        - not a list
+        - still code
+        ```
+        """
+        let diff = """
+        @@ -1,4 +1,4 @@
+         ```
+        -- not code
+        +- not a list
+         - still code
+         ```
+        """
+        let out = MarkdownHighlighter.mark(content, unifiedDiff: diff)
+        XCTAssertTrue(out.contains("""
+        <!-- viewmd:mark start kind=changed -->
+        ```
+        - not a list
+        - still code
+        ```
+        <!-- viewmd:mark end -->
+        """))
+    }
+
     func testSentinelsAreValidHTMLCommentsAndBalanced() {
         let content = "a\n\nb\n"
         let diff = "@@ -1,3 +1,3 @@\n-a-old\n+a\n \n b\n"
