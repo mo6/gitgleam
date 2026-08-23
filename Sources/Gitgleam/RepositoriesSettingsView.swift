@@ -242,6 +242,17 @@ private struct RepositoryRow: View {
                     .help(L10n.notAGitRepositoryWarning)
             }
 
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(repo.isEnabled ? Color.green : Color.secondary.opacity(0.45))
+                    .frame(width: 8, height: 8)
+                Text(repo.isEnabled ? L10n.repositoryActive : L10n.repositoryPaused)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(repo.isEnabled ? L10n.repositoryActive : L10n.repositoryPaused)
+
             Button {
                 showingSettings.toggle()
             } label: {
