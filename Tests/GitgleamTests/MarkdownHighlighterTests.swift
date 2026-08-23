@@ -181,6 +181,48 @@ final class MarkdownHighlighterTests: XCTestCase {
         """))
     }
 
+    func testFrontMatterIsNeverMarkedEvenWhenChanged() {
+        let content = """
+        ---
+        title: Topics
+        updated: 2026-08-23
+        ---
+        # Topics
+        - Item
+        """
+        // Every line changed, including the front matter and the heading.
+        let diff = """
+        @@ -0,0 +1,6 @@
+        +---
+        +title: Topics
+        +updated: 2026-08-23
+        +---
+        +# Topics
+        +- Item
+        """
+        let out = MarkdownHighlighter.mark(content, unifiedDiff: diff)
+        // No sentinel ever appears before the closing "---": the front matter
+        // is untouched, including its literal first-line "---".
+        XCTAssertTrue(out.hasPrefix("---\n"))
+        // The heading right after front matter (no blank line) is still its
+        // own, separately markable block.
+        XCTAssertTrue(out.contains("""
+        <!-- viewmd:mark start kind=added -->
+        # Topics
+        <!-- viewmd:mark end -->
+        """))
+    }
+
+    func testFrontMatterWithoutClosingDelimiterIsNotTreatedAsFrontMatter() {
+        // A lone leading "---" with no closing delimiter isn't front matter
+        // (e.g. it's a thematic break) — nothing should be skipped, and the
+        // changed line is still marked normally.
+        let content = "---\nBody\n"
+        let diff = "@@ -0,0 +1,2 @@\n+---\n+Body\n"
+        let out = MarkdownHighlighter.mark(content, unifiedDiff: diff)
+        XCTAssertTrue(out.contains("<!-- viewmd:mark start kind=added -->\n---\nBody\n<!-- viewmd:mark end -->"))
+    }
+
     func testSentinelsAreValidHTMLCommentsAndBalanced() {
         let content = "a\n\nb\n"
         let diff = "@@ -1,3 +1,3 @@\n-a-old\n+a\n \n b\n"

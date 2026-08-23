@@ -19,7 +19,9 @@ import Foundation
 /// marked when any of its lines is an added/changed line in the diff;
 /// a block whose every line is new is `added`, otherwise `changed`. Pure
 /// deletions have no line in the after-file and are not marked (a known
-/// first-cut limitation, matching VIEWMD-0104's non-goals).
+/// first-cut limitation, matching VIEWMD-0104's non-goals). A leading YAML
+/// front-matter block is never marked, changed or not — see
+/// `frontMatterLineCount`.
 enum MarkdownHighlighter {
     static let startPrefix = "<!-- viewmd:mark start kind="
     static let endMarker = "<!-- viewmd:mark end -->"
@@ -96,10 +98,12 @@ enum MarkdownHighlighter {
     /// treating a fenced code block as a single block even when it contains
     /// blank lines, and additionally splitting a run right before any line
     /// that starts a new list item (so consecutive list items — which have no
-    /// blank line between them — become separate blocks).
+    /// blank line between them — become separate blocks). A leading YAML
+    /// front-matter block, if present, is skipped entirely — see
+    /// `frontMatterLineCount`.
     private static func blockRanges(in lines: [String]) -> [(start: Int, end: Int)] {
         var blocks: [(start: Int, end: Int)] = []
-        var i = 0
+        var i = frontMatterLineCount(in: lines)
         while i < lines.count {
             if isBlank(lines[i]) { i += 1; continue }
             let start = i
@@ -118,6 +122,22 @@ enum MarkdownHighlighter {
             blocks.append((start + 1, i)) // 0-based [start, i-1] → 1-based [start+1, i]
         }
         return blocks
+    }
+
+    /// Number of leading lines occupied by a YAML front-matter block (`---`
+    /// as the file's literal first line, through the next `---`), or `0` if
+    /// the file doesn't start with one.
+    ///
+    /// Front matter is never marked, even if it changed: viewmd only
+    /// recognizes it when `---` is the file's literal first line, and a
+    /// sentinel comment inserted before it — which is exactly what marking
+    /// the block containing it would do — breaks that detection, so the
+    /// front matter renders as raw text instead of being parsed.
+    private static func frontMatterLineCount(in lines: [String]) -> Int {
+        guard let first = lines.first, first.trimmingCharacters(in: .whitespaces) == "---" else { return 0 }
+        guard let closing = lines.dropFirst().firstIndex(where: { $0.trimmingCharacters(in: .whitespaces) == "---" })
+        else { return 0 }
+        return closing + 1 // lines [0...closing] make up the front matter
     }
 
     private static func isBlank(_ line: String) -> Bool {
