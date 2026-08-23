@@ -193,40 +193,47 @@ private enum SettingsSection: CaseIterable, Identifiable {
 
 /// The Repositories tab: an editable list of `RepoConfig` — label, path (with
 /// a folder picker to change it), and a delete button — plus an "Add
-/// Repository…" button. A dynamic list, so it builds its own card rather than
-/// reusing `SettingsCard`'s fixed rows.
+/// Repository…" button below the list. Matches System Settings' grouped list
+/// (a light rounded card with inset separators, action button outside).
 private struct RepositoriesCard: View {
     @Binding var repos: [RepoConfig]
 
+    private var listShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
-            if repos.isEmpty {
-                VStack(spacing: 4) {
-                    Text(L10n.noRepositoriesConfigured)
-                    Text(L10n.noRepositoriesConfiguredDescription)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-            } else {
-                ForEach($repos) { $repo in
-                    RepositoryRow(repo: $repo) {
-                        repos.removeAll { $0.id == repo.id }
+        VStack(alignment: .trailing, spacing: 12) {
+            Group {
+                if repos.isEmpty {
+                    VStack(spacing: 4) {
+                        Text(L10n.noRepositoriesConfigured)
+                        Text(L10n.noRepositoriesConfiguredDescription)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
                     }
-                    Divider()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach($repos) { $repo in
+                            RepositoryRow(repo: $repo) {
+                                repos.removeAll { $0.id == repo.id }
+                            }
+                            if repo.id != repos.last?.id {
+                                Divider()
+                                    .padding(.horizontal, 14)
+                            }
+                        }
+                    }
                 }
             }
-            HStack {
-                Spacer()
-                Button(L10n.addRepository) { addRepository() }
-                    .padding(12)
-            }
+            .frame(maxWidth: .infinity)
+            .background(listShape.fill(Color.primary.opacity(0.05)))
+            .clipShape(listShape)
+
+            Button(L10n.addRepository) { addRepository() }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
     }
 
     private func addRepository() {
