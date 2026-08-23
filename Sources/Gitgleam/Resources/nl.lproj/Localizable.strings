@@ -32,19 +32,31 @@
 "Preview" = "Voorbeeld";
 "viewmd failed" = "viewmd faalde";
 
-/* Settings window */
+/* Settings window: sidebar sections */
 "Status icon" = "Statuspictogram";
-"Warn threshold" = "Waarschuwingsdrempel";
-"Critical threshold" = "Kritieke drempel";
-"Poll interval" = "Pollinterval";
-"Max menu entries" = "Max. menu-items";
-"Recent commits shown" = "Getoonde recente commits";
 "Markdown preview" = "Markdown-voorbeeld";
-"viewmd path" = "viewmd-pad";
-"Default view" = "Standaardweergave";
-"Preview width" = "Voorbeeldbreedte";
 "Debug" = "Debug";
-"Keep preview Markdown files in /tmp for review" = "Bewaar Markdown-voorbeeldbestanden in /tmp ter controle";
+
+/* Settings window: rows */
+"Warn threshold" = "Waarschuwingsdrempel";
+"Number of changes at or above which the menu-bar icon turns yellow." = "Aantal wijzigingen waarbij het menubalkpictogram geel wordt.";
+"Critical threshold" = "Kritieke drempel";
+"Number of changes at or above which the icon turns red." = "Aantal wijzigingen waarbij het pictogram rood wordt.";
+"Poll interval" = "Pollinterval";
+"How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change." = "Hoe vaak Gitgleam de repository opnieuw controleert als vangnet. Een bestandssysteemwaarnemer ververst al direct bij elke wijziging.";
+"Max menu entries" = "Max. menu-items";
+"Largest number of file rows shown in the dropdown before an overflow window is offered instead." = "Maximaal aantal bestandsregels in het menu voordat in plaats daarvan een overloopvenster wordt aangeboden.";
+"Recent commits shown" = "Getoonde recente commits";
+"Number of recent commits listed in the submenu." = "Aantal recente commits in het submenu.";
+"viewmd path" = "viewmd-pad";
+"Location of the viewmd.sh launcher used to render Markdown previews. Leave empty to disable previews." = "Locatie van de viewmd.sh-launcher voor het weergeven van Markdown-voorbeelden. Laat leeg om voorbeelden uit te schakelen.";
+"Default view" = "Standaardweergave";
+"Which view a Markdown window opens in by default." = "Welke weergave een Markdown-venster standaard opent.";
+"Preview width" = "Voorbeeldbreedte";
+"Render width, in columns, passed to viewmd." = "Renderbreedte, in kolommen, doorgegeven aan viewmd.";
+"Keep preview files" = "Bewaar voorbeeldbestanden";
+"Markdown files sent to viewmd for preview are kept in /tmp instead of being deleted, so the exact input — including viewmd:mark highlighting — can be inspected." = "Markdown-bestanden die naar viewmd worden gestuurd voor het voorbeeld blijven in /tmp bewaard in plaats van verwijderd, zodat de exacte invoer — inclusief viewmd:mark-markering — gecontroleerd kan worden.";
 "seconds" = "seconden";
 "columns" = "kolommen";
 "Path to viewmd.sh (optional)" = "Pad naar viewmd.sh (optioneel)";
+"Reset to default" = "Herstel naar standaard";

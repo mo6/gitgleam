@@ -59,6 +59,9 @@ struct AppConfig {
     /// Smallest and largest allowed refresh interval, in seconds.
     static let minInterval: TimeInterval = 10
     static let maxInterval: TimeInterval = 300
+    /// Thresholds used when `--warn`/`--critical` are not given.
+    static let defaultWarnThreshold = 1
+    static let defaultCriticalThreshold = 10
     /// Refresh interval used when `--interval` is not given. This is a
     /// safety-net poll: a filesystem watcher (`RepoWatcher`) refreshes the
     /// instant the repo changes, so the periodic check only has to catch
@@ -77,8 +80,8 @@ struct AppConfig {
     static func parse(_ arguments: [String]) -> AppConfig {
         var path: String?
         var label: String?
-        var warn = 1
-        var critical = 10
+        var warn = defaultWarnThreshold
+        var critical = defaultCriticalThreshold
         var interval = defaultInterval
         var maxEntries = defaultMaxEntries
         var commits = defaultCommits

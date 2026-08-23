@@ -32,19 +32,32 @@
 "Preview" = "Preview";
 "viewmd failed" = "viewmd failed";
 
-/* Settings window */
+/* Settings window: sidebar sections */
 "Status icon" = "Status icon";
-"Warn threshold" = "Warn threshold";
-"Critical threshold" = "Critical threshold";
-"Poll interval" = "Poll interval";
-"Max menu entries" = "Max menu entries";
-"Recent commits shown" = "Recent commits shown";
+"Refresh" = "Refresh";
 "Markdown preview" = "Markdown preview";
-"viewmd path" = "viewmd path";
-"Default view" = "Default view";
-"Preview width" = "Preview width";
 "Debug" = "Debug";
-"Keep preview Markdown files in /tmp for review" = "Keep preview Markdown files in /tmp for review";
+
+/* Settings window: rows */
+"Warn threshold" = "Warn threshold";
+"Number of changes at or above which the menu-bar icon turns yellow." = "Number of changes at or above which the menu-bar icon turns yellow.";
+"Critical threshold" = "Critical threshold";
+"Number of changes at or above which the icon turns red." = "Number of changes at or above which the icon turns red.";
+"Poll interval" = "Poll interval";
+"How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change." = "How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change.";
+"Max menu entries" = "Max menu entries";
+"Largest number of file rows shown in the dropdown before an overflow window is offered instead." = "Largest number of file rows shown in the dropdown before an overflow window is offered instead.";
+"Recent commits shown" = "Recent commits shown";
+"Number of recent commits listed in the submenu." = "Number of recent commits listed in the submenu.";
+"viewmd path" = "viewmd path";
+"Location of the viewmd.sh launcher used to render Markdown previews. Leave empty to disable previews." = "Location of the viewmd.sh launcher used to render Markdown previews. Leave empty to disable previews.";
+"Default view" = "Default view";
+"Which view a Markdown window opens in by default." = "Which view a Markdown window opens in by default.";
+"Preview width" = "Preview width";
+"Render width, in columns, passed to viewmd." = "Render width, in columns, passed to viewmd.";
+"Keep preview files" = "Keep preview files";
+"Markdown files sent to viewmd for preview are kept in /tmp instead of being deleted, so the exact input — including viewmd:mark highlighting — can be inspected." = "Markdown files sent to viewmd for preview are kept in /tmp instead of being deleted, so the exact input — including viewmd:mark highlighting — can be inspected.";
 "seconds" = "seconds";
 "columns" = "columns";
 "Path to viewmd.sh (optional)" = "Path to viewmd.sh (optional)";
+"Reset to default" = "Reset to default";

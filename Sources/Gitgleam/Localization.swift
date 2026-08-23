@@ -44,23 +44,48 @@ enum L10n {
     static var preview: String { s("Preview") }
     static var viewmdFailed: String { s("viewmd failed") }
 
-    // Settings window
+    // Settings window: sidebar sections
     static var settingsStatusIcon: String { s("Status icon") }
-    static var warnThreshold: String { s("Warn threshold") }
-    static var criticalThreshold: String { s("Critical threshold") }
     static var settingsRefresh: String { s("Refresh") }
-    static var refreshInterval: String { s("Poll interval") }
-    static var maxEntries: String { s("Max menu entries") }
-    static var commitsShown: String { s("Recent commits shown") }
     static var settingsMarkdownPreview: String { s("Markdown preview") }
-    static var viewmdPath: String { s("viewmd path") }
-    static var defaultViewLabel: String { s("Default view") }
-    static var previewWidth: String { s("Preview width") }
     static var settingsDebug: String { s("Debug") }
-    static var debugKeepPreviewFiles: String { s("Keep preview Markdown files in /tmp for review") }
+
+    // Settings window: rows (label + explanatory description each)
+    static var warnThreshold: String { s("Warn threshold") }
+    static var warnThresholdDescription: String {
+        s("Number of changes at or above which the menu-bar icon turns yellow.")
+    }
+    static var criticalThreshold: String { s("Critical threshold") }
+    static var criticalThresholdDescription: String {
+        s("Number of changes at or above which the icon turns red.")
+    }
+    static var refreshInterval: String { s("Poll interval") }
+    static var refreshIntervalDescription: String {
+        s("How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change.")
+    }
+    static var maxEntries: String { s("Max menu entries") }
+    static var maxEntriesDescription: String {
+        s("Largest number of file rows shown in the dropdown before an overflow window is offered instead.")
+    }
+    static var commitsShown: String { s("Recent commits shown") }
+    static var commitsShownDescription: String { s("Number of recent commits listed in the submenu.") }
+    static var viewmdPath: String { s("viewmd path") }
+    static var viewmdPathDescription: String {
+        s("Location of the viewmd.sh launcher used to render Markdown previews. Leave empty to disable previews.")
+    }
+    static var defaultViewLabel: String { s("Default view") }
+    static var defaultViewDescription: String { s("Which view a Markdown window opens in by default.") }
+    static var previewWidth: String { s("Preview width") }
+    static var previewWidthDescription: String { s("Render width, in columns, passed to viewmd.") }
+    static var debugKeepPreviewFiles: String { s("Keep preview files") }
+    static var debugKeepPreviewFilesDescription: String {
+        s("Markdown files sent to viewmd for preview are kept in /tmp instead of being deleted, so the exact input — including viewmd:mark highlighting — can be inspected.")
+    }
     static var seconds: String { s("seconds") }
     static var columns: String { s("columns") }
     static var viewmdPathPlaceholder: String { s("Path to viewmd.sh (optional)") }
+    /// Accessibility label for a slider row's reset-to-default button.
+    static var resetToDefault: String { s("Reset to default") }
 
     /// The bundle for the user's preferred language.
     ///
