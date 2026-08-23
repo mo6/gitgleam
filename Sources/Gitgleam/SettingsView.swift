@@ -10,7 +10,7 @@ import AppKit
 /// control — grouped per section.
 struct SettingsView: View {
     @ObservedObject var settings: Settings
-    @State private var section: SettingsSection = .general
+    @State private var section: SettingsSection = .info
 
     var body: some View {
         NavigationSplitView {
@@ -39,6 +39,20 @@ struct SettingsView: View {
     @ViewBuilder
     private func card(for section: SettingsSection) -> some View {
         switch section {
+        case .info:
+            SettingsCard {
+                Text(L10n.appDescription)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 11)
+                Divider()
+                Row(label: L10n.version) {
+                    Text(AppInfo.version).foregroundStyle(.secondary)
+                }
+                Divider()
+                Row(label: L10n.githubRepository) {
+                    Link(L10n.viewOnGithub, destination: AppInfo.githubURL)
+                }
+            }
         case .general:
             SettingsCard {
                 Row(label: L10n.language, description: L10n.languageDescription) {
@@ -146,12 +160,13 @@ struct SettingsView: View {
 
 /// A sidebar destination: a settings group, its icon, and localized title.
 private enum SettingsSection: CaseIterable, Identifiable {
-    case general, statusIcon, refresh, preview, debug
+    case info, general, statusIcon, refresh, preview, debug
 
     var id: Self { self }
 
     var title: String {
         switch self {
+        case .info: return L10n.settingsInfo
         case .general: return L10n.settingsGeneral
         case .statusIcon: return L10n.settingsStatusIcon
         case .refresh: return L10n.settingsRefresh
@@ -162,6 +177,7 @@ private enum SettingsSection: CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .info: return "info.circle"
         case .general: return "gearshape"
         case .statusIcon: return "gauge.with.dots.needle.50percent"
         case .refresh: return "arrow.triangle.2.circlepath"
@@ -185,19 +201,23 @@ private struct SettingsCard<Content: View>: View {
     }
 }
 
-/// One row: a label and description on the left, a flush-right control.
+/// One row: a label (with an optional description below it) on the left, a
+/// flush-right control. `description` is nil for a purely informational row
+/// (e.g. Info's Version/GitHub rows) that doesn't need an explanation.
 private struct Row<Control: View>: View {
     let label: String
-    let description: String
+    var description: String? = nil
     @ViewBuilder var control: Control
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(label)
-                Text(description)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                if let description {
+                    Text(description)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
             }
             Spacer(minLength: 12)
             control

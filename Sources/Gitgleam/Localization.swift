@@ -45,11 +45,20 @@ enum L10n {
     static var viewmdFailed: String { s("viewmd failed") }
 
     // Settings window: sidebar sections
+    static var settingsInfo: String { s("Info") }
     static var settingsGeneral: String { s("General") }
     static var settingsStatusIcon: String { s("Status icon") }
     static var settingsRefresh: String { s("Refresh") }
     static var settingsMarkdownPreview: String { s("Markdown preview") }
     static var settingsDebug: String { s("Debug") }
+
+    // Settings window: Info section
+    static var appDescription: String {
+        s("A small native macOS menu bar app that watches a git repository and shows the number of uncommitted changes, colored by severity, with a colored per-file diff.")
+    }
+    static var version: String { s("Version") }
+    static var githubRepository: String { s("GitHub repository") }
+    static var viewOnGithub: String { s("View on GitHub") }
 
     // Settings window: rows (label + explanatory description each)
     static var language: String { s("Language") }
