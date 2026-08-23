@@ -58,7 +58,6 @@ enum L10n {
     }
     static var version: String { s("Version") }
     static var githubRepository: String { s("GitHub repository") }
-    static var viewOnGithub: String { s("View on GitHub") }
 
     // Settings window: rows (label + explanatory description each)
     static var language: String { s("Language") }

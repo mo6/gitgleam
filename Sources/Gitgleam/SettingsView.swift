@@ -50,7 +50,7 @@ struct SettingsView: View {
                 }
                 Divider()
                 Row(label: L10n.githubRepository) {
-                    Link(L10n.viewOnGithub, destination: AppInfo.githubURL)
+                    Link(AppInfo.githubDisplayLabel, destination: AppInfo.githubURL)
                 }
             }
         case .general:

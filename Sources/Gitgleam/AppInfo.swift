@@ -10,4 +10,7 @@ import Foundation
 enum AppInfo {
     static let version = "1.0.3"
     static let githubURL = URL(string: "https://github.com/mo6/gitgleam")!
+    /// The link's display text — a bare URL, same in every language, so it's
+    /// not localized like the surrounding row labels are.
+    static let githubDisplayLabel = "github.com/mo6/gitgleam"
 }
