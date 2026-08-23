@@ -14,12 +14,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationSplitView {
             List(SettingsSection.allCases, selection: $section) { item in
-                Label {
-                    Text(item.title)
-                } icon: {
-                    SidebarIcon(systemName: item.icon, tint: item.tint)
-                }
-                .tag(item)
+                Label(item.title, systemImage: item.icon).tag(item)
             }
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 170, ideal: 190, max: 220)
@@ -136,36 +131,8 @@ private enum SettingsSection: CaseIterable, Identifiable {
         case .statusIcon: return "gauge.with.dots.needle.50percent"
         case .refresh: return "arrow.triangle.2.circlepath"
         case .preview: return "doc.text.magnifyingglass"
-        case .debug: return "ladybug.fill"
+        case .debug: return "ladybug"
         }
-    }
-
-    /// Badge color, matching System Settings' colorful per-section icons.
-    var tint: Color {
-        switch self {
-        case .statusIcon: return .orange
-        case .refresh: return .blue
-        case .preview: return .purple
-        case .debug: return .red
-        }
-    }
-}
-
-/// A System-Settings-style sidebar icon: a colored rounded square with a
-/// white SF Symbol glyph, replacing `Label`'s default monochrome icon.
-private struct SidebarIcon: View {
-    let systemName: String
-    let tint: Color
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: 6)
-            .fill(tint.gradient)
-            .frame(width: 22, height: 22)
-            .overlay {
-                Image(systemName: systemName)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white)
-            }
     }
 }
 
@@ -178,7 +145,7 @@ private struct SettingsCard<Content: View>: View {
         VStack(spacing: 0, content: { content })
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(nsColor: .underPageBackgroundColor))
+                    .fill(Color(nsColor: .controlBackgroundColor))
             )
     }
 }
