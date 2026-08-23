@@ -82,7 +82,7 @@ menu-bar indicator, instead of running one process per repo:
   changes (a path edit recreates the monitor — the watcher and cached state
   are path-bound; pausing tears it down; a label-only edit doesn't), and
   exposes the aggregate status/count the menu bar shows (paused repos are
-  omitted from the sum). It also owns the single pair of `NSMenu`
+  omitted from the sum and from the dropdown). It also owns the single pair of `NSMenu`
   tracking observers that pause every repo's refresh while a menu is open
   (see the "Refreshing pauses..." gotcha below) — `RepoMonitor` itself no
   longer registers its own.

@@ -45,7 +45,7 @@ final class AppMonitor: ObservableObject {
     }
 
     /// Repos in `settings.repos` order. Disabled repos have `monitor == nil`
-    /// (they stay in the menu as paused rows; nothing is watching them).
+    /// (nothing is watching them; they are omitted from the menu-bar dropdown).
     var orderedEntries: [(repo: RepoConfig, monitor: RepoMonitor?)] {
         settings.repos.map { repo in (repo, monitors[repo.id]) }
     }

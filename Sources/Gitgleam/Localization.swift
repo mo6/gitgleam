@@ -83,7 +83,6 @@ enum L10n {
     }
     static var dragToReorder: String { s("Drag to reorder") }
     static var pauseRepository: String { s("Watch this repository") }
-    static var paused: String { s("paused") }
     static var useAppDefaults: String { s("App defaults") }
     static var customThresholds: String { s("Custom") }
     static var thresholds: String { s("Thresholds") }

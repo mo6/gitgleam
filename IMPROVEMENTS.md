@@ -138,8 +138,8 @@ Multi-repo is new; the Settings surface is still global.
 
 **Implemented (2026-08-23).** Settings → Repositories now supports drag-to-reorder
 (grip on each row), a checkbox to pause a repo without deleting it (no
-FSEvents watcher or `git status` until it's on again; the menu shows it as
-paused), duplicate-path and not-a-git-repo alerts on Add/Choose (Initialize
+FSEvents watcher, `git status`, or menu-bar dropdown row until it's on
+again), duplicate-path and not-a-git-repo alerts on Add/Choose (Initialize
 Git / Add anyway / Cancel), per-repo warn/critical overrides (or "App
 defaults"), Export…/Import… of the same JSON blob `UserDefaults` stores
 (`gitgleam-settings.json`), a warning from 8 repos and a hard cap at 20.
