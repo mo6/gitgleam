@@ -26,10 +26,11 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(settings.defaultView, .preview)
         XCTAssertFalse(settings.debugKeepPreviewFiles)
         XCTAssertEqual(settings.language, "auto") // no CLI flag for it
+        XCTAssertEqual(settings.repos, config.initialRepos)
     }
 
     func testLanguagePersistsAcrossInstances() {
-        let config = parse(["--path", "/tmp/lang-repo"])
+        let config = parse([])
         let defaults = freshDefaults()
 
         let first = Settings(config: config, defaults: defaults)
@@ -39,10 +40,11 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(second.language, "nl")
     }
 
-    func testDataWithoutLanguageKeyStillDecodes() {
-        // Simulates settings persisted before `language` existed: the rest
-        // of the stored values must still load, with language defaulting to
-        // "auto" rather than the whole decode failing.
+    func testDataWithoutLanguageOrReposKeysStillDecodes() {
+        // Simulates settings persisted before `language`/`repos` existed: the
+        // rest of the stored values must still load, with language defaulting
+        // to "auto" and repos migrating in from `config.initialRepos`, rather
+        // than the whole decode failing.
         let config = parse(["--path", "/tmp/legacy-repo", "--warn", "4"])
         let defaults = freshDefaults()
         let legacyJSON = """
@@ -50,11 +52,14 @@ final class SettingsTests: XCTestCase {
          "commits":10,"viewmdPath":"","defaultView":"preview","previewWidth":100,
          "debugKeepPreviewFiles":false}
         """
+        // The pre-multi-repo storage key: `"nl.mo6.gitgleam.settings.<path>"`,
+        // one blob per watched path.
         defaults.set(Data(legacyJSON.utf8), forKey: "nl.mo6.gitgleam.settings./tmp/legacy-repo")
 
         let settings = Settings(config: config, defaults: defaults)
         XCTAssertEqual(settings.language, "auto")
         XCTAssertEqual(settings.warnThreshold, 4) // the rest of the legacy data still loaded
+        XCTAssertEqual(settings.repos, config.initialRepos) // the one repo migrates in
     }
 
     func testNoViewmdPathSeedsEmptyString() {
@@ -65,7 +70,7 @@ final class SettingsTests: XCTestCase {
 
     // MARK: - Persistence
 
-    func testChangesPersistAcrossInstancesForTheSamePath() {
+    func testChangesPersistAcrossInstances() {
         let config = parse(["--path", "/tmp/some-repo"])
         let defaults = freshDefaults()
 
@@ -78,13 +83,25 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(second.viewmdPath, "/opt/viewmd.sh")
     }
 
-    func testDifferentPathsDoNotShareSettings() {
+    func testReposPersistAcrossInstances() {
+        let defaults = freshDefaults()
+        let first = Settings(config: parse([]), defaults: defaults)
+        first.repos = [RepoConfig(path: "/tmp/a", label: "A"), RepoConfig(path: "/tmp/b", label: "B")]
+
+        let second = Settings(config: parse([]), defaults: defaults)
+        XCTAssertEqual(second.repos, first.repos)
+    }
+
+    func testSettingsAreSharedGloballyRegardlessOfInitialLaunchPath() {
+        // Storage is keyed globally now (one process, many repos), not per
+        // watched path: a later launch with a different --path still sees
+        // the same thresholds, since there is only ever one settings blob.
         let defaults = freshDefaults()
         let a = Settings(config: parse(["--path", "/tmp/repo-a"]), defaults: defaults)
         a.warnThreshold = 9
 
         let b = Settings(config: parse(["--path", "/tmp/repo-b"]), defaults: defaults)
-        XCTAssertEqual(b.warnThreshold, 1) // untouched default, not repo-a's 9
+        XCTAssertEqual(b.warnThreshold, 9)
     }
 
     // MARK: - Clamping (live edits, mirroring AppConfig's own clamp rules)

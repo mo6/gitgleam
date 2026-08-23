@@ -1,30 +1,37 @@
 # Gitgleam
 
-A small native macOS menu bar app that watches a git repository and shows the
-number of uncommitted changes, colored by severity, with a colored per-file
-diff. Built with Swift and SwiftUI. (It began life as "VaultStatus", a hardcoded
-watcher for one Obsidian vault, and was generalized into a configurable,
-multi-instance tool.)
+A small native macOS menu bar app that watches one or more git repositories
+and shows the total number of uncommitted changes, colored by severity, with
+a colored per-file diff. Built with Swift and SwiftUI. (It began life as
+"VaultStatus", a hardcoded watcher for one Obsidian vault; was generalized
+into a configurable, multi-instance tool watching one repo per process; and
+was later consolidated into a single multi-repo instance — see "Multi-repo"
+below.)
 
 ## What this app does
 
 - Lives in the menu bar only (no window, no Dock icon).
-- Refreshes the instant the repo changes: a filesystem watcher (`RepoWatcher`,
-  FSEvents) on the watched path triggers `git status --porcelain`. A periodic
-  poll (default 60s, `--interval`) is a safety net for anything the watcher
-  misses.
-- The menu bar label shows an optional text prefix, a colored icon (green below
-  the warn threshold, yellow up to the critical threshold, red at/above it), and
-  the count. A git error shows a ⚠️ instead.
-- The dropdown groups files into **Changed**, **New**, and **Deleted** sections.
-  Changed/new files open a colored diff window; deleted files are shown as
-  non-clickable text. There is a Refresh and a Quit button. The list is capped at
-  `--max-entries` total rows (default 25); when more files exist, an overflow row
-  opens a **Show all changes** window (`AllChangesView`) with the full list.
-- A **Recent commits** submenu lists the last `--commits` commits (default 10).
-  Clicking one opens a `CommitDetailView` split-view window: a sidebar lists the
-  files the commit changed and a detail pane (`CommitFilePane`) shows the colored
-  diff for the selected file. The first file is selected automatically.
+- Refreshes the instant a repo changes: a filesystem watcher (`RepoWatcher`,
+  FSEvents) on each watched path triggers `git status --porcelain`. A periodic
+  poll (default 60s, `--interval`, shared by every repo) is a safety net for
+  anything the watcher misses.
+- The menu bar label shows a single **aggregated** icon (green below the warn
+  threshold, yellow up to the critical threshold, red at/above it — thresholds
+  compare against the *summed* change count across every repo) and that summed
+  count. A git error in any repo shows a ⚠️ instead.
+- The dropdown lists every configured repo as its own submenu (own severity
+  icon, label, and count). Inside a repo's submenu, files are grouped into
+  **Changed**, **New**, and **Deleted** sections; changed/new files open a
+  colored diff window, deleted files are shown as non-clickable text. Below the
+  repo list: Settings, Refresh (refreshes every repo), and Quit. Each repo's
+  section list is capped at `--max-entries` total rows (default 25); when more
+  files exist, an overflow row opens a **Show all changes** window
+  (`AllChangesView`) with that repo's full list.
+- Each repo submenu also has a **Recent commits** submenu listing its last
+  `--commits` commits (default 10). Clicking one opens a `CommitDetailView`
+  split-view window: a sidebar lists the files the commit changed and a detail
+  pane (`CommitFilePane`) shows the colored diff for the selected file. The
+  first file is selected automatically.
 - For **Markdown files**, when `--viewmd-path` points at a `viewmd.sh` launcher,
   the diff window and each commit file pane gain a **Diff/Preview** toggle.
   Preview renders the file as formatted Markdown — including Mermaid diagrams as
@@ -36,19 +43,53 @@ multi-instance tool.)
   VIEWMD-0104). These are plain HTML comments, invisible to a viewmd that
   doesn't yet support them — so the marking is injected now and simply doesn't
   highlight until viewmd ships that feature.
-- The watched path and label come from command-line flags, so several
-  instances can run side by side. Everything else — thresholds, poll
-  interval, menu-entry cap, recent-commits count, Markdown preview settings,
-  language, and a debug option — lives in `Settings` (`Settings.swift`), a
-  `@MainActor ObservableObject` seeded once from those flags (the
-  first-launch defaults) then persisted independently via `UserDefaults`,
-  keyed by the watched path. `SettingsView` (opened from a new menu item,
-  "Settings…", just above Refresh) edits it live: `GitMonitor` observes
-  `Settings` and forwards its changes, and any diff/commit window opened
-  afterwards reads the current values.
+- The repo list comes from repeatable `--repo <path>[:<label>]` flags at
+  first launch (or a single `--path`/`--label`, for back-compat). Everything
+  else — the repo list itself, thresholds, poll interval, menu-entry cap,
+  recent-commits count, Markdown preview settings, language, and a debug
+  option — lives in `Settings` (`Settings.swift`), a `@MainActor
+  ObservableObject` seeded once from those flags (the first-launch defaults)
+  then persisted independently via `UserDefaults` under one global key.
+  `SettingsView` (opened from a new menu item, "Settings…", just above
+  Refresh) edits it live: `AppMonitor` observes `Settings.repos` (creating/
+  destroying a `RepoMonitor` per entry) and forwards `Settings`' other
+  changes, and any diff/commit/all-changes window opened afterwards reads the
+  current values.
 - **Language** is one of those settings: "Automatic" (the previous,
   system-language-only behavior) or an explicit language, applied via
   `L10n.languageOverride`.
+
+## Multi-repo
+
+One process now watches every configured repo and shows one aggregated
+menu-bar indicator, instead of running one process per repo:
+
+- `RepoConfig` (`RepoConfig.swift`) is the unit: a stable `UUID` plus
+  `path`/`label`. `Settings.repos: [RepoConfig]` is the source of truth,
+  editable live from **Settings… → Repositories** (add via a folder picker,
+  edit the label inline, re-point the path, or delete).
+- `RepoMonitor` (`RepoMonitor.swift`, the renamed/reworked former
+  `GitMonitor`) tracks one repo — unchanged in spirit from before multi-repo,
+  just constructed from a `RepoConfig` instead of the whole `AppConfig`.
+- `AppMonitor` (`AppMonitor.swift`) owns one `RepoMonitor` per entry in
+  `settings.repos`, rebuilding that dictionary whenever the list changes (a
+  path edit recreates the monitor — the watcher and cached state are
+  path-bound; a label-only edit doesn't), and exposes the aggregate status/
+  count the menu bar shows. It also owns the single pair of `NSMenu`
+  tracking observers that pause every repo's refresh while a menu is open
+  (see the "Refreshing pauses..." gotcha below) — `RepoMonitor` itself no
+  longer registers its own.
+- `RepoFileChange`/`RepoCommit` (`RepoFileChange.swift`) bundle a repo's id/
+  path with a `FileChange`/`Commit` for `openWindow(id:value:)` — the diff/
+  commit windows need to know *which* repo a file or commit belongs to, now
+  that several repos can be open at once. `FileChange`/`Commit` themselves
+  stay untouched, pure parse models.
+- Settings storage moved from a per-watched-path key
+  (`"nl.mo6.gitgleam.settings.\(path)"`, one process per repo) to one global
+  key (`Settings.storageKey`, one process for every repo). `Settings.init`
+  migrates an existing per-path blob the first time it finds nothing under
+  the global key and this launch's first `--repo`/`--path` matches one — see
+  the `Settings` gotcha below.
 
 ## Build & run
 
@@ -56,48 +97,57 @@ This is a Swift Package Manager project, not an Xcode project. Build and run
 from the command line:
 
 ```bash
-swift build                                  # compile
-swift run Gitgleam --path ~/repo --label X   # build and launch
-swift build -c release                       # optimized build
+swift build                                              # compile
+swift run Gitgleam --repo ~/repo:X --repo ~/other:Y      # build and launch
+swift build -c release                                   # optimized build
 ```
 
-Flags: `--path/-p`, `--label/-l`, `--warn/-w`, `--critical/-c`, `--interval/-i`,
-`--max-entries/-m`, `--commits/-C`, `--viewmd-path/-V`, `--default-view`,
-`--preview-width`, `--help/-h` (see `AppConfig.swift`). Path defaults to the
-current directory; warn defaults to 1, critical to 10, interval to 60 seconds
+Flags: `--repo/-r` (repeatable, `<path>[:<label>]`), `--path/-p`,
+`--label/-l` (single-repo back-compat for `--repo`), `--warn/-w`,
+`--critical/-c`, `--interval/-i`, `--max-entries/-m`, `--commits/-C`,
+`--viewmd-path/-V`, `--default-view`, `--preview-width`, `--help/-h` (see
+`AppConfig.swift`). No `--repo`/`--path` at all seeds one repo at the current
+directory. Warn defaults to 1, critical to 10, interval to 60 seconds
 (clamped to 10–300; a filesystem watcher gives instant updates, so this is only
 a fallback poll), max-entries to 25 (clamped to ≥1), commits to 10 (clamped
 to ≥1). `--viewmd-path` is unset by default (Markdown preview disabled);
 `--default-view` is `diff`|`preview` (defaults to `preview` once a viewmd path
-is set); `--preview-width` defaults to 100 (clamped to ≥20). All of these
-(except `--path`/`--label`) are only *first-launch* defaults — `Settings`
-takes over from there, editable live in the Settings window and persisted
+is set); `--preview-width` defaults to 100 (clamped to ≥20). All of these are
+only *first-launch* defaults — `Settings` takes over from there (the repo
+list included), editable live in the Settings window and persisted
 independently.
 
 The launched app appears in the menu bar (top-right), not the Dock. Quit it from
 its own menu ("Quit") or with Ctrl-C in the terminal that ran `swift run`. See
-[README.md](README.md) for launch-at-login and multi-instance setup.
+[README.md](README.md) for launch-at-login setup.
 
 Tests live in `Tests/GitgleamTests` (a `.testTarget` in `Package.swift`); run
 them with `swift test`. Coverage is the pure logic that needs no running UI or
 git: `ANSIText` (SGR + OSC parsing, malformed escapes, light-mode background
-adaptation), `FileKind`, `AppConfig` flag parsing/clamping, `Settings`
-(seeding from `AppConfig`, clamping, persistence round-trip, backward-
-compatible decoding), and `MarkdownHighlighter` (diff → block markers, list-
-item/front-matter splitting). Add tests here when you add similar logic (e.g.
-porcelain parsing in `FileChange`).
+adaptation), `FileKind`, `RepoConfig` (`Codable` round-trip), `AppConfig` flag
+parsing/clamping (including the repeatable `--repo` flag and `--path`/
+`--label` back-compat), `Settings` (seeding from `AppConfig`, clamping,
+persistence round-trip including `repos`, backward-compatible decoding, the
+legacy-per-path-key migration), and `MarkdownHighlighter` (diff → block
+markers, list-item/front-matter splitting). Add tests here when you add
+similar logic (e.g. porcelain parsing in `FileChange`). There's no dedicated
+coverage for `RepoMonitor`/`AppMonitor` (as there wasn't for `GitMonitor`
+before them) — they need a running git process/FSEvents/UI to exercise.
 
 ## Project layout
 
 ```
 Package.swift                          — SPM manifest (macOS 14+, executable + test target, localized resources)
 Sources/Gitgleam/
-  GitgleamApp.swift                    — @main App + MenuBarExtra + diff/commit WindowGroups + AppDelegate
-  AppConfig.swift                      — parses startup flags (path, label, thresholds, commit count, viewmd preview)
-  MenuContent.swift                    — the dropdown menu view (3 sections, capped; recent-commits submenu)
-  AllChangesView.swift                 — window listing every change (opened on menu overflow)
-  GitMonitor.swift                     — runs git status + recent commits, publishes state, derives color; coalesced refresh
-  RepoWatcher.swift                    — FSEvents watcher on the repo tree; triggers an instant refresh on any change
+  GitgleamApp.swift                    — @main App + MenuBarExtra + diff/commit/all-changes WindowGroups + AppDelegate
+  AppConfig.swift                      — parses startup flags (initial repo list, thresholds, commit count, viewmd preview)
+  RepoConfig.swift                     — model: one watched repo (stable UUID + path + label), persisted in Settings.repos
+  MenuContent.swift                    — the dropdown menu view: one submenu per repo (3 file sections, capped; recent-commits submenu)
+  AllChangesView.swift                 — window listing every change for one repo (opened on that repo's menu overflow)
+  AppMonitor.swift                     — owns one RepoMonitor per settings.repos entry; aggregates status/count for the menu bar
+  RepoMonitor.swift                    — runs git status + recent commits for one repo, publishes state, derives color; coalesced refresh
+  RepoFileChange.swift                 — RepoFileChange/RepoCommit: FileChange/Commit bundled with which repo, for openWindow
+  RepoWatcher.swift                    — FSEvents watcher on one repo tree; triggers an instant refresh on any change
   Git.swift                            — central git runner (status, per-file diff, log, commit diff, file-at-ref), takes a path
   FileChange.swift                     — model: parses a porcelain line into status + path + category
   Commit.swift                         — model: parses a git-log record into sha + subject + author + date
@@ -112,13 +162,13 @@ Sources/Gitgleam/
   MarkdownHighlighter.swift            — wraps changed blocks in viewmd:mark sentinels (diff → markers)
   FileKind.swift                       — file-type detection (currently: is this path Markdown?)
   ViewMode.swift                       — enum diff | preview (the window's current/default rendering)
-  Settings.swift                       — live, persisted defaults (thresholds, interval, viewmd, language, debug flag)
-  SettingsView.swift                   — the Settings window: sidebar sections + card rows
+  Settings.swift                       — live, persisted defaults (repos, thresholds, interval, viewmd, language, debug flag)
+  SettingsView.swift                   — the Settings window: sidebar sections + card rows, incl. the Repositories tab
   AppInfo.swift                        — static version string + GitHub URL, shown in Settings' Info section
   Localization.swift                   — L10n: central lookup of user-facing strings + language-override support
   Resources/en.lproj/Localizable.strings — English (default)
   Resources/nl.lproj/Localizable.strings — Dutch (example translation)
-Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, AppConfig, Settings, MarkdownHighlighter); run with `swift test`
+Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, RepoConfig, AppConfig, Settings, MarkdownHighlighter); run with `swift test`
 README.md, CHANGELOG.md                — user-facing docs; CHANGELOG follows Keep a Changelog + SemVer
 SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 ```
@@ -131,33 +181,42 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 - **No Dock icon:** an `AppDelegate` calls `NSApp.setActivationPolicy(.accessory)`
   in `applicationDidFinishLaunching`. This replaces the `LSUIElement` Info.plist
   key, which a Swift Package does not have.
-- **`GitMonitor`** is `@MainActor` because it owns `@Published` state that drives
-  the UI. The actual `git` calls live in `Git` as `nonisolated static async`
-  functions so the blocking `Process.waitUntilExit()` never freezes the menu.
+- **`RepoMonitor`/`AppMonitor`** are `@MainActor` because they own `@Published`
+  state that drives the UI. The actual `git` calls live in `Git` as
+  `nonisolated static async` functions so the blocking `Process.waitUntilExit()`
+  never freezes the menu.
 - **Config flows one way.** `GitgleamApp.config` is parsed once from
-  `CommandLine.arguments` and injected into `GitMonitor(config:)` and, via the
-  scene closures, into `DiffView` / `CommitDetailView` (repo path plus
-  `config.previewSettings`). There is no global mutable state.
+  `CommandLine.arguments` and used only to seed `Settings` (repo list,
+  thresholds, preview settings). From then on the scene closures read
+  `settings`/`monitor` (an `AppMonitor`) directly — `DiffView`/
+  `CommitDetailView` get their repo path from the `RepoFileChange`/
+  `RepoCommit` value passed to `openWindow`, not from a static config. There
+  is no global mutable state.
 
 ## Gotchas (important when editing)
 
 - **Full path to git.** A GUI app does not inherit your shell `PATH`. Always use
   the absolute path `/usr/bin/git` in `Process`, never bare `git`.
-- **Watched path comes from flags.** There is no hardcoded path anymore — it is
-  `AppConfig.path` (from `--path`, default current directory, `~` expanded).
-- **Multiple instances work because it's a raw binary.** Launching the SPM
-  executable N times starts N independent processes, each with its own menu-bar
-  item. A registered `.app` bundle would refuse a second launch by default
+- **Watched paths come from `Settings.repos`.** There is no hardcoded path —
+  each `RepoConfig.path` is seeded from `--repo`/`--path` at first launch
+  (`~` expanded) and can change any time from Settings' Repositories tab.
+- **Multiple instances still work, but aren't the intended way to watch
+  several repos anymore.** Launching the SPM executable N times still starts N
+  independent processes, each with its own aggregated menu-bar item (each
+  process's `Settings` reads/writes the same global `UserDefaults` key, so
+  running two at once would fight over the same repo list — avoid it). A
+  registered `.app` bundle would refuse a second launch by default
   (`LSMultipleInstancesProhibited`); if this is ever bundled, revisit that.
 - **The menu-bar label must be a single `Text`.** A `MenuBarExtra` `.menu`
   label with several sibling views (e.g. `Text` + `Image` + `Text`) is coerced
   into an icon+title layout: it reorders the icon ahead of the text and silently
   drops the extra views (the count disappeared this way). Compose the whole
-  label — prefix, icon, count — into one `Text` so order and every part survive.
+  label — icon, count — into one `Text` so order and every part survive.
   Related: an `Image` interpolated into that `Text` is rendered as a monochrome
   *template* (tinted to the menu-bar foreground), which loses any custom color,
   so the severity indicator is a colored circle **emoji** (🟢/🟡/🔴, ⚠️ on
-  error) via `statusIcon(for:)`, not an `NSImage`.
+  error) via `statusIcon(for:)` (top-level, aggregate) and `MenuContent`'s own
+  `statusIcon(for:)` (per repo, in its submenu title), not an `NSImage`.
 - **Localization needs `Bundle.module`.** Strings are looked up from the
   generated `Gitgleam_Gitgleam.bundle` (next to the binary). All user-facing
   text goes through `L10n`; never hardcode a display string in a view. Add a
@@ -241,34 +300,41 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
   files, so watching only the working tree would miss it — hence the whole path
   is watched. `git status` can itself rewrite `.git/index`'s stat cache, which
   produces a follow-up event; FSEvents' 0.5s latency coalescing plus
-  `GitMonitor`'s `refreshInFlight`/`pendingRefresh` guard collapse that into a
+  `RepoMonitor`'s `refreshInFlight`/`pendingRefresh` guard collapse that into a
   single extra refresh rather than a loop. The C callback is a free function
   (`repoWatcherCallback`) that recovers the `RepoWatcher` from FSEvents'
   `info` pointer — a capturing Swift closure can't become a `@convention(c)`
   callback — and hops to `@MainActor` to call `refresh()`.
 - **Refreshing pauses while any of the app's own menus is open.**
-  `GitMonitor` observes AppKit's in-process `NSMenu.didBeginTrackingNotification`/
-  `didEndTrackingNotification` and defers `refresh()` (reusing the
-  `pendingRefresh` flag) for as long as one is open, catching up once it
-  closes. Without this, a refresh mid-open — even a no-op one — fires
+  `AppMonitor` (not each `RepoMonitor` — see "Multi-repo" above) observes
+  AppKit's in-process `NSMenu.didBeginTrackingNotification`/
+  `didEndTrackingNotification` and defers every repo's `refresh()` (reusing
+  each `RepoMonitor`'s `pendingRefresh` flag via `menuOpened()`/
+  `menuClosed()`) for as long as one is open, catching up once it closes.
+  Without this, a refresh mid-open — even a no-op one — fires
   `objectWillChange` and rebuilds the menu, which was closing the "Recent
-  commits" submenu the instant it opened. `GitMonitor` isn't an `NSObject`,
-  so this uses the block-based `NotificationCenter` API, not target/selector.
-- **`Settings` persists per watched path, with optional fields for
+  commits" submenu the instant it opened. Neither class is an `NSObject`, so
+  this uses the block-based `NotificationCenter` API, not target/selector.
+- **`Settings` persists under one global key, with optional fields for
   forward-compatible decoding.** `Settings` (`@MainActor ObservableObject`)
   is seeded once from `AppConfig` (the CLI flags — first-launch defaults
   only) and thereafter reads/writes a single JSON-encoded `StoredSettings`
-  blob in `UserDefaults`, keyed `"nl.mo6.gitgleam.settings.\(config.path)"`.
+  blob in `UserDefaults`, keyed by the fixed `Settings.storageKey`
+  (`"nl.mo6.gitgleam.settings"`) — one blob for every repo, since one process
+  now watches all of them. Before multi-repo it was keyed per watched path
+  (`"nl.mo6.gitgleam.settings.\(path)"`, one process per repo); `Settings.init`
+  migrates a matching legacy blob in place the first time it finds nothing
+  under the global key (see `SettingsTests.testDataWithoutLanguageOrReposKeysStillDecodes`).
   A field added after the app has already persisted settings for someone
   must be declared `Optional` in `StoredSettings` (Codable's synthesized
   decoder treats a missing key as `nil` for an `Optional` property, but fails
-  the *entire* decode for a missing required field) — see `language` for the
-  pattern, and `SettingsTests.testDataWithoutLanguageKeyStillDecodes`.
-  Assignments inside `Settings.init` don't trigger a property's own `didSet`
-  (a general Swift rule), so the clamping/persisting/side-effecting logic in
-  each property's `didSet` needs an explicit one-time equivalent at the end
-  of `init` when it has an effect beyond the property itself (e.g.
-  `L10n.languageOverride`, set explicitly after `language`'s assignment).
+  the *entire* decode for a missing required field) — see `language`/`repos`
+  for the pattern. Assignments inside `Settings.init` don't trigger a
+  property's own `didSet` (a general Swift rule), so the clamping/persisting/
+  side-effecting logic in each property's `didSet` needs an explicit one-time
+  equivalent at the end of `init` when it has an effect beyond the property
+  itself (e.g. `L10n.languageOverride`, set explicitly after `language`'s
+  assignment).
 - **`L10n`'s language override is `nonisolated(unsafe)`, deliberately.**
   `Settings.language` calls `L10n.languageOverride = ...`, but `L10n` is also
   called from `Git`'s `nonisolated` background functions (`gitFailed`, etc.),
@@ -343,8 +409,8 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 
   Do this without waiting to be asked, the same as auto-committing. The
   LaunchAgent labels are discovered from `~/Library/LaunchAgents/*gitgleam*.plist`
-  (currently `nl.mo6.gitgleam.brain` and
-  `nl.mo6.gitgleam.brain-private`); if none are present, skip the restart.
+  (currently just `nl.mo6.gitgleam.brain`, which watches every configured repo
+  — see "Multi-repo" above); if none are present, skip the restart.
 
 ## Ideas / backlog
 

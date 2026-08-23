@@ -1,16 +1,17 @@
 import SwiftUI
 
-/// Window listing *all* changed files, grouped into Changed / New / Deleted.
+/// Window listing *all* changed files for one repo, grouped into Changed /
+/// New / Deleted.
 ///
-/// Opened from the menu's "Show all changes…" overflow action when the entry
-/// cap hides files. Unlike the menu it has no row limit, and it observes the
-/// shared `GitMonitor`, so it updates live as the repository changes. Clicking
-/// a changed/new file opens its diff window (the same `WindowGroup` the menu
-/// uses); deleted files are shown as plain text.
+/// Opened from that repo's submenu "Show all changes…" overflow action when
+/// the entry cap hides files. Unlike the menu it has no row limit, and it
+/// observes the repo's `RepoMonitor`, so it updates live as the repository
+/// changes. Clicking a changed/new file opens its diff window (the same
+/// `WindowGroup` the menu uses); deleted files are shown as plain text.
 struct AllChangesView: View {
-    @ObservedObject var monitor: GitMonitor
-    /// Repository the files belong to (forwarded to the diff window).
-    let repoPath: String
+    @ObservedObject var monitor: RepoMonitor
+    /// The repo these files belong to (forwarded to the diff window).
+    let repo: RepoConfig
 
     @Environment(\.openWindow) private var openWindow
 
@@ -47,7 +48,7 @@ struct AllChangesView: View {
                 ForEach(files) { change in
                     if selectable {
                         Button {
-                            openWindow(id: "diff", value: change)
+                            openWindow(id: "diff", value: RepoFileChange(repoID: repo.id, repoPath: repo.path, change: change))
                             // The app is an accessory (no Dock icon); bring the
                             // window to the front so it gets focus.
                             NSApp.activate(ignoringOtherApps: true)

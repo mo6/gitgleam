@@ -3,13 +3,16 @@ import Foundation
 /// User-editable defaults, shown and changed in the Settings window.
 ///
 /// Seeded once from the CLI-parsed `AppConfig` (so the existing `--warn`,
-/// `--viewmd-path`, etc. flags remain the *first-launch* defaults), then
-/// persisted independently via `UserDefaults`, keyed by the watched path so
-/// multiple instances (each launched with a different `--path`) keep separate
-/// settings. Every property applies live: `GitMonitor` and any newly opened
-/// diff/commit window read the current values, no restart needed.
+/// `--viewmd-path`, `--repo`, etc. flags remain the *first-launch* defaults),
+/// then persisted independently via `UserDefaults` under one global key.
+/// Every property applies live: `AppMonitor`/`RepoMonitor` and any newly
+/// opened diff/commit window read the current values, no restart needed.
 @MainActor
 final class Settings: ObservableObject {
+    /// The watched repositories, in display order. Managed live from
+    /// Settings' Repositories tab; `AppMonitor` creates/destroys a
+    /// `RepoMonitor` for each entry.
+    @Published var repos: [RepoConfig] { didSet { save() } }
     /// A language code (e.g. `"nl"`) from `L10n.availableLanguages`, or
     /// `"auto"` to follow the system language. Not seeded from `AppConfig` —
     /// there's no CLI flag for it, so "auto" is always the first-launch
@@ -81,34 +84,54 @@ final class Settings: ObservableObject {
         )
     }
 
+    /// Fixed, global storage key. Before multi-repo support this was keyed
+    /// per watched path (`"nl.mo6.gitgleam.settings.\(path)"`) since each
+    /// process watched exactly one repo; now one process holds the whole
+    /// repo list, so there's a single blob. `init` migrates an existing
+    /// per-path blob the first time it finds nothing under this key — see
+    /// below.
+    static let storageKey = "nl.mo6.gitgleam.settings"
+
     private let defaults: UserDefaults
-    private let storageKey: String
 
     init(config: AppConfig, defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.storageKey = "nl.mo6.gitgleam.settings.\(config.path)"
 
-        let stored = defaults.data(forKey: storageKey).flatMap {
+        let stored = defaults.data(forKey: Settings.storageKey).flatMap {
             try? JSONDecoder().decode(StoredSettings.self, from: $0)
         }
+        // Nothing under the new global key yet: migrate a legacy per-path
+        // blob if this launch's first repo matches one (i.e. this is an
+        // existing single-repo install upgrading in place). Only the
+        // thresholds/etc. are adopted from it; the repo list itself always
+        // comes from `config.initialRepos` below.
+        let legacy = stored == nil ? config.initialRepos.first.flatMap { first in
+            defaults.data(forKey: "nl.mo6.gitgleam.settings.\(first.path)").flatMap {
+                try? JSONDecoder().decode(StoredSettings.self, from: $0)
+            }
+        } : nil
+        let seed = stored ?? legacy
 
         // Assignments in this initializer don't trigger the `didSet` clamps
         // above (Swift skips property observers for a property's own
         // initializer), so no explicit re-entrancy guard is needed here.
-        language = stored?.language ?? "auto"
-        warnThreshold = stored?.warnThreshold ?? config.warnThreshold
-        criticalThreshold = stored?.criticalThreshold ?? config.criticalThreshold
-        refreshInterval = stored?.refreshInterval ?? config.refreshInterval
-        maxEntries = stored?.maxEntries ?? config.maxEntries
-        commits = stored?.commits ?? config.commits
-        viewmdPath = stored?.viewmdPath ?? (config.viewmdPath ?? "")
-        defaultView = stored?.defaultView ?? (config.defaultView ?? .preview)
-        previewWidth = stored?.previewWidth ?? config.previewWidth
-        debugKeepPreviewFiles = stored?.debugKeepPreviewFiles ?? false
+        repos = seed?.repos ?? config.initialRepos
+        language = seed?.language ?? "auto"
+        warnThreshold = seed?.warnThreshold ?? config.warnThreshold
+        criticalThreshold = seed?.criticalThreshold ?? config.criticalThreshold
+        refreshInterval = seed?.refreshInterval ?? config.refreshInterval
+        maxEntries = seed?.maxEntries ?? config.maxEntries
+        commits = seed?.commits ?? config.commits
+        viewmdPath = seed?.viewmdPath ?? (config.viewmdPath ?? "")
+        defaultView = seed?.defaultView ?? (config.defaultView ?? .preview)
+        previewWidth = seed?.previewWidth ?? config.previewWidth
+        debugKeepPreviewFiles = seed?.debugKeepPreviewFiles ?? false
 
         // `language`'s own didSet (which applies the override) doesn't fire
         // for this initializer's assignment above, so apply it explicitly.
         L10n.languageOverride = (language == "auto") ? nil : language
+
+        if stored == nil { save() }
     }
 
     /// The on-disk shape, versioned implicitly by field presence: a decode
@@ -119,6 +142,10 @@ final class Settings: ObservableObject {
         /// settings persisted before this field existed still decode — a
         /// missing key becomes `nil` instead of failing the whole decode.
         var language: String?
+        /// Optional for the same reason: absent from every legacy per-path
+        /// blob (multi-repo didn't exist yet), and from any future field
+        /// added the same way.
+        var repos: [RepoConfig]?
         var warnThreshold: Int
         var criticalThreshold: Int
         var refreshInterval: TimeInterval
@@ -132,13 +159,13 @@ final class Settings: ObservableObject {
 
     private func save() {
         let stored = StoredSettings(
-            language: language, warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
+            language: language, repos: repos, warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
             refreshInterval: refreshInterval, maxEntries: maxEntries, commits: commits,
             viewmdPath: viewmdPath, defaultView: defaultView, previewWidth: previewWidth,
             debugKeepPreviewFiles: debugKeepPreviewFiles
         )
         if let data = try? JSONEncoder().encode(stored) {
-            defaults.set(data, forKey: storageKey)
+            defaults.set(data, forKey: Settings.storageKey)
         }
     }
 }

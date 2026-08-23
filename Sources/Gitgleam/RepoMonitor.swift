@@ -1,14 +1,14 @@
 import Foundation
 import Combine
-import AppKit
 
-/// Tracks the uncommitted changes of the watched repository.
+/// Tracks the uncommitted changes of one watched repository.
 ///
 /// `@MainActor` because the UI (`@Published`) may only be updated on the main
 /// thread. The actual git work runs in `Git`, off the main actor, so the UI
-/// never blocks.
+/// never blocks. Owned by `AppMonitor`, one per `RepoConfig` in
+/// `settings.repos`.
 @MainActor
-final class GitMonitor: ObservableObject {
+final class RepoMonitor: ObservableObject {
     /// The changed files from the latest status check.
     @Published var changes: [FileChange] = []
 
@@ -18,7 +18,8 @@ final class GitMonitor: ObservableObject {
     /// The most recent commits, for the "Recent commits" submenu.
     @Published var commits: [Commit] = []
 
-    /// Severity of the status. Drives the menu-bar icon and its color.
+    /// Severity of the status. Drives this repo's submenu icon and the
+    /// menu-bar aggregate (via `AppMonitor`).
     enum Status {
         case error // git check failed: warning
         case clean // below the warn threshold: green
@@ -47,12 +48,12 @@ final class GitMonitor: ObservableObject {
     /// widening access to the whole `Settings` object.
     var maxMenuEntries: Int { settings.maxEntries }
 
-    /// The path being watched (fixed for this instance's lifetime — set via
-    /// `--path`, not editable in Settings).
+    /// The path being watched (fixed for this monitor's lifetime — `AppMonitor`
+    /// recreates the monitor if the repo's path is edited in Settings).
     private let path: String
     /// Live, user-editable defaults (thresholds, refresh interval, commit
-    /// count, …). Changing these applies immediately: see the `Combine`
-    /// subscriptions set up in `init`.
+    /// count, …), shared across every repo. Changing these applies
+    /// immediately: see the `Combine` subscriptions set up in `init`.
     private let settings: Settings
 
     private var timer: Timer?
@@ -75,31 +76,22 @@ final class GitMonitor: ObservableObject {
     /// open — even one that changes nothing visible — rebuilds the menu and
     /// dismisses any open submenu (e.g. "Recent commits" closing the instant
     /// it opens), so refreshes are deferred until the menu closes instead.
+    /// Toggled by `AppMonitor` (which owns the single pair of `NSMenu`
+    /// notification observers shared by every repo) via `menuOpened()`/
+    /// `menuClosed()`.
     private var menuIsOpen = false
 
-    init(config: AppConfig, settings: Settings) {
-        self.path = config.path
+    init(repo: RepoConfig, settings: Settings) {
+        self.path = repo.path
         self.settings = settings
         refresh()
         timer = Timer.scheduledTimer(withTimeInterval: settings.refreshInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
         }
         // Instant refresh on any change under the watched path.
-        watcher = RepoWatcher(path: config.path) { [weak self] in
+        watcher = RepoWatcher(path: repo.path) { [weak self] in
             Task { @MainActor in self?.refresh() }
         }
-
-        // Pause refreshing while one of the app's own menus is open — see
-        // `menuIsOpen`. AppKit posts these in-process for any `NSMenu` in this
-        // app, which for this app means only the menu-bar dropdown and its
-        // "Recent commits" submenu. The block-based API (rather than
-        // target/selector) is used because `GitMonitor` isn't an `NSObject`.
-        NotificationCenter.default.addObserver(
-            forName: NSMenu.didBeginTrackingNotification, object: nil, queue: .main
-        ) { [weak self] _ in Task { @MainActor in self?.menuOpened() } }
-        NotificationCenter.default.addObserver(
-            forName: NSMenu.didEndTrackingNotification, object: nil, queue: .main
-        ) { [weak self] _ in Task { @MainActor in self?.menuClosed() } }
 
         // `status`/`maxMenuEntries` read `settings` directly, but they're
         // plain computed properties: a `Settings`-only change wouldn't
@@ -167,8 +159,9 @@ final class GitMonitor: ObservableObject {
         }
     }
 
-    /// Called when one of the app's own menus opens/closes (see `menuIsOpen`).
-    /// Closing catches up on anything that arrived while it was open.
+    /// Called by `AppMonitor` when one of the app's own menus opens/closes
+    /// (see `menuIsOpen`). Closing catches up on anything that arrived while
+    /// it was open.
     func menuOpened() {
         menuIsOpen = true
     }

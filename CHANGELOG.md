@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Multi-repo support.** Gitgleam now watches several repositories from one
+  process, instead of one process per repo. The menu bar shows a single
+  **aggregated** indicator (color + summed change count) across every
+  configured repo; the dropdown lists each repo as its own submenu with its
+  own severity icon, Changed/New/Deleted sections, "Show all changes"
+  window, and Recent commits submenu. Repos are managed live from a new
+  **Repositories** tab in Settings — add one via a folder picker, edit its
+  label, re-point its path, or remove it, all without restarting. First
+  launch seeds the list from repeatable `--repo <path>[:<label>]` flags (or
+  the existing single `--path`/`--label`, kept for back-compat); an existing
+  single-repo install's settings migrate in automatically.
+
 ## [1.1.0] - 2026-08-23
 
 ### Added

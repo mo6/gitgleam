@@ -87,8 +87,45 @@ final class AppConfigTests: XCTestCase {
         XCTAssertEqual(parse(["--commits", "0"]).commits, 1)
     }
 
-    func testEmptyLabelBecomesNil() {
-        XCTAssertNil(parse(["--label", ""]).label)
-        XCTAssertEqual(parse(["--label", "Brain"]).label, "Brain")
+    // MARK: - Repo list
+
+    func testNoFlagsYieldsOneRepoAtCurrentDirectory() {
+        let c = parse([])
+        XCTAssertEqual(c.initialRepos.count, 1)
+        XCTAssertEqual(c.initialRepos[0].path, FileManager.default.currentDirectoryPath)
+    }
+
+    func testPathAndLabelSynthesizeOneRepo() {
+        let c = parse(["--path", "/tmp/some-repo", "--label", "Brain"])
+        XCTAssertEqual(c.initialRepos.count, 1)
+        XCTAssertEqual(c.initialRepos[0].path, "/tmp/some-repo")
+        XCTAssertEqual(c.initialRepos[0].label, "Brain")
+    }
+
+    func testEmptyLabelFallsBackToLastPathComponent() {
+        let c = parse(["--path", "/tmp/some-repo", "--label", ""])
+        XCTAssertEqual(c.initialRepos[0].label, "some-repo")
+    }
+
+    func testRepeatableRepoFlagBuildsMultipleRepos() {
+        let c = parse(["--repo", "/tmp/a:A", "--repo", "/tmp/b:B"])
+        XCTAssertEqual(c.initialRepos.map(\.path), ["/tmp/a", "/tmp/b"])
+        XCTAssertEqual(c.initialRepos.map(\.label), ["A", "B"])
+    }
+
+    func testRepoFlagWithoutLabelUsesLastPathComponent() {
+        let c = parse(["--repo", "/tmp/some-repo"])
+        XCTAssertEqual(c.initialRepos[0].label, "some-repo")
+    }
+
+    func testRepoFlagTakesPrecedenceOverPath() {
+        let c = parse(["--repo", "/tmp/a", "--path", "/tmp/ignored"])
+        XCTAssertEqual(c.initialRepos.map(\.path), ["/tmp/a"])
+    }
+
+    func testRepoFlagTildeIsExpanded() {
+        let c = parse(["--repo", "~/tools:Tools"])
+        XCTAssertTrue(c.initialRepos[0].path.hasPrefix("/"))
+        XCTAssertFalse(c.initialRepos[0].path.contains("~"))
     }
 }

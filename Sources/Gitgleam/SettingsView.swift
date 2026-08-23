@@ -10,7 +10,7 @@ import AppKit
 /// control — grouped per section.
 struct SettingsView: View {
     @ObservedObject var settings: Settings
-    @State private var section: SettingsSection = .info
+    @State private var section: SettingsSection = .repositories
 
     var body: some View {
         NavigationSplitView {
@@ -39,6 +39,8 @@ struct SettingsView: View {
     @ViewBuilder
     private func card(for section: SettingsSection) -> some View {
         switch section {
+        case .repositories:
+            RepositoriesCard(repos: $settings.repos)
         case .info:
             SettingsCard {
                 Text(L10n.appDescription)
@@ -160,12 +162,13 @@ struct SettingsView: View {
 
 /// A sidebar destination: a settings group, its icon, and localized title.
 private enum SettingsSection: CaseIterable, Identifiable {
-    case info, general, statusIcon, refresh, preview, debug
+    case repositories, info, general, statusIcon, refresh, preview, debug
 
     var id: Self { self }
 
     var title: String {
         switch self {
+        case .repositories: return L10n.settingsRepositories
         case .info: return L10n.settingsInfo
         case .general: return L10n.settingsGeneral
         case .statusIcon: return L10n.settingsStatusIcon
@@ -177,12 +180,120 @@ private enum SettingsSection: CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .repositories: return "tray.2"
         case .info: return "info.circle"
         case .general: return "gearshape"
         case .statusIcon: return "gauge.with.dots.needle.50percent"
         case .refresh: return "arrow.triangle.2.circlepath"
         case .preview: return "doc.text.magnifyingglass"
         case .debug: return "ladybug"
+        }
+    }
+}
+
+/// The Repositories tab: an editable list of `RepoConfig` — label, path (with
+/// a folder picker to change it), and a delete button — plus an "Add
+/// Repository…" button. A dynamic list, so it builds its own card rather than
+/// reusing `SettingsCard`'s fixed rows.
+private struct RepositoriesCard: View {
+    @Binding var repos: [RepoConfig]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if repos.isEmpty {
+                VStack(spacing: 4) {
+                    Text(L10n.noRepositoriesConfigured)
+                    Text(L10n.noRepositoriesConfiguredDescription)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+            } else {
+                ForEach($repos) { $repo in
+                    RepositoryRow(repo: $repo) {
+                        repos.removeAll { $0.id == repo.id }
+                    }
+                    Divider()
+                }
+            }
+            HStack {
+                Spacer()
+                Button(L10n.addRepository) { addRepository() }
+                    .padding(12)
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(nsColor: .controlBackgroundColor))
+        )
+    }
+
+    private func addRepository() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = L10n.choose
+        if panel.runModal() == .OK, let url = panel.url {
+            repos.append(RepoConfig(path: url.path, label: url.lastPathComponent))
+        }
+    }
+}
+
+/// One repository row: an editable label, the path with a "Change…" folder
+/// picker, a not-a-git-repo hint, and a delete button.
+private struct RepositoryRow: View {
+    @Binding var repo: RepoConfig
+    let onDelete: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                TextField(L10n.repositoryLabel, text: $repo.label)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13, weight: .medium))
+                HStack(spacing: 6) {
+                    if !looksLikeGitRepo {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                            .help(L10n.notAGitRepositoryWarning)
+                    }
+                    Text(repo.path)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+            Spacer(minLength: 12)
+            Button(L10n.choose) { changePath() }
+            Button {
+                onDelete()
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .help(L10n.removeRepository)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
+    }
+
+    private var looksLikeGitRepo: Bool {
+        FileManager.default.fileExists(atPath: (repo.path as NSString).appendingPathComponent(".git"))
+    }
+
+    private func changePath() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = L10n.choose
+        panel.directoryURL = URL(fileURLWithPath: repo.path).deletingLastPathComponent()
+        if panel.runModal() == .OK, let url = panel.url {
+            repo.path = url.path
         }
     }
 }

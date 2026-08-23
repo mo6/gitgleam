@@ -1,34 +1,40 @@
 # Gitgleam
 
-A tiny native macOS menu bar app that watches a git repository and shows the
-number of uncommitted changes, colored by severity. Click a changed file to see
-a colored diff. Built with Swift + SwiftUI (`MenuBarExtra`).
+A tiny native macOS menu bar app that watches one or more git repositories and
+shows the total number of uncommitted changes, colored by severity. Click a
+changed file to see a colored diff. Built with Swift + SwiftUI
+(`MenuBarExtra`).
 
 - Lives in the menu bar only (no window, no Dock icon).
-- Refreshes the instant the repo changes (a filesystem watcher on the watched
+- Refreshes the instant a repo changes (a filesystem watcher on each watched
   path), with a periodic `git status --porcelain` poll as a safety net (default
   60s, configurable via `--interval`).
-- The label shows an optional text prefix, a colored dot indicator (🟢 green
-  below the warn threshold, 🟡 yellow up to the critical threshold, 🔴 red
-  at/above it — or ⚠️ on a git error), and the count.
-- The dropdown groups files into **Changed**, **New**, and **Deleted** sections.
-  Changed/new files open a colored diff window; deleted files are shown as text.
-  The list is capped (default 25, configurable via `--max-entries`); when a large
-  update exceeds the cap, an overflow row opens a **Show all changes** window
-  listing everything.
-- A **Recent commits** submenu lists the last few commits (default 10,
-  configurable via `--commits`); clicking one opens a split-view window with a
-  sidebar of the files it changed and a colored diff for the selected file.
+- The menu-bar label is a single **aggregated** indicator across every
+  configured repo: a colored dot (🟢 green below the warn threshold, 🟡 yellow
+  up to the critical threshold, 🔴 red at/above it — or ⚠️ if any repo has a
+  git error) and the summed change count.
+- The dropdown lists every configured repo as its own submenu (with its own
+  severity icon and count), grouping that repo's files into **Changed**,
+  **New**, and **Deleted** sections. Changed/new files open a colored diff
+  window; deleted files are shown as text. Each repo's list is capped (default
+  25, configurable via `--max-entries`); when a large update exceeds the cap,
+  an overflow row opens a **Show all changes** window listing everything for
+  that repo.
+- Each repo submenu also has a **Recent commits** submenu listing its last few
+  commits (default 10, configurable via `--commits`); clicking one opens a
+  split-view window with a sidebar of the files it changed and a colored diff
+  for the selected file.
 - **Markdown files** can be previewed as formatted Markdown — including Mermaid
   diagrams — instead of a raw diff, when a [viewmd](https://github.com/mo6/viewmd)
   launcher is configured via `--viewmd-path`. The diff and commit windows then
   show a Diff/Preview toggle (Preview is the default for Markdown).
-- The watched path and label are set via flags, so you can run several
-  instances at once. Everything else — thresholds, poll interval, menu
-  entry cap, recent-commits count, Markdown preview settings, language, and
-  a debug option — has a **Settings…** window (menu item, above Refresh)
-  where it can be changed live, no restart needed; the flags below are just
-  its first-launch defaults, persisted per watched path afterwards.
+- The repo list is set via `--repo` flags at first launch, then managed live
+  from **Settings… → Repositories** (add, relabel, re-point, or remove a
+  repo — no restart needed). Everything else — thresholds, poll interval,
+  menu entry cap, recent-commits count, Markdown preview settings, language,
+  and a debug option — also lives in **Settings…** (menu item, above
+  Refresh) and applies immediately; the flags below are just its
+  first-launch defaults, persisted independently afterwards.
 
 ## Requirements
 
@@ -40,7 +46,7 @@ a colored diff. Built with Swift + SwiftUI (`MenuBarExtra`).
 From the project directory:
 
 ```bash
-swift run Gitgleam --path ~/code/my-repo --label "Work"
+swift run Gitgleam --repo ~/code/my-repo:Work --repo ~/notes:Notes
 ```
 
 The app appears in the menu bar (top-right), not the Dock. Quit via its own
@@ -49,8 +55,12 @@ menu ("Quit"), or with Ctrl-C in the terminal that ran `swift run`.
 ### Options
 
 ```
--p, --path <dir>       Repository to watch (default: current directory)
--l, --label <text>     Text shown before the menu-bar indicator
+-r, --repo <path>[:<label>]  Repository to watch, optionally labeled;
+                             repeat for several repos (default: current
+                             directory)
+-p, --path <dir>       Repository to watch (single-repo shorthand for
+                       --repo; ignored if --repo is given)
+-l, --label <text>     Label for the --path repo
 -w, --warn <n>         Change count at/above which the icon is yellow (default: 1)
 -c, --critical <n>     Change count at/above which the icon is red (default: 10)
 -i, --interval <secs>  Safety-net poll interval; a filesystem watcher refreshes
@@ -63,6 +73,10 @@ menu ("Quit"), or with Ctrl-C in the terminal that ran `swift run`.
     --preview-width <n> Columns passed to viewmd for previews (default: 100)
 -h, --help             Show this help and exit
 ```
+
+These are only first-launch defaults for a fresh install — after that, the
+repo list and every other setting are edited live from **Settings…** and
+persist independently, regardless of what's passed on the command line.
 
 Color logic: `count == 0` (below `--warn`) is green, `--warn ≤ count < --critical`
 is yellow, `count ≥ --critical` is red. A git error shows a ⚠️ instead.
@@ -81,7 +95,7 @@ VIEWMD-0104). Until then the markers are invisible and Preview simply shows the
 formatted file without change highlighting.
 
 ```bash
-.build/release/Gitgleam --path ~/notes --label Notes \
+.build/release/Gitgleam --repo ~/notes:Notes \
     --viewmd-path ~/Projects/viewmd/viewmd.sh
 ```
 
@@ -89,28 +103,20 @@ formatted file without change highlighting.
 launch at login — build an optimized binary once and run that:
 
 ```bash
-swift build -c release                          # produces .build/release/Gitgleam
-.build/release/Gitgleam --path ~/code/my-repo   # launch it
+swift build -c release                             # produces .build/release/Gitgleam
+.build/release/Gitgleam --repo ~/code/my-repo      # launch it
 ```
 
-## Run multiple instances
-
-Gitgleam is a plain executable, so launching it more than once just starts
-independent processes — each gets its own menu-bar item. Give each a distinct
-`--label` so you can tell them apart:
-
-```bash
-.build/release/Gitgleam --path ~/code/api    --label "API" &
-.build/release/Gitgleam --path ~/notes       --label "Notes" --critical 25 &
-```
+To watch more repos later, add them from **Settings… → Repositories** — no
+need to relaunch with more `--repo` flags.
 
 ## Start automatically at login
 
 Because this is a Swift Package (not a bundled `.app`), macOS's built-in
 "Open at Login" list can't manage it directly. Instead, register the release
 binary as a **LaunchAgent** — a small plist that `launchd` starts for you each
-time you log in. For multiple instances, create one plist per instance with a
-unique `Label`.
+time you log in. One instance is enough for every repo you want to watch: add
+more repos afterwards from Settings rather than creating another LaunchAgent.
 
 1. **Build the release binary** (once, and again after any code change):
 
@@ -123,10 +129,10 @@ unique `Label`.
    binary — moving the binary alone drops the translations.
 
 2. **Create the LaunchAgent** at
-   `~/Library/LaunchAgents/nl.mo6.gitgleam.work.plist`. The `Label` and
-   filename must be unique per instance; the flags go in `ProgramArguments`.
-   launchd does **not** expand `~`, so use absolute paths and replace
-   `/Users/you` with your home directory:
+   `~/Library/LaunchAgents/nl.mo6.gitgleam.plist`. Seed it with as many
+   `--repo` entries as you like — or just one, and add the rest later from
+   Settings. launchd does **not** expand `~`, so use absolute paths and
+   replace `/Users/you` with your home directory:
 
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
@@ -135,15 +141,13 @@ unique `Label`.
    <plist version="1.0">
    <dict>
        <key>Label</key>
-       <string>nl.mo6.gitgleam.work</string>
+       <string>nl.mo6.gitgleam</string>
 
        <key>ProgramArguments</key>
        <array>
            <string>/Users/you/Projects/Gitgleam/.build/release/Gitgleam</string>
-           <string>--path</string>
-           <string>/Users/you/code/my-repo</string>
-           <string>--label</string>
-           <string>Work</string>
+           <string>--repo</string>
+           <string>/Users/you/code/my-repo:Work</string>
        </array>
 
        <!-- Start at login and keep it running. -->
@@ -154,9 +158,9 @@ unique `Label`.
 
        <!-- Logs, handy while getting it working. -->
        <key>StandardOutPath</key>
-       <string>/tmp/gitgleam.work.out.log</string>
+       <string>/tmp/gitgleam.out.log</string>
        <key>StandardErrorPath</key>
-       <string>/tmp/gitgleam.work.err.log</string>
+       <string>/tmp/gitgleam.err.log</string>
    </dict>
    </plist>
    ```
@@ -164,7 +168,7 @@ unique `Label`.
 3. **Load it** (starts it now and enables it at every login):
 
    ```bash
-   launchctl load ~/Library/LaunchAgents/nl.mo6.gitgleam.work.plist
+   launchctl load ~/Library/LaunchAgents/nl.mo6.gitgleam.plist
    ```
 
    The menu bar icon should appear within a second or two.
@@ -173,17 +177,17 @@ unique `Label`.
 
 ```bash
 # Stop it and disable auto-start
-launchctl unload ~/Library/LaunchAgents/nl.mo6.gitgleam.work.plist
+launchctl unload ~/Library/LaunchAgents/nl.mo6.gitgleam.plist
 
 # Restart after rebuilding the binary
-launchctl unload ~/Library/LaunchAgents/nl.mo6.gitgleam.work.plist
-launchctl load   ~/Library/LaunchAgents/nl.mo6.gitgleam.work.plist
+launchctl unload ~/Library/LaunchAgents/nl.mo6.gitgleam.plist
+launchctl load   ~/Library/LaunchAgents/nl.mo6.gitgleam.plist
 
 # Check whether launchd considers it running (look for the Label in the list)
 launchctl list | grep gitgleam
 ```
 
-If it doesn't appear, check `/tmp/gitgleam.work.err.log` for errors.
+If it doesn't appear, check `/tmp/gitgleam.err.log` for errors.
 
 > **Tip:** because the LaunchAgent points at the compiled binary, changes to the
 > source only take effect after you re-run `swift build -c release` and reload
@@ -203,7 +207,7 @@ Force a language for a single launch with the standard `-AppleLanguages`
 override (the tuple must be quoted), which is what "Automatic" honors:
 
 ```bash
-swift run Gitgleam --path ~/repo -AppleLanguages '(nl)'
+swift run Gitgleam --repo ~/repo -AppleLanguages '(nl)'
 ```
 
 See [CLAUDE.md](CLAUDE.md) for architecture and development notes.

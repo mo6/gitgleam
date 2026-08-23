@@ -4,9 +4,11 @@
 "Quit" = "Afsluiten";
 "Recent commits" = "Recente commits";
 "Settings…" = "Instellingen…";
+"No repositories configured" = "Geen repositories geconfigureerd";
 
 /* Overflow / full-list window */
 "All changes" = "Alle wijzigingen";
+"Repository removed" = "Repository verwijderd";
 "Show all %d changes…" = "Toon alle %d wijzigingen…";
 "%d more not shown" = "%d niet getoond";
 
@@ -34,6 +36,7 @@
 
 /* Settings window: sidebar sections */
 "Info" = "Info";
+"Repositories" = "Repositories";
 "General" = "Algemeen";
 "Status icon" = "Statuspictogram";
 "Markdown preview" = "Markdown-voorbeeld";
@@ -43,6 +46,14 @@
 "A small native macOS menu bar app that watches a git repository and shows the number of uncommitted changes, colored by severity, with a colored per-file diff." = "Een kleine native macOS-menubalkapp die een git-repository in de gaten houdt en het aantal niet-gecommitte wijzigingen toont, met een kleur naar ernst en een gekleurd per-bestand diff.";
 "Version" = "Versie";
 "GitHub repository" = "GitHub-repository";
+
+/* Settings window: Repositories section */
+"Label" = "Label";
+"Path" = "Pad";
+"Add Repository…" = "Repository toevoegen…";
+"Remove repository" = "Repository verwijderen";
+"Add a repository to start watching its uncommitted changes." = "Voeg een repository toe om de niet-gecommitte wijzigingen ervan in de gaten te houden.";
+"This folder doesn't look like a git repository." = "Deze map lijkt geen git-repository te zijn.";
 
 /* Settings window: rows */
 "Language" = "Taal";

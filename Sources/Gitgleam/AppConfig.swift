@@ -2,13 +2,16 @@ import Foundation
 
 /// Runtime configuration, parsed from command-line flags at launch.
 ///
-/// Passing different values lets you run several instances side by side, each
-/// watching its own repository with its own label and color thresholds.
+/// Only used to seed the very first launch's `Settings` — the repo list,
+/// thresholds, and preview settings all become live-editable and persist
+/// independently from then on (see `Settings`).
 struct AppConfig {
-    /// Repository/directory to watch.
-    let path: String
-    /// Optional text shown before the menu-bar indicator (nil = none).
-    let label: String?
+    /// Repositories to watch at first launch, from repeatable `--repo`
+    /// flags (or synthesized from a single `--path`/`--label`, for
+    /// back-compat). Only used to seed `Settings.repos` the very first time
+    /// the app runs — after that, the repo list is managed live in Settings
+    /// and persisted independently.
+    let initialRepos: [RepoConfig]
     /// Change count at or above which the icon turns yellow.
     let warnThreshold: Int
     /// Change count at or above which the icon turns red.
@@ -74,10 +77,12 @@ struct AppConfig {
     /// Preview render width used when `--preview-width` is not given.
     static let defaultPreviewWidth = 100
 
-    /// Parses the flags: `--path/-p`, `--label/-l`, `--warn/-w`, `--critical/-c`,
-    /// `--interval/-i`, `--max-entries/-m`, `--commits/-C`, `--help/-h`. Unknown
-    /// flags are ignored; `--help` prints usage and exits.
+    /// Parses the flags: `--repo/-r` (repeatable), `--path/-p`, `--label/-l`,
+    /// `--warn/-w`, `--critical/-c`, `--interval/-i`, `--max-entries/-m`,
+    /// `--commits/-C`, `--help/-h`. Unknown flags are ignored; `--help` prints
+    /// usage and exits.
     static func parse(_ arguments: [String]) -> AppConfig {
+        var repoFlags: [String] = []
         var path: String?
         var label: String?
         var warn = defaultWarnThreshold
@@ -102,6 +107,8 @@ struct AppConfig {
             case "--help", "-h":
                 printUsage()
                 exit(0)
+            case "--repo", "-r":
+                if let raw = value(after: &i) { repoFlags.append(raw) }
             case "--path", "-p":
                 path = value(after: &i)
             case "--label", "-l":
@@ -128,9 +135,18 @@ struct AppConfig {
             i += 1
         }
 
-        // Resolve the path: expand a leading ~, default to the current directory.
-        let resolvedPath = path.map { ($0 as NSString).expandingTildeInPath }
-            ?? FileManager.default.currentDirectoryPath
+        // Build the initial repo list: prefer repeatable --repo flags; fall
+        // back to a single repo from --path/--label (today's behavior) when
+        // no --repo was given; otherwise one repo at the current directory.
+        let resolvedRepos: [RepoConfig]
+        if !repoFlags.isEmpty {
+            resolvedRepos = repoFlags.map(parseRepoFlag)
+        } else {
+            let resolvedPath = path.map { ($0 as NSString).expandingTildeInPath }
+                ?? FileManager.default.currentDirectoryPath
+            let resolvedLabel = (label?.isEmpty == false) ? label! : (resolvedPath as NSString).lastPathComponent
+            resolvedRepos = [RepoConfig(path: resolvedPath, label: resolvedLabel)]
+        }
 
         // Keep thresholds sane: at least 1, and warn no higher than critical.
         warn = max(1, warn)
@@ -152,8 +168,7 @@ struct AppConfig {
         previewWidth = max(20, previewWidth)
 
         return AppConfig(
-            path: resolvedPath,
-            label: (label?.isEmpty == false) ? label : nil,
+            initialRepos: resolvedRepos,
             warnThreshold: warn,
             criticalThreshold: critical,
             refreshInterval: interval,
@@ -165,6 +180,19 @@ struct AppConfig {
         )
     }
 
+    /// Parses one `--repo` value of the form `<path>` or `<path>:<label>`,
+    /// expanding a leading `~` in the path. Falls back to the path's last
+    /// component when no label is given.
+    private static func parseRepoFlag(_ raw: String) -> RepoConfig {
+        let parts = raw.split(separator: ":", maxSplits: 1)
+        let rawPath = String(parts[0])
+        let path = (rawPath as NSString).expandingTildeInPath
+        let label = parts.count > 1 && !parts[1].isEmpty
+            ? String(parts[1])
+            : (path as NSString).lastPathComponent
+        return RepoConfig(path: path, label: label)
+    }
+
     private static func printUsage() {
         print("""
         Gitgleam — a menu-bar git status watcher.
@@ -172,8 +200,12 @@ struct AppConfig {
         Usage: Gitgleam [options]
 
         Options:
-          -p, --path <dir>       Repository to watch (default: current directory)
-          -l, --label <text>     Text shown before the menu-bar indicator
+          -r, --repo <path>[:<label>]  Repository to watch, optionally labeled;
+                                       repeat for several repos (default: current
+                                       directory)
+          -p, --path <dir>       Repository to watch (single-repo shorthand for
+                                 --repo; ignored if --repo is given)
+          -l, --label <text>     Label for the --path repo
           -w, --warn <n>         Change count at/above which the icon is yellow (default: 1)
           -c, --critical <n>     Change count at/above which the icon is red (default: 10)
           -i, --interval <secs>  Safety-net poll interval; a filesystem watcher
@@ -186,7 +218,9 @@ struct AppConfig {
               --preview-width <n> Columns passed to viewmd for previews (default: 100)
           -h, --help             Show this help and exit
 
-        Run multiple instances with different --path/--label to watch several repos.
+        These are only first-launch defaults: the repo list, thresholds, and
+        preview settings are all editable live afterwards from Settings, and
+        persist independently of these flags.
         With --viewmd-path set, Markdown files gain a Diff/Preview toggle (Preview
         renders formatted Markdown, including Mermaid diagrams, via viewmd).
         """)

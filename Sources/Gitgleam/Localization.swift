@@ -14,9 +14,11 @@ enum L10n {
     static var quit: String { s("Quit") }
     static var recentCommits: String { s("Recent commits") }
     static var settings: String { s("Settings…") }
+    static var noRepositoriesConfigured: String { s("No repositories configured") }
 
     // Overflow / full-list window
     static var allChanges: String { s("All changes") }
+    static var repositoryRemoved: String { s("Repository removed") }
     /// Button that opens the full-list window, with the total change count.
     static func showAll(_ count: Int) -> String { String(format: s("Show all %d changes…"), count) }
     /// Menu indicator for files hidden by the entry cap.
@@ -46,6 +48,7 @@ enum L10n {
 
     // Settings window: sidebar sections
     static var settingsInfo: String { s("Info") }
+    static var settingsRepositories: String { s("Repositories") }
     static var settingsGeneral: String { s("General") }
     static var settingsStatusIcon: String { s("Status icon") }
     static var settingsRefresh: String { s("Refresh") }
@@ -58,6 +61,16 @@ enum L10n {
     }
     static var version: String { s("Version") }
     static var githubRepository: String { s("GitHub repository") }
+
+    // Settings window: Repositories section
+    static var repositoryLabel: String { s("Label") }
+    static var repositoryPath: String { s("Path") }
+    static var addRepository: String { s("Add Repository…") }
+    static var removeRepository: String { s("Remove repository") }
+    static var noRepositoriesConfiguredDescription: String {
+        s("Add a repository to start watching its uncommitted changes.")
+    }
+    static var notAGitRepositoryWarning: String { s("This folder doesn't look like a git repository.") }
 
     // Settings window: rows (label + explanatory description each)
     static var language: String { s("Language") }

@@ -4,9 +4,11 @@
 "Quit" = "Quit";
 "Recent commits" = "Recent commits";
 "Settings…" = "Settings…";
+"No repositories configured" = "No repositories configured";
 
 /* Overflow / full-list window */
 "All changes" = "All changes";
+"Repository removed" = "Repository removed";
 "Show all %d changes…" = "Show all %d changes…";
 "%d more not shown" = "%d more not shown";
 
@@ -34,6 +36,7 @@
 
 /* Settings window: sidebar sections */
 "Info" = "Info";
+"Repositories" = "Repositories";
 "General" = "General";
 "Status icon" = "Status icon";
 "Refresh" = "Refresh";
@@ -44,6 +47,14 @@
 "A small native macOS menu bar app that watches a git repository and shows the number of uncommitted changes, colored by severity, with a colored per-file diff." = "A small native macOS menu bar app that watches a git repository and shows the number of uncommitted changes, colored by severity, with a colored per-file diff.";
 "Version" = "Version";
 "GitHub repository" = "GitHub repository";
+
+/* Settings window: Repositories section */
+"Label" = "Label";
+"Path" = "Path";
+"Add Repository…" = "Add Repository…";
+"Remove repository" = "Remove repository";
+"Add a repository to start watching its uncommitted changes." = "Add a repository to start watching its uncommitted changes.";
+"This folder doesn't look like a git repository." = "This folder doesn't look like a git repository.";
 
 /* Settings window: rows */
 "Language" = "Language";
