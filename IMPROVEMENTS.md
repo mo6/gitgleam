@@ -121,20 +121,33 @@ it into a porcelain frontend.
 
 Multi-repo is new; the Settings surface is still global.
 
-- **Drag to reorder** repos (display order is already `settings.repos`
-  order).
-- **Disable without deleting** — keep path/label, skip the watcher.
-- **Warn on duplicate paths** and on a folder that is not a git repo
+- ~~**Drag to reorder** repos (display order is already `settings.repos`
+  order).~~
+- ~~**Disable without deleting** — keep path/label, skip the watcher.~~
+- ~~**Warn on duplicate paths** and on a folder that is not a git repo
   (the orange triangle exists; blocking Add, or offering "initialize", would
-  go further).
-- **Per-repo overrides** only where it hurts that they are global: warn/
+  go further).~~
+- ~~**Per-repo overrides** only where it hurts that they are global: warn/
   critical thresholds, maybe which viewer rules apply (a notes vault vs a
-  code repo). Everything else can stay shared.
-- **Export / import** the JSON blob. It already lives as JSON under
+  code repo). Everything else can stay shared.~~
+- ~~**Export / import** the JSON blob. It already lives as JSON under
   `nl.mo6.gitgleam.settings` in `~/Library/Preferences/Gitgleam.plist`; a
-  file on disk is easier to back up and to inspect than `defaults`.
-- **Cap or warn** on a huge repo list (each entry is a timer + FSEvents +
-  `git status`). Self-inflicted, but easy to do by accident with "Add".
+  file on disk is easier to back up and to inspect than `defaults`.~~
+- ~~**Cap or warn** on a huge repo list (each entry is a timer + FSEvents +
+  `git status`). Self-inflicted, but easy to do by accident with "Add".~~
+
+**Implemented (2026-08-23).** Settings → Repositories now supports drag-to-reorder
+(grip on each row), a checkbox to pause a repo without deleting it (no
+FSEvents watcher or `git status` until it's on again; the menu shows it as
+paused), duplicate-path and not-a-git-repo alerts on Add/Choose (Initialize
+Git / Add anyway / Cancel), per-repo warn/critical overrides (or "App
+defaults"), Export…/Import… of the same JSON blob `UserDefaults` stores
+(`gitgleam-settings.json`), a warning from 8 repos and a hard cap at 20.
+Paused repos do not contribute to the aggregate menu-bar count.
+
+Per-repo *viewer-rule* overrides are not in this pass — they wait on the
+file-type viewer table above. Everything else in this section still uses the
+global Settings values.
 
 ---
 
@@ -174,8 +187,6 @@ Still a raw SPM executable + LaunchAgent.
   `statusDescription`.
 - `AllChangesView` could take a search field and keep deleted files
   clickable (see above).
-- Settings → Repositories: drag-reorder, and a quieter empty state once
-  Add lives outside the card.
 
 None of this needs to land together. The viewer-rule table is the change
 that unlocks images, binaries, and custom tools without another

@@ -55,6 +55,26 @@
 "Remove repository" = "Remove repository";
 "Add a repository to start watching its uncommitted changes." = "Add a repository to start watching its uncommitted changes.";
 "This folder doesn't look like a git repository." = "This folder doesn't look like a git repository.";
+"Initialize a git repository in this folder, add it anyway, or cancel." = "Initialize a git repository in this folder, add it anyway, or cancel.";
+"Initialize Git Repository" = "Initialize Git Repository";
+"Add Anyway" = "Add Anyway";
+"Cancel" = "Cancel";
+"This folder is already in the list." = "This folder is already in the list.";
+"Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel." = "Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel.";
+"Drag to reorder" = "Drag to reorder";
+"Watch this repository" = "Watch this repository";
+"paused" = "paused";
+"App defaults" = "App defaults";
+"Custom" = "Custom";
+"Thresholds" = "Thresholds";
+"Export…" = "Export…";
+"Import…" = "Import…";
+"Replace all settings?" = "Replace all settings?";
+"Importing a settings file replaces the repository list and every other setting. This cannot be undone except by importing a previous export." = "Importing a settings file replaces the repository list and every other setting. This cannot be undone except by importing a previous export.";
+"Couldn't import settings" = "Couldn't import settings";
+"Couldn't export settings" = "Couldn't export settings";
+"Can't add more than %d repositories." = "Can't add more than %d repositories.";
+"%d repositories — each adds a watcher and a git poll. Pause ones you don't need." = "%d repositories — each adds a watcher and a git poll. Pause ones you don't need.";
 
 /* Settings window: rows */
 "Language" = "Language";

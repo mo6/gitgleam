@@ -134,6 +134,47 @@ final class Settings: ObservableObject {
         if stored == nil { save() }
     }
 
+    /// Pretty-printed JSON of the same blob `UserDefaults` stores — for the
+    /// Settings Export button, so the file is human-readable and round-trips
+    /// through `importJSON`.
+    func exportedJSON() throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try encoder.encode(snapshot)
+    }
+
+    /// Replaces live settings with a previously exported (or hand-edited) blob.
+    /// Unknown extra keys are ignored; missing optional fields keep the same
+    /// defaults `init` uses. Throws if the JSON isn't a `StoredSettings` object.
+    func importJSON(_ data: Data) throws {
+        apply(try JSONDecoder().decode(StoredSettings.self, from: data))
+        save()
+    }
+
+    private var snapshot: StoredSettings {
+        StoredSettings(
+            language: language, repos: repos, warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
+            refreshInterval: refreshInterval, maxEntries: maxEntries, commits: commits,
+            viewmdPath: viewmdPath, defaultView: defaultView, previewWidth: previewWidth,
+            debugKeepPreviewFiles: debugKeepPreviewFiles
+        )
+    }
+
+    private func apply(_ seed: StoredSettings) {
+        repos = seed.repos ?? repos
+        language = seed.language ?? "auto"
+        warnThreshold = seed.warnThreshold
+        criticalThreshold = seed.criticalThreshold
+        refreshInterval = seed.refreshInterval
+        maxEntries = seed.maxEntries
+        commits = seed.commits
+        viewmdPath = seed.viewmdPath
+        defaultView = seed.defaultView
+        previewWidth = seed.previewWidth
+        debugKeepPreviewFiles = seed.debugKeepPreviewFiles
+        L10n.languageOverride = (language == "auto") ? nil : language
+    }
+
     /// The on-disk shape, versioned implicitly by field presence: a decode
     /// failure (e.g. a future field added later) is treated as "no stored
     /// settings" rather than a crash, via `try?` at the call site.
@@ -158,13 +199,7 @@ final class Settings: ObservableObject {
     }
 
     private func save() {
-        let stored = StoredSettings(
-            language: language, repos: repos, warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
-            refreshInterval: refreshInterval, maxEntries: maxEntries, commits: commits,
-            viewmdPath: viewmdPath, defaultView: defaultView, previewWidth: previewWidth,
-            debugKeepPreviewFiles: debugKeepPreviewFiles
-        )
-        if let data = try? JSONEncoder().encode(stored) {
+        if let data = try? JSONEncoder().encode(snapshot) {
             defaults.set(data, forKey: Settings.storageKey)
         }
     }

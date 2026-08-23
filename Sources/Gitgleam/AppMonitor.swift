@@ -6,10 +6,11 @@ import AppKit
 /// them into the single menu-bar indicator.
 ///
 /// `settings.repos` is the source of truth for *which* repos exist; this
-/// class only keeps `monitors` in sync with it (creating a `RepoMonitor` for
-/// a new entry, tearing one down when its entry is removed, and recreating
-/// one when its path changes — the watcher and cached state are path-bound).
-/// A label-only edit doesn't need a new monitor.
+/// class only keeps `monitors` in sync with the enabled ones (creating a
+/// `RepoMonitor` for a newly enabled entry, tearing one down when its entry
+/// is removed or paused, and recreating one when its path changes — the
+/// watcher and cached state are path-bound). A label-only edit doesn't need
+/// a new monitor.
 @MainActor
 final class AppMonitor: ObservableObject {
     @Published private(set) var monitors: [UUID: RepoMonitor] = [:]
@@ -43,12 +44,17 @@ final class AppMonitor: ObservableObject {
         ) { [weak self] _ in Task { @MainActor in self?.monitors.values.forEach { $0.menuClosed() } } }
     }
 
-    /// Repos in `settings.repos` order, each paired with its live monitor.
-    /// A repo whose monitor hasn't been created yet (shouldn't happen once
-    /// `rebuildMonitors` has run) is simply omitted.
+    /// Repos in `settings.repos` order. Disabled repos have `monitor == nil`
+    /// (they stay in the menu as paused rows; nothing is watching them).
+    var orderedEntries: [(repo: RepoConfig, monitor: RepoMonitor?)] {
+        settings.repos.map { repo in (repo, monitors[repo.id]) }
+    }
+
+    /// Enabled repos in display order, each paired with its live monitor.
     var orderedMonitors: [(repo: RepoConfig, monitor: RepoMonitor)] {
-        settings.repos.compactMap { repo in
-            monitors[repo.id].map { (repo, $0) }
+        orderedEntries.compactMap { entry in
+            guard let monitor = entry.monitor else { return nil }
+            return (entry.repo, monitor)
         }
     }
 
@@ -74,20 +80,20 @@ final class AppMonitor: ObservableObject {
     }
 
     private func rebuildMonitors(for repos: [RepoConfig]) {
-        let currentIDs = Set(repos.map(\.id))
-
-        // Remove monitors for repos that no longer exist.
-        for id in monitors.keys where !currentIDs.contains(id) {
-            monitors.removeValue(forKey: id)
+        // Remove monitors for repos that no longer exist, or that were paused.
+        let activeIDs = Set(repos.filter(\.isEnabled).map(\.id))
+        for id in monitors.keys where !activeIDs.contains(id) {
+            monitors.removeValue(forKey: id)?.stop()
             monitoredPaths.removeValue(forKey: id)
             forwarders.removeValue(forKey: id)
         }
 
-        // Add/recreate monitors for new repos, or ones whose path changed.
-        for repo in repos {
+        // Add/recreate monitors for newly enabled repos, or ones whose path changed.
+        for repo in repos where repo.isEnabled {
             if let existingPath = monitoredPaths[repo.id], existingPath == repo.path {
                 continue // unchanged (or label-only edit): keep the running monitor
             }
+            monitors[repo.id]?.stop()
             let monitor = RepoMonitor(repo: repo, settings: settings)
             monitors[repo.id] = monitor
             monitoredPaths[repo.id] = repo.path

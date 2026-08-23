@@ -49,6 +49,18 @@ enum Git {
         }
     }
 
+    /// `git init` in `path`. Used when Settings offers to initialize a folder
+    /// that isn't a repository yet. The directory must already exist.
+    /// Returns `nil` on success, or git's error message.
+    static func initializeRepository(at path: String) async -> String? {
+        let output = await run(["init"], at: path)
+        guard output.status == 0 else {
+            let message = output.stderr.trimmingCharacters(in: .whitespacesAndNewlines)
+            return message.isEmpty ? "\(L10n.gitFailed) (\(output.status))" : message
+        }
+        return nil
+    }
+
     /// `git status --porcelain` → list of changed files, or an error.
     static func status(at path: String) async -> StatusResult {
         let output = await run(["status", "--porcelain"], at: path)

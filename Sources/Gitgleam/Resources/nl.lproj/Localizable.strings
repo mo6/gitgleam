@@ -54,6 +54,26 @@
 "Remove repository" = "Repository verwijderen";
 "Add a repository to start watching its uncommitted changes." = "Voeg een repository toe om de niet-gecommitte wijzigingen ervan in de gaten te houden.";
 "This folder doesn't look like a git repository." = "Deze map lijkt geen git-repository te zijn.";
+"Initialize a git repository in this folder, add it anyway, or cancel." = "Initialiseer een git-repository in deze map, voeg hem toch toe, of annuleer.";
+"Initialize Git Repository" = "Git-repository initialiseren";
+"Add Anyway" = "Toch toevoegen";
+"Cancel" = "Annuleren";
+"This folder is already in the list." = "Deze map staat al in de lijst.";
+"Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel." = "Dezelfde map twee keer bekijken start twee waarnemers op één boom. Toch toevoegen, of annuleren.";
+"Drag to reorder" = "Sleep om te herordenen";
+"Watch this repository" = "Deze repository in de gaten houden";
+"paused" = "gepauzeerd";
+"App defaults" = "App-standaard";
+"Custom" = "Aangepast";
+"Thresholds" = "Drempels";
+"Export…" = "Exporteren…";
+"Import…" = "Importeren…";
+"Replace all settings?" = "Alle instellingen vervangen?";
+"Importing a settings file replaces the repository list and every other setting. This cannot be undone except by importing a previous export." = "Het importeren van een instellingenbestand vervangt de repositorylijst en elke andere instelling. Dit kan alleen ongedaan worden gemaakt door een eerdere export te importeren.";
+"Couldn't import settings" = "Instellingen importeren mislukt";
+"Couldn't export settings" = "Instellingen exporteren mislukt";
+"Can't add more than %d repositories." = "Er kunnen niet meer dan %d repositories worden toegevoegd.";
+"%d repositories — each adds a watcher and a git poll. Pause ones you don't need." = "%d repositories — elk voegt een waarnemer en een git-poll toe. Pauzeer die je niet nodig hebt.";
 
 /* Settings window: rows */
 "Language" = "Taal";

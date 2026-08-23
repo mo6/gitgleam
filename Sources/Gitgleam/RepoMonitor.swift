@@ -28,13 +28,13 @@ final class RepoMonitor: ObservableObject {
     }
 
     /// The current severity. An error takes priority over the change count.
-    /// The yellow/red boundaries come from the live (Settings-editable)
-    /// thresholds.
+    /// The yellow/red boundaries come from this repo's override if set,
+    /// otherwise the live global Settings thresholds.
     var status: Status {
         if errorMessage != nil { return .error }
         let count = changes.count
-        if count >= settings.criticalThreshold { return .many }
-        if count >= settings.warnThreshold { return .few }
+        if count >= criticalThreshold { return .many }
+        if count >= warnThreshold { return .few }
         return .clean
     }
 
@@ -51,6 +51,9 @@ final class RepoMonitor: ObservableObject {
     /// The path being watched (fixed for this monitor's lifetime — `AppMonitor`
     /// recreates the monitor if the repo's path is edited in Settings).
     private let path: String
+    /// Stable id so live threshold overrides can be read from `settings.repos`
+    /// without recreating the monitor.
+    private let repoID: UUID
     /// Live, user-editable defaults (thresholds, refresh interval, commit
     /// count, …), shared across every repo. Changing these applies
     /// immediately: see the `Combine` subscriptions set up in `init`.
@@ -83,6 +86,7 @@ final class RepoMonitor: ObservableObject {
 
     init(repo: RepoConfig, settings: Settings) {
         self.path = repo.path
+        self.repoID = repo.id
         self.settings = settings
         refresh()
         timer = Timer.scheduledTimer(withTimeInterval: settings.refreshInterval, repeats: true) { [weak self] _ in
@@ -109,6 +113,16 @@ final class RepoMonitor: ObservableObject {
             .dropFirst()
             .sink { [weak self] interval in self?.rescheduleTimer(interval) }
             .store(in: &cancellables)
+    }
+
+    /// Warn/critical for this repo: an override on `RepoConfig` if set,
+    /// otherwise the global Settings values. Critical is never below warn.
+    private var warnThreshold: Int {
+        max(1, settings.repos.first { $0.id == repoID }?.warnThreshold ?? settings.warnThreshold)
+    }
+
+    private var criticalThreshold: Int {
+        max(warnThreshold, settings.repos.first { $0.id == repoID }?.criticalThreshold ?? settings.criticalThreshold)
     }
 
     private func rescheduleTimer(_ interval: TimeInterval) {
@@ -172,5 +186,13 @@ final class RepoMonitor: ObservableObject {
             pendingRefresh = false
             refresh()
         }
+    }
+
+    /// Drops the timer and FSEvents watcher. Called by `AppMonitor` before
+    /// discarding this monitor (repo removed, paused, or path changed).
+    func stop() {
+        timer?.invalidate()
+        timer = nil
+        watcher = nil
     }
 }

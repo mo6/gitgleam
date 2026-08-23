@@ -16,4 +16,23 @@ final class RepoConfigTests: XCTestCase {
         repo.label = "B"
         XCTAssertEqual(repo.id, id)
     }
+
+    func testLegacyJSONWithoutNewFieldsDefaultsToEnabledAndSharedThresholds() throws {
+        let json = """
+        {"id":"00000000-0000-0000-0000-000000000001","path":"/tmp/a","label":"A"}
+        """
+        let decoded = try JSONDecoder().decode(RepoConfig.self, from: Data(json.utf8))
+        XCTAssertTrue(decoded.isEnabled)
+        XCTAssertNil(decoded.warnThreshold)
+        XCTAssertNil(decoded.criticalThreshold)
+        XCTAssertEqual(decoded.path, "/tmp/a")
+        XCTAssertEqual(decoded.label, "A")
+    }
+
+    func testDuplicatePathsIgnoreTrailingSlash() {
+        let a = RepoConfig(path: "/tmp/gitgleam-dup-a", label: "A")
+        XCTAssertTrue(RepoConfig.isDuplicate("/tmp/gitgleam-dup-a/", among: [a], excluding: UUID()))
+        XCTAssertFalse(RepoConfig.isDuplicate("/tmp/gitgleam-dup-a", among: [a], excluding: a.id))
+        XCTAssertFalse(RepoConfig.isDuplicate("/tmp/gitgleam-dup-b", among: [a]))
+    }
 }

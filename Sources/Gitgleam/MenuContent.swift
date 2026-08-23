@@ -13,13 +13,17 @@ struct MenuContent: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        let repos = monitor.orderedMonitors
+        let repos = monitor.orderedEntries
         if repos.isEmpty {
             Text(L10n.noRepositoriesConfigured)
         } else {
             ForEach(repos, id: \.repo.id) { entry in
-                Menu(repoLabel(entry.repo, entry.monitor)) {
-                    repoMenu(entry.repo, entry.monitor)
+                if entry.repo.isEnabled, let repoMonitor = entry.monitor {
+                    Menu(repoLabel(entry.repo, repoMonitor)) {
+                        repoMenu(entry.repo, repoMonitor)
+                    }
+                } else {
+                    Text("⏸ \(entry.repo.label) (\(L10n.paused))")
                 }
             }
         }

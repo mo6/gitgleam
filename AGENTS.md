@@ -65,17 +65,24 @@ One process now watches every configured repo and shows one aggregated
 menu-bar indicator, instead of running one process per repo:
 
 - `RepoConfig` (`RepoConfig.swift`) is the unit: a stable `UUID` plus
-  `path`/`label`. `Settings.repos: [RepoConfig]` is the source of truth,
-  editable live from **Settings… → Repositories** (add via a folder picker,
-  edit the label inline, re-point the path, or delete).
+  `path`/`label`, an `isEnabled` flag, and optional per-repo warn/critical
+  overrides. `Settings.repos: [RepoConfig]` is the source of truth, editable
+  live from **Settings… → Repositories** (add via a folder picker, edit the
+  label inline, re-point the path, pause without deleting, drag to reorder,
+  export/import the JSON blob, or delete). Adding a non-git folder offers
+  `git init`; duplicate paths are warned; the list warns at 8 repos and
+  caps at 20.
 - `RepoMonitor` (`RepoMonitor.swift`, the renamed/reworked former
-  `GitMonitor`) tracks one repo — unchanged in spirit from before multi-repo,
-  just constructed from a `RepoConfig` instead of the whole `AppConfig`.
-- `AppMonitor` (`AppMonitor.swift`) owns one `RepoMonitor` per entry in
-  `settings.repos`, rebuilding that dictionary whenever the list changes (a
-  path edit recreates the monitor — the watcher and cached state are
-  path-bound; a label-only edit doesn't), and exposes the aggregate status/
-  count the menu bar shows. It also owns the single pair of `NSMenu`
+  `GitMonitor`) tracks one *enabled* repo — unchanged in spirit from before
+  multi-repo, just constructed from a `RepoConfig` instead of the whole
+  `AppConfig`. Its yellow/red boundaries use that repo's threshold override
+  when set, otherwise the global Settings values.
+- `AppMonitor` (`AppMonitor.swift`) owns one `RepoMonitor` per *enabled*
+  entry in `settings.repos`, rebuilding that dictionary whenever the list
+  changes (a path edit recreates the monitor — the watcher and cached state
+  are path-bound; pausing tears it down; a label-only edit doesn't), and
+  exposes the aggregate status/count the menu bar shows (paused repos are
+  omitted from the sum). It also owns the single pair of `NSMenu`
   tracking observers that pause every repo's refresh while a menu is open
   (see the "Refreshing pauses..." gotcha below) — `RepoMonitor` itself no
   longer registers its own.
@@ -162,14 +169,15 @@ Sources/Gitgleam/
   MarkdownHighlighter.swift            — wraps changed blocks in viewmd:mark sentinels (diff → markers)
   FileKind.swift                       — file-type detection (currently: is this path Markdown?)
   ViewMode.swift                       — enum diff | preview (the window's current/default rendering)
-  Settings.swift                       — live, persisted defaults (repos, thresholds, interval, viewmd, language, debug flag)
-  SettingsView.swift                   — the Settings window: sidebar sections + card rows, incl. the Repositories tab
+  Settings.swift                       — live, persisted defaults (repos, thresholds, interval, viewmd, language, debug flag); export/import JSON
+  SettingsView.swift                   — the Settings window: sidebar sections + card rows
+  RepositoriesSettingsView.swift       — Settings Repositories tab (pause, reorder, thresholds, export/import)
   AppInfo.swift                        — static version string + GitHub URL, shown in Settings' Info section
   Localization.swift                   — L10n: central lookup of user-facing strings + language-override support
   Resources/en.lproj/Localizable.strings — English (default)
   Resources/nl.lproj/Localizable.strings — Dutch (example translation)
 Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, RepoConfig, AppConfig, Settings, MarkdownHighlighter); run with `swift test`
-README.md, CHANGELOG.md                — user-facing docs; CHANGELOG follows Keep a Changelog + SemVer
+README.md, CHANGELOG.md, IMPROVEMENTS.md — user-facing docs + living product backlog; CHANGELOG follows Keep a Changelog + SemVer
 SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 ```
 

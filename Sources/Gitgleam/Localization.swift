@@ -71,6 +71,36 @@ enum L10n {
         s("Add a repository to start watching its uncommitted changes.")
     }
     static var notAGitRepositoryWarning: String { s("This folder doesn't look like a git repository.") }
+    static var notAGitRepositoryAddPrompt: String {
+        s("Initialize a git repository in this folder, add it anyway, or cancel.")
+    }
+    static var initializeGitRepository: String { s("Initialize Git Repository") }
+    static var addAnyway: String { s("Add Anyway") }
+    static var cancel: String { s("Cancel") }
+    static var duplicateRepositoryWarning: String { s("This folder is already in the list.") }
+    static var duplicateRepositoryPrompt: String {
+        s("Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel.")
+    }
+    static var dragToReorder: String { s("Drag to reorder") }
+    static var pauseRepository: String { s("Watch this repository") }
+    static var paused: String { s("paused") }
+    static var useAppDefaults: String { s("App defaults") }
+    static var customThresholds: String { s("Custom") }
+    static var thresholds: String { s("Thresholds") }
+    static var exportSettings: String { s("Export…") }
+    static var importSettings: String { s("Import…") }
+    static var importSettingsConfirm: String { s("Replace all settings?") }
+    static var importSettingsConfirmDescription: String {
+        s("Importing a settings file replaces the repository list and every other setting. This cannot be undone except by importing a previous export.")
+    }
+    static var importSettingsFailed: String { s("Couldn't import settings") }
+    static var exportSettingsFailed: String { s("Couldn't export settings") }
+    static func repositoryLimitReached(_ cap: Int) -> String {
+        String(format: s("Can't add more than %d repositories."), cap)
+    }
+    static func repositoryCountWarning(_ count: Int) -> String {
+        String(format: s("%d repositories — each adds a watcher and a git poll. Pause ones you don't need."), count)
+    }
 
     // Settings window: rows (label + explanatory description each)
     static var language: String { s("Language") }

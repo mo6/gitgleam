@@ -86,10 +86,37 @@ final class SettingsTests: XCTestCase {
     func testReposPersistAcrossInstances() {
         let defaults = freshDefaults()
         let first = Settings(config: parse([]), defaults: defaults)
-        first.repos = [RepoConfig(path: "/tmp/a", label: "A"), RepoConfig(path: "/tmp/b", label: "B")]
+        first.repos = [
+            RepoConfig(path: "/tmp/a", label: "A", isEnabled: false, warnThreshold: 2, criticalThreshold: 9),
+            RepoConfig(path: "/tmp/b", label: "B"),
+        ]
 
         let second = Settings(config: parse([]), defaults: defaults)
         XCTAssertEqual(second.repos, first.repos)
+        XCTAssertFalse(second.repos[0].isEnabled)
+        XCTAssertEqual(second.repos[0].warnThreshold, 2)
+        XCTAssertTrue(second.repos[1].isEnabled)
+        XCTAssertNil(second.repos[1].warnThreshold)
+    }
+
+    func testExportImportRoundTrip() throws {
+        let first = Settings(config: parse(["-V", "/opt/viewmd.sh"]), defaults: freshDefaults())
+        first.language = "nl"
+        first.warnThreshold = 4
+        first.repos = [RepoConfig(path: "/tmp/a", label: "A", isEnabled: false)]
+        let data = try first.exportedJSON()
+
+        let second = Settings(config: parse([]), defaults: freshDefaults())
+        try second.importJSON(data)
+        XCTAssertEqual(second.language, "nl")
+        XCTAssertEqual(second.warnThreshold, 4)
+        XCTAssertEqual(second.viewmdPath, "/opt/viewmd.sh")
+        XCTAssertEqual(second.repos, first.repos)
+    }
+
+    func testImportRejectsInvalidJSON() {
+        let settings = Settings(config: parse([]), defaults: freshDefaults())
+        XCTAssertThrowsError(try settings.importJSON(Data("not-json".utf8)))
     }
 
     func testSettingsAreSharedGloballyRegardlessOfInitialLaunchPath() {

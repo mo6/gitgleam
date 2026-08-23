@@ -76,6 +76,11 @@ struct AppConfig {
     static let defaultCommits = 10
     /// Preview render width used when `--preview-width` is not given.
     static let defaultPreviewWidth = 100
+    /// Soft warning in Settings when this many repos are configured — each
+    /// one is a timer + FSEvents watcher + periodic `git status`.
+    static let repoCountWarning = 8
+    /// Hard cap: Add is disabled once the list reaches this many entries.
+    static let repoCountCap = 20
 
     /// Parses the flags: `--repo/-r` (repeatable), `--path/-p`, `--label/-l`,
     /// `--warn/-w`, `--critical/-c`, `--interval/-i`, `--max-entries/-m`,
