@@ -45,12 +45,17 @@ enum L10n {
     static var viewmdFailed: String { s("viewmd failed") }
 
     // Settings window: sidebar sections
+    static var settingsGeneral: String { s("General") }
     static var settingsStatusIcon: String { s("Status icon") }
     static var settingsRefresh: String { s("Refresh") }
     static var settingsMarkdownPreview: String { s("Markdown preview") }
     static var settingsDebug: String { s("Debug") }
 
     // Settings window: rows (label + explanatory description each)
+    static var language: String { s("Language") }
+    static var languageDescription: String { s("The language Gitgleam's menu and windows are displayed in.") }
+    static var languageAuto: String { s("Automatic (System Language)") }
+    static var choose: String { s("Choose…") }
     static var warnThreshold: String { s("Warn threshold") }
     static var warnThresholdDescription: String {
         s("Number of changes at or above which the menu-bar icon turns yellow.")
@@ -87,7 +92,50 @@ enum L10n {
     /// Accessibility label for a slider row's reset-to-default button.
     static var resetToDefault: String { s("Reset to default") }
 
-    /// The bundle for the user's preferred language.
+    /// Explicit language code (e.g. `"nl"`) the Settings window's Language
+    /// picker has selected, or `nil` for "Automatic" (system-language
+    /// detection). Set by `Settings.language`; changing it takes effect on
+    /// the next string lookup, so already-open secondary windows (diff,
+    /// commit) pick it up next time they're opened rather than live — only
+    /// the menu-bar dropdown, which re-renders on every `Settings` change,
+    /// updates immediately.
+    ///
+    /// `nonisolated(unsafe)`: `L10n` is called from `Git`'s `nonisolated`
+    /// background functions (for `gitFailed`, etc.) as well as from the
+    /// `@MainActor` UI, so this can't be `@MainActor`-isolated. In practice
+    /// it's written only from the Settings window (main actor) and read far
+    /// more often than written, so a benign race on the rare
+    /// read-during-write is an acceptable trade for not restructuring `Git`'s
+    /// concurrency model over a display string.
+    nonisolated(unsafe) static var languageOverride: String? {
+        didSet { bundleCache = nil }
+    }
+
+    /// Language codes with a `.lproj` in this bundle, in a fixed display
+    /// order (English first, then alphabetically) for the Language picker.
+    static var availableLanguages: [String] {
+        Bundle.module.localizations.filter { $0 != "Base" }.sorted { a, b in
+            if a == "en" { return true }
+            if b == "en" { return false }
+            return a < b
+        }
+    }
+
+    /// A language code's name, in that language (e.g. `"nl"` → "Nederlands"),
+    /// for the Language picker.
+    static func displayName(forLanguageCode code: String) -> String {
+        switch code {
+        case "en": return "English"
+        case "nl": return "Nederlands"
+        default: return Locale(identifier: code).localizedString(forLanguageCode: code) ?? code
+        }
+    }
+
+    /// See `languageOverride`'s doc comment for why this is `unsafe`.
+    nonisolated(unsafe) private static var bundleCache: Bundle?
+
+    /// The bundle for the current language: `languageOverride` if set,
+    /// otherwise the user's preferred system language.
     ///
     /// A raw SPM executable has no localization info in `Bundle.main`, so the
     /// system language resolution that `String(localized:)` relies on defaults
@@ -95,8 +143,20 @@ enum L10n {
     /// override. We therefore match the preferred languages against the
     /// module's own localizations and load that `.lproj` directly. Both the
     /// system language and `-AppleLanguages "(nl)"` feed `preferredLanguages`,
-    /// so this honors either. Falls back to the module bundle (English).
-    private static let localizedBundle: Bundle = {
+    /// so "Automatic" honors either. Falls back to the module bundle (English).
+    private static var localizedBundle: Bundle {
+        if let bundleCache { return bundleCache }
+        let bundle = resolvedBundle()
+        bundleCache = bundle
+        return bundle
+    }
+
+    private static func resolvedBundle() -> Bundle {
+        if let languageOverride,
+           let path = Bundle.module.path(forResource: languageOverride, ofType: "lproj"),
+           let bundle = Bundle(path: path) {
+            return bundle
+        }
         let preferred = Bundle.preferredLocalizations(
             from: Bundle.module.localizations,
             forPreferences: Locale.preferredLanguages
@@ -107,7 +167,7 @@ enum L10n {
             return bundle
         }
         return .module
-    }()
+    }
 
     /// Looks up a key in the preferred-language string table. A missing key
     /// falls back to the key itself, which is the English source string.

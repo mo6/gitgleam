@@ -10,6 +10,16 @@ import Foundation
 /// diff/commit window read the current values, no restart needed.
 @MainActor
 final class Settings: ObservableObject {
+    /// A language code (e.g. `"nl"`) from `L10n.availableLanguages`, or
+    /// `"auto"` to follow the system language. Not seeded from `AppConfig` —
+    /// there's no CLI flag for it, so "auto" is always the first-launch
+    /// default.
+    @Published var language: String {
+        didSet {
+            L10n.languageOverride = (language == "auto") ? nil : language
+            save()
+        }
+    }
     @Published var warnThreshold: Int {
         didSet {
             let clamped = max(1, warnThreshold)
@@ -85,6 +95,7 @@ final class Settings: ObservableObject {
         // Assignments in this initializer don't trigger the `didSet` clamps
         // above (Swift skips property observers for a property's own
         // initializer), so no explicit re-entrancy guard is needed here.
+        language = stored?.language ?? "auto"
         warnThreshold = stored?.warnThreshold ?? config.warnThreshold
         criticalThreshold = stored?.criticalThreshold ?? config.criticalThreshold
         refreshInterval = stored?.refreshInterval ?? config.refreshInterval
@@ -94,12 +105,20 @@ final class Settings: ObservableObject {
         defaultView = stored?.defaultView ?? (config.defaultView ?? .preview)
         previewWidth = stored?.previewWidth ?? config.previewWidth
         debugKeepPreviewFiles = stored?.debugKeepPreviewFiles ?? false
+
+        // `language`'s own didSet (which applies the override) doesn't fire
+        // for this initializer's assignment above, so apply it explicitly.
+        L10n.languageOverride = (language == "auto") ? nil : language
     }
 
     /// The on-disk shape, versioned implicitly by field presence: a decode
     /// failure (e.g. a future field added later) is treated as "no stored
     /// settings" rather than a crash, via `try?` at the call site.
     private struct StoredSettings: Codable {
+        /// Optional (rather than required, like the rest of these fields) so
+        /// settings persisted before this field existed still decode — a
+        /// missing key becomes `nil` instead of failing the whole decode.
+        var language: String?
         var warnThreshold: Int
         var criticalThreshold: Int
         var refreshInterval: TimeInterval
@@ -113,7 +132,7 @@ final class Settings: ObservableObject {
 
     private func save() {
         let stored = StoredSettings(
-            warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
+            language: language, warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
             refreshInterval: refreshInterval, maxEntries: maxEntries, commits: commits,
             viewmdPath: viewmdPath, defaultView: defaultView, previewWidth: previewWidth,
             debugKeepPreviewFiles: debugKeepPreviewFiles

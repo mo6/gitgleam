@@ -25,6 +25,36 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(settings.viewmdPath, "/opt/viewmd.sh")
         XCTAssertEqual(settings.defaultView, .preview)
         XCTAssertFalse(settings.debugKeepPreviewFiles)
+        XCTAssertEqual(settings.language, "auto") // no CLI flag for it
+    }
+
+    func testLanguagePersistsAcrossInstances() {
+        let config = parse(["--path", "/tmp/lang-repo"])
+        let defaults = freshDefaults()
+
+        let first = Settings(config: config, defaults: defaults)
+        first.language = "nl"
+
+        let second = Settings(config: config, defaults: defaults)
+        XCTAssertEqual(second.language, "nl")
+    }
+
+    func testDataWithoutLanguageKeyStillDecodes() {
+        // Simulates settings persisted before `language` existed: the rest
+        // of the stored values must still load, with language defaulting to
+        // "auto" rather than the whole decode failing.
+        let config = parse(["--path", "/tmp/legacy-repo", "--warn", "4"])
+        let defaults = freshDefaults()
+        let legacyJSON = """
+        {"warnThreshold":4,"criticalThreshold":10,"refreshInterval":60,"maxEntries":25,
+         "commits":10,"viewmdPath":"","defaultView":"preview","previewWidth":100,
+         "debugKeepPreviewFiles":false}
+        """
+        defaults.set(Data(legacyJSON.utf8), forKey: "nl.mo6.gitgleam.settings./tmp/legacy-repo")
+
+        let settings = Settings(config: config, defaults: defaults)
+        XCTAssertEqual(settings.language, "auto")
+        XCTAssertEqual(settings.warnThreshold, 4) // the rest of the legacy data still loaded
     }
 
     func testNoViewmdPathSeedsEmptyString() {

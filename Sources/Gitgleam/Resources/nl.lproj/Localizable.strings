@@ -33,11 +33,16 @@
 "viewmd failed" = "viewmd faalde";
 
 /* Settings window: sidebar sections */
+"General" = "Algemeen";
 "Status icon" = "Statuspictogram";
 "Markdown preview" = "Markdown-voorbeeld";
 "Debug" = "Debug";
 
 /* Settings window: rows */
+"Language" = "Taal";
+"The language Gitgleam's menu and windows are displayed in." = "De taal waarin Gitgleams menu en vensters worden weergegeven.";
+"Automatic (System Language)" = "Automatisch (systeemtaal)";
+"Choose…" = "Kies…";
 "Warn threshold" = "Waarschuwingsdrempel";
 "Number of changes at or above which the menu-bar icon turns yellow." = "Aantal wijzigingen waarbij het menubalkpictogram geel wordt.";
 "Critical threshold" = "Kritieke drempel";

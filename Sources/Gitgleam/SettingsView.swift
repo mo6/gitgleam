@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Window for editing the live, persisted defaults (see `Settings`).
 ///
@@ -9,7 +10,7 @@ import SwiftUI
 /// control — grouped per section.
 struct SettingsView: View {
     @ObservedObject var settings: Settings
-    @State private var section: SettingsSection = .statusIcon
+    @State private var section: SettingsSection = .general
 
     var body: some View {
         NavigationSplitView {
@@ -38,6 +39,19 @@ struct SettingsView: View {
     @ViewBuilder
     private func card(for section: SettingsSection) -> some View {
         switch section {
+        case .general:
+            SettingsCard {
+                Row(label: L10n.language, description: L10n.languageDescription) {
+                    Picker("", selection: $settings.language) {
+                        Text(L10n.languageAuto).tag("auto")
+                        ForEach(L10n.availableLanguages, id: \.self) { code in
+                            Text(L10n.displayName(forLanguageCode: code)).tag(code)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 220)
+                }
+            }
         case .statusIcon:
             SettingsCard {
                 SliderRow(
@@ -74,10 +88,12 @@ struct SettingsView: View {
             }
         case .preview:
             SettingsCard {
-                Row(label: L10n.viewmdPath, description: L10n.viewmdPathDescription) {
-                    TextField("", text: $settings.viewmdPath, prompt: Text(L10n.viewmdPathPlaceholder))
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 260)
+                StackedRow(label: L10n.viewmdPath, description: L10n.viewmdPathDescription) {
+                    HStack(spacing: 8) {
+                        TextField("", text: $settings.viewmdPath, prompt: Text(L10n.viewmdPathPlaceholder))
+                            .textFieldStyle(.roundedBorder)
+                        Button(L10n.choose) { chooseViewmdPath() }
+                    }
                 }
                 Divider()
                 Row(label: L10n.defaultViewLabel, description: L10n.defaultViewDescription) {
@@ -109,16 +125,34 @@ struct SettingsView: View {
     private func intBinding(_ base: Binding<Int>) -> Binding<Double> {
         Binding(get: { Double(base.wrappedValue) }, set: { base.wrappedValue = Int($0) })
     }
+
+    /// Presents a file picker (an executable, not a directory) for the
+    /// viewmd.sh launcher.
+    private func chooseViewmdPath() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.prompt = L10n.choose
+        let current = settings.viewmdPath.trimmingCharacters(in: .whitespaces)
+        if !current.isEmpty {
+            panel.directoryURL = URL(fileURLWithPath: current).deletingLastPathComponent()
+        }
+        if panel.runModal() == .OK, let url = panel.url {
+            settings.viewmdPath = url.path
+        }
+    }
 }
 
 /// A sidebar destination: a settings group, its icon, and localized title.
 private enum SettingsSection: CaseIterable, Identifiable {
-    case statusIcon, refresh, preview, debug
+    case general, statusIcon, refresh, preview, debug
 
     var id: Self { self }
 
     var title: String {
         switch self {
+        case .general: return L10n.settingsGeneral
         case .statusIcon: return L10n.settingsStatusIcon
         case .refresh: return L10n.settingsRefresh
         case .preview: return L10n.settingsMarkdownPreview
@@ -128,6 +162,7 @@ private enum SettingsSection: CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .general: return "gearshape"
         case .statusIcon: return "gauge.with.dots.needle.50percent"
         case .refresh: return "arrow.triangle.2.circlepath"
         case .preview: return "doc.text.magnifyingglass"
@@ -167,6 +202,29 @@ private struct Row<Control: View>: View {
             Spacer(minLength: 12)
             control
                 .frame(maxHeight: .infinity)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
+    }
+}
+
+/// A row whose control needs the full row width rather than being flushed
+/// right next to the label — the label/description sit above a full-width
+/// control below, both left-aligned.
+private struct StackedRow<Control: View>: View {
+    let label: String
+    let description: String
+    @ViewBuilder var control: Control
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(label)
+                Text(description)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+            control
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
