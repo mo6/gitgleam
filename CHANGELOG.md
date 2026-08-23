@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-23
+
+### Added
+
+- A **Settings window** (new "Settings…" menu item, just above Refresh),
+  styled as a macOS System Settings-style preferences pane: sidebar
+  navigation, section headings, and rounded card rows with a label, a
+  one-line explanation, and a flush-right control (sliders with a
+  reset-to-default button for numeric values). Every field applies
+  immediately and persists per watched path, layered over the CLI flags as
+  first-launch defaults:
+  - **Info**: app description, version, and a link to the GitHub repository.
+  - **General**: a **Language** setting — Automatic (system language) or an
+    explicit language from the available translations.
+  - **Status icon**: warn/critical thresholds.
+  - **Refresh**: poll interval, max menu entries, recent-commits count.
+  - **Markdown preview**: viewmd path (with a **Choose…** file-picker
+    button), default view, preview width.
+  - **Debug**: an option to keep Markdown preview input files in `/tmp`
+    instead of deleting them, so the exact Markdown (including `viewmd:mark`
+    sentinels) sent to viewmd can be inspected.
+
+### Fixed
+
+- The **Recent commits** submenu closing immediately after opening (see
+  1.0.2/1.0.3) in some remaining cases — refreshing is additionally skipped
+  now whenever nothing in the status/commit list actually changed, on top of
+  pausing while a menu is open.
+- Markdown change-highlighting marked an entire list when only one item
+  changed, since a "block" was any contiguous run of non-blank lines and a
+  tight list has no blank lines between items. Blocks now also split at each
+  list-item boundary, so only the changed item (and its indented
+  continuation lines) is marked.
+- A changed YAML front-matter block was being wrapped in a `viewmd:mark`
+  sentinel, which put the comment ahead of the front matter's opening `---`
+  and broke viewmd's front-matter detection (it requires `---` as the file's
+  literal first line). Front matter is now never marked, changed or not.
+- Markdown preview backgrounds rendered too dark in light mode. `Viewmd.render`
+  now passes viewmd's `--theme dark`/`light` flag matching the window's
+  actual appearance (never `auto`, which needs a terminal query a `Process`
+  pipe can't answer); since the installed viewmd doesn't yet act on that flag
+  for its `viewmd:mark` highlight color, `ANSIText` also lightens
+  256-color/truecolor backgrounds when rendering in light mode as a
+  compensating fix.
+
 ## [1.0.3] - 2026-08-22
 
 ### Fixed
@@ -74,7 +119,8 @@ Initial release.
   language and a per-launch `-AppleLanguages` override. English (default) and
   Dutch translations included.
 
-[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/mo6/gitgleam/compare/v1.0.3...v1.1.0
 [1.0.3]: https://github.com/mo6/gitgleam/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/mo6/gitgleam/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/mo6/gitgleam/compare/v1.0.0...v1.0.1

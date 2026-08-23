@@ -23,8 +23,12 @@ a colored diff. Built with Swift + SwiftUI (`MenuBarExtra`).
   diagrams — instead of a raw diff, when a [viewmd](https://github.com/mo6/viewmd)
   launcher is configured via `--viewmd-path`. The diff and commit windows then
   show a Diff/Preview toggle (Preview is the default for Markdown).
-- The watched path, label, and color thresholds are all set via flags, so you
-  can run several instances at once.
+- The watched path and label are set via flags, so you can run several
+  instances at once. Everything else — thresholds, poll interval, menu
+  entry cap, recent-commits count, Markdown preview settings, language, and
+  a debug option — has a **Settings…** window (menu item, above Refresh)
+  where it can be changed live, no restart needed; the flags below are just
+  its first-launch defaults, persisted per watched path afterwards.
 
 ## Requirements
 
@@ -187,14 +191,16 @@ If it doesn't appear, check `/tmp/gitgleam.work.err.log` for errors.
 
 ## Language
 
-The UI follows your macOS system language, falling back to English. Translations
-live in `Sources/Gitgleam/Resources/<lang>.lproj/Localizable.strings` and are
-looked up via the `L10n` helper. A Dutch (`nl`) translation is included as an
-example; add a language by dropping in a new `.lproj` folder and translating the
-values.
+By default the UI follows your macOS system language, falling back to
+English. Open **Settings… → General** to pick an explicit language instead of
+"Automatic". Translations live in
+`Sources/Gitgleam/Resources/<lang>.lproj/Localizable.strings` and are looked
+up via the `L10n` helper. A Dutch (`nl`) translation is included as an
+example; add a language by dropping in a new `.lproj` folder and translating
+the values — it then also appears as a choice in Settings.
 
 Force a language for a single launch with the standard `-AppleLanguages`
-override (the tuple must be quoted):
+override (the tuple must be quoted), which is what "Automatic" honors:
 
 ```bash
 swift run Gitgleam --path ~/repo -AppleLanguages '(nl)'

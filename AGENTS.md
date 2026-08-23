@@ -36,8 +36,19 @@ multi-instance tool.)
   VIEWMD-0104). These are plain HTML comments, invisible to a viewmd that
   doesn't yet support them — so the marking is injected now and simply doesn't
   highlight until viewmd ships that feature.
-- The watched path, label, and color thresholds come from command-line flags, so
-  several instances can run side by side.
+- The watched path and label come from command-line flags, so several
+  instances can run side by side. Everything else — thresholds, poll
+  interval, menu-entry cap, recent-commits count, Markdown preview settings,
+  language, and a debug option — lives in `Settings` (`Settings.swift`), a
+  `@MainActor ObservableObject` seeded once from those flags (the
+  first-launch defaults) then persisted independently via `UserDefaults`,
+  keyed by the watched path. `SettingsView` (opened from a new menu item,
+  "Settings…", just above Refresh) edits it live: `GitMonitor` observes
+  `Settings` and forwards its changes, and any diff/commit window opened
+  afterwards reads the current values.
+- **Language** is one of those settings: "Automatic" (the previous,
+  system-language-only behavior) or an explicit language, applied via
+  `L10n.languageOverride`.
 
 ## Build & run
 
@@ -58,7 +69,10 @@ current directory; warn defaults to 1, critical to 10, interval to 60 seconds
 a fallback poll), max-entries to 25 (clamped to ≥1), commits to 10 (clamped
 to ≥1). `--viewmd-path` is unset by default (Markdown preview disabled);
 `--default-view` is `diff`|`preview` (defaults to `preview` once a viewmd path
-is set); `--preview-width` defaults to 100 (clamped to ≥20).
+is set); `--preview-width` defaults to 100 (clamped to ≥20). All of these
+(except `--path`/`--label`) are only *first-launch* defaults — `Settings`
+takes over from there, editable live in the Settings window and persisted
+independently.
 
 The launched app appears in the menu bar (top-right), not the Dock. Quit it from
 its own menu ("Quit") or with Ctrl-C in the terminal that ran `swift run`. See
@@ -66,9 +80,12 @@ its own menu ("Quit") or with Ctrl-C in the terminal that ran `swift run`. See
 
 Tests live in `Tests/GitgleamTests` (a `.testTarget` in `Package.swift`); run
 them with `swift test`. Coverage is the pure logic that needs no running UI or
-git: `ANSIText` (SGR + OSC parsing, malformed escapes), `FileKind`, `AppConfig`
-flag parsing/clamping, and `MarkdownHighlighter` (diff → block markers). Add
-tests here when you add similar logic (e.g. porcelain parsing in `FileChange`).
+git: `ANSIText` (SGR + OSC parsing, malformed escapes, light-mode background
+adaptation), `FileKind`, `AppConfig` flag parsing/clamping, `Settings`
+(seeding from `AppConfig`, clamping, persistence round-trip, backward-
+compatible decoding), and `MarkdownHighlighter` (diff → block markers, list-
+item/front-matter splitting). Add tests here when you add similar logic (e.g.
+porcelain parsing in `FileChange`).
 
 ## Project layout
 
@@ -95,10 +112,13 @@ Sources/Gitgleam/
   MarkdownHighlighter.swift            — wraps changed blocks in viewmd:mark sentinels (diff → markers)
   FileKind.swift                       — file-type detection (currently: is this path Markdown?)
   ViewMode.swift                       — enum diff | preview (the window's current/default rendering)
-  Localization.swift                   — L10n: central lookup of user-facing strings
+  Settings.swift                       — live, persisted defaults (thresholds, interval, viewmd, language, debug flag)
+  SettingsView.swift                   — the Settings window: sidebar sections + card rows
+  AppInfo.swift                        — static version string + GitHub URL, shown in Settings' Info section
+  Localization.swift                   — L10n: central lookup of user-facing strings + language-override support
   Resources/en.lproj/Localizable.strings — English (default)
   Resources/nl.lproj/Localizable.strings — Dutch (example translation)
-Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, AppConfig, MarkdownHighlighter); run with `swift test`
+Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, AppConfig, Settings, MarkdownHighlighter); run with `swift test`
 README.md, CHANGELOG.md                — user-facing docs; CHANGELOG follows Keep a Changelog + SemVer
 SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 ```
@@ -172,9 +192,12 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
   configured `viewmd.sh` via `/bin/bash` (a GUI app has no shell PATH), on a
   temporary `.md` file, with `--color=always` (a `Process` pipe is not a TTY, so
   viewmd's default `auto` would strip the ANSI we parse), `--no-toc` (a preview
-  shows the file's own content, not viewmd's generated navigation outline), and
+  shows the file's own content, not viewmd's generated navigation outline),
+  `--theme dark`/`light` matching the window's actual `colorScheme` (`auto`
+  needs a terminal OSC 11 query a `Process` pipe can't answer — see the
+  ANSIText bullet below for why this alone isn't yet enough), and
   `VIEWMD_NO_CONFIG=1` (so a user's viewmd config can't override the
-  width/color/toc we ask for). Its ANSI
+  width/color/toc/theme we ask for). Its ANSI
   output is turned into an `AttributedString` by `ANSIText`; box-drawing/Mermaid
   art only lines up in a monospaced font, which is why the preview reuses
   `MonospacedTextScroll`. Any failure falls back to the colored diff.
@@ -182,10 +205,26 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
   BEL or ST) — viewmd emits them for its table of contents and wikilinks, and
   without stripping the `]8;…\` machinery leaks into the text; the link *label*
   between the two OSC markers is kept.
+- **`ANSIText` compensates for viewmd's `--theme` not doing anything yet.**
+  As of the installed viewmd version, `--theme dark` and `--theme light`
+  produce byte-identical ANSI — including the `viewmd:mark` highlight
+  background, a fixed dark-tuned truecolor that reads as a muddy box on a
+  light-mode window. `ANSIText.attributed(from:colorScheme:)` lightens
+  256-color/truecolor *backgrounds* (`48;5;n`/`48;2;r;g;b`) toward white when
+  `colorScheme == .light`, tracked via `Style.backgroundIsExtended`. The 16
+  basic ANSI colors (`40`-`47`/`100`-`107`, mapped to `.primary`/`.secondary`/
+  etc.) are already theme-aware and untouched. Revisit this once viewmd
+  actually varies its palette by `--theme`.
 - **Change highlighting is done by marking, not by viewmd knowing git.**
   `MarkdownHighlighter.mark` parses the unified diff for added new-file line
-  numbers, expands them to blank-line-delimited blocks (fences kept whole), and
-  wraps each changed block in `viewmd:mark` sentinels. It reads `self.diff`,
+  numbers, expands them to blocks — maximal runs of non-blank lines, with a
+  fenced code block kept whole and a run additionally split at each list-item
+  boundary (so one changed item in a tight list marks just that item, not the
+  whole list) — and wraps each changed block in `viewmd:mark` sentinels. A
+  leading YAML front-matter block is never marked, changed or not: wrapping it
+  puts the sentinel ahead of its opening `---`, which breaks viewmd's
+  front-matter detection (it requires `---` as the file's literal first
+  line — see `frontMatterLineCount`). It reads `self.diff`,
   which the pane loads before the preview, and it copes fine with the
   full-context (`-U1000000`) diffs the app already fetches. Deletions have no
   line in the after-file, so a purely-removed block isn't marked (matches
@@ -207,6 +246,36 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
   (`repoWatcherCallback`) that recovers the `RepoWatcher` from FSEvents'
   `info` pointer — a capturing Swift closure can't become a `@convention(c)`
   callback — and hops to `@MainActor` to call `refresh()`.
+- **Refreshing pauses while any of the app's own menus is open.**
+  `GitMonitor` observes AppKit's in-process `NSMenu.didBeginTrackingNotification`/
+  `didEndTrackingNotification` and defers `refresh()` (reusing the
+  `pendingRefresh` flag) for as long as one is open, catching up once it
+  closes. Without this, a refresh mid-open — even a no-op one — fires
+  `objectWillChange` and rebuilds the menu, which was closing the "Recent
+  commits" submenu the instant it opened. `GitMonitor` isn't an `NSObject`,
+  so this uses the block-based `NotificationCenter` API, not target/selector.
+- **`Settings` persists per watched path, with optional fields for
+  forward-compatible decoding.** `Settings` (`@MainActor ObservableObject`)
+  is seeded once from `AppConfig` (the CLI flags — first-launch defaults
+  only) and thereafter reads/writes a single JSON-encoded `StoredSettings`
+  blob in `UserDefaults`, keyed `"nl.mo6.gitgleam.settings.\(config.path)"`.
+  A field added after the app has already persisted settings for someone
+  must be declared `Optional` in `StoredSettings` (Codable's synthesized
+  decoder treats a missing key as `nil` for an `Optional` property, but fails
+  the *entire* decode for a missing required field) — see `language` for the
+  pattern, and `SettingsTests.testDataWithoutLanguageKeyStillDecodes`.
+  Assignments inside `Settings.init` don't trigger a property's own `didSet`
+  (a general Swift rule), so the clamping/persisting/side-effecting logic in
+  each property's `didSet` needs an explicit one-time equivalent at the end
+  of `init` when it has an effect beyond the property itself (e.g.
+  `L10n.languageOverride`, set explicitly after `language`'s assignment).
+- **`L10n`'s language override is `nonisolated(unsafe)`, deliberately.**
+  `Settings.language` calls `L10n.languageOverride = ...`, but `L10n` is also
+  called from `Git`'s `nonisolated` background functions (`gitFailed`, etc.),
+  so it can't be `@MainActor`-isolated without restructuring `Git`'s
+  concurrency model. `languageOverride`/`bundleCache` are marked
+  `nonisolated(unsafe)` instead, accepting a benign race on the rare
+  read-during-write over that restructuring, for a display-string cache.
 - **No App Sandbox.** Because this runs via SPM (not a sandboxed .app bundle), it
   can read any repo path directly. A sandboxed distributable would need a
   security-scoped bookmark for paths outside its container.
@@ -247,7 +316,9 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
   at release time, then tagging (e.g. `v1.2.0`), not by direct commits.
 - **Releasing:** move the `CHANGELOG.md` `[Unreleased]` content under a new
   `## [x.y.z] - <date>` heading (add the compare-link footer entries too),
-  commit that on `develop`, fast-forward `main` to `develop`
+  bump `AppInfo.version` (shown in Settings → Info — it has no runtime
+  source, so this is the only place it changes), commit that on `develop`,
+  fast-forward `main` to `develop`
   (`git merge --ff-only develop`), tag `main` (`git tag -a vX.Y.Z -m "Release
   vX.Y.Z"`), then — after push approval — push `develop`, `main`, and the tag,
   and create the GitHub release (`gh release create vX.Y.Z --title vX.Y.Z
