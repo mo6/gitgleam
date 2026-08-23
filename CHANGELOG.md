@@ -21,12 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dropdown (and from the aggregate count) until it's enabled again. Adding
   a folder that isn't a git repo offers to initialize one; a duplicate path
   is warned about. Each repo can override the global warn/critical
-  thresholds. The list warns at 8 repos and refuses a 21st. **Export…** /
-  **Import…** write or replace the same JSON blob Settings persists in
-  `UserDefaults`. First launch seeds the list from repeatable
-  `--repo <path>[:<label>]` flags (or the existing single `--path`/`--label`,
-  kept for back-compat); an existing single-repo install's settings migrate
-  in automatically.
+  thresholds. Per-repo options (pause, change folder, thresholds, remove)
+  sit behind a **⋯** button on each row. The list warns at 8 repos and
+  refuses a 21st. **Export…** / **Import…** write or replace the same JSON
+  blob Settings persists in `UserDefaults`. First launch seeds the list from
+  repeatable `--repo <path>[:<label>]` flags (or the existing single
+  `--path`/`--label`, kept for back-compat); an existing single-repo
+  install's settings migrate in automatically.
 
 ## [1.1.0] - 2026-08-23
 

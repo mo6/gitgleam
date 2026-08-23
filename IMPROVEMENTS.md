@@ -137,13 +137,14 @@ Multi-repo is new; the Settings surface is still global.
   `git status`). Self-inflicted, but easy to do by accident with "Add".~~
 
 **Implemented (2026-08-23).** Settings → Repositories now supports drag-to-reorder
-(grip on each row), a checkbox to pause a repo without deleting it (no
-FSEvents watcher, `git status`, or menu-bar dropdown row until it's on
-again), duplicate-path and not-a-git-repo alerts on Add/Choose (Initialize
-Git / Add anyway / Cancel), per-repo warn/critical overrides (or "App
-defaults"), Export…/Import… of the same JSON blob `UserDefaults` stores
-(`gitgleam-settings.json`), a warning from 8 repos and a hard cap at 20.
-Paused repos do not contribute to the aggregate menu-bar count.
+(grip on each row), a ⋯ button per row for repo-specific options (pause
+without deleting — no FSEvents watcher, `git status`, or menu-bar dropdown
+row until it's on again — plus change folder, warn/critical overrides, and
+remove), duplicate-path and not-a-git-repo alerts on Add/Choose (Initialize
+Git / Add anyway / Cancel), Export…/Import… of the same JSON blob
+`UserDefaults` stores (`gitgleam-settings.json`), a warning from 8 repos and
+a hard cap at 20. Paused repos do not contribute to the aggregate menu-bar
+count.
 
 Per-repo *viewer-rule* overrides are not in this pass — they wait on the
 file-type viewer table above. Everything else in this section still uses the

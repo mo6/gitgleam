@@ -63,6 +63,8 @@
 "Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel." = "Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel.";
 "Drag to reorder" = "Drag to reorder";
 "Watch this repository" = "Watch this repository";
+"Repository settings" = "Repository settings";
+"Change Folder…" = "Change Folder…";
 "App defaults" = "App defaults";
 "Custom" = "Custom";
 "Thresholds" = "Thresholds";

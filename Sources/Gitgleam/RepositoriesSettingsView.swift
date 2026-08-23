@@ -2,9 +2,9 @@ import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
 
-/// The Repositories tab: an editable list of `RepoConfig` — drag to reorder,
-/// pause without deleting, per-repo threshold overrides — plus Add / Export /
-/// Import below the list.
+/// The Repositories tab: an editable list of `RepoConfig` — drag to reorder;
+/// per-repo pause/path/thresholds/remove live behind each row's ⋯ button —
+/// plus Add / Export / Import below the list.
 struct RepositoriesSettingsView: View {
     @ObservedObject var settings: Settings
 
@@ -198,8 +198,8 @@ struct RepositoriesSettingsView: View {
     }
 }
 
-/// One repository row: grip, pause checkbox, label/path, threshold override,
-/// folder picker, delete.
+/// One repository row: name and path on the left, warning icons and a
+/// System Settings-style ⋯ button on the right that opens per-repo options.
 private struct RepositoryRow: View {
     @Binding var repo: RepoConfig
     let globalWarn: Int
@@ -208,85 +208,61 @@ private struct RepositoryRow: View {
     let onDelete: () -> Void
     let onMoveFrom: (String) -> Bool
     let onChoosePath: () -> Void
+    @State private var showingSettings = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "line.3.horizontal")
-                    .foregroundStyle(.tertiary)
-                    .help(L10n.dragToReorder)
-                    .draggable(repo.id.uuidString)
-                    .padding(.top, 3)
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "line.3.horizontal")
+                .foregroundStyle(.tertiary)
+                .help(L10n.dragToReorder)
+                .draggable(repo.id.uuidString)
 
-                Toggle("", isOn: $repo.isEnabled)
-                    .toggleStyle(.checkbox)
-                    .labelsHidden()
-                    .help(L10n.pauseRepository)
-                    .padding(.top, 2)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    TextField(L10n.repositoryLabel, text: $repo.label)
-                        .textFieldStyle(.plain)
-                        .font(.system(size: 13, weight: .medium))
-                    HStack(spacing: 6) {
-                        if isDuplicate {
-                            Image(systemName: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
-                                .help(L10n.duplicateRepositoryWarning)
-                        }
-                        if !RepoConfig.looksLikeGitRepository(at: repo.path) {
-                            Image(systemName: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
-                                .help(L10n.notAGitRepositoryWarning)
-                        }
-                        Text(repo.path)
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                    }
-                }
-                .opacity(repo.isEnabled ? 1 : 0.55)
-
-                Spacer(minLength: 12)
-
-                Button(L10n.choose) { onChoosePath() }
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-                .help(L10n.removeRepository)
-            }
-
-            HStack(spacing: 8) {
-                Text(L10n.thresholds)
+            VStack(alignment: .leading, spacing: 4) {
+                TextField(L10n.repositoryLabel, text: $repo.label)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13, weight: .medium))
+                Text(repo.path)
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
-                Picker("", selection: customThresholds) {
-                    Text(L10n.useAppDefaults).tag(false)
-                    Text(L10n.customThresholds).tag(true)
-                }
-                .labelsHidden()
-                .frame(width: 140)
-                if usesCustomThresholds {
-                    Text(L10n.warnThreshold)
-                        .foregroundStyle(.secondary)
-                    Stepper(value: warnBinding, in: 1...criticalBinding.wrappedValue) {
-                        Text("\(warnBinding.wrappedValue)")
-                            .monospacedDigit()
-                            .frame(minWidth: 24, alignment: .trailing)
-                    }
-                    Text(L10n.criticalThreshold)
-                        .foregroundStyle(.secondary)
-                    Stepper(value: criticalBinding, in: warnBinding.wrappedValue...200) {
-                        Text("\(criticalBinding.wrappedValue)")
-                            .monospacedDigit()
-                            .frame(minWidth: 24, alignment: .trailing)
-                    }
-                }
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
-            .font(.system(size: 11))
             .opacity(repo.isEnabled ? 1 : 0.55)
+
+            Spacer(minLength: 12)
+
+            if isDuplicate {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .help(L10n.duplicateRepositoryWarning)
+            }
+            if !RepoConfig.looksLikeGitRepository(at: repo.path) {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .help(L10n.notAGitRepositoryWarning)
+            }
+
+            Button {
+                showingSettings.toggle()
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help(L10n.repositorySettings)
+            .popover(isPresented: $showingSettings, arrowEdge: .trailing) {
+                RepositorySettingsPopover(
+                    repo: $repo,
+                    globalWarn: globalWarn,
+                    globalCritical: globalCritical,
+                    onChoosePath: onChoosePath,
+                    onDelete: {
+                        showingSettings = false
+                        onDelete()
+                    }
+                )
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 11)
@@ -294,6 +270,62 @@ private struct RepositoryRow: View {
             guard let id = items.first else { return false }
             return onMoveFrom(id)
         }
+    }
+}
+
+/// Per-repo options shown from the row's ⋯ button: watch/pause, folder,
+/// threshold overrides, and remove.
+private struct RepositorySettingsPopover: View {
+    @Binding var repo: RepoConfig
+    let globalWarn: Int
+    let globalCritical: Int
+    let onChoosePath: () -> Void
+    let onDelete: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle(L10n.pauseRepository, isOn: $repo.isEnabled)
+
+            Divider()
+
+            Button(L10n.changeRepositoryFolder, action: onChoosePath)
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(L10n.thresholds)
+                Picker("", selection: customThresholds) {
+                    Text(L10n.useAppDefaults).tag(false)
+                    Text(L10n.customThresholds).tag(true)
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                if usesCustomThresholds {
+                    stepper(label: L10n.warnThreshold, value: warnBinding, range: 1...criticalBinding.wrappedValue)
+                    stepper(label: L10n.criticalThreshold, value: criticalBinding, range: warnBinding.wrappedValue...200)
+                }
+            }
+
+            Divider()
+
+            Button(L10n.removeRepository, role: .destructive, action: onDelete)
+        }
+        .padding(14)
+        .frame(width: 280, alignment: .leading)
+    }
+
+    private func stepper(label: String, value: Binding<Int>, range: ClosedRange<Int>) -> some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Stepper(value: value, in: range) {
+                Text("\(value.wrappedValue)")
+                    .monospacedDigit()
+                    .frame(minWidth: 24, alignment: .trailing)
+            }
+        }
+        .font(.system(size: 12))
     }
 
     private var usesCustomThresholds: Bool {

@@ -62,6 +62,8 @@
 "Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel." = "Dezelfde map twee keer bekijken start twee waarnemers op één boom. Toch toevoegen, of annuleren.";
 "Drag to reorder" = "Sleep om te herordenen";
 "Watch this repository" = "Deze repository in de gaten houden";
+"Repository settings" = "Repository-instellingen";
+"Change Folder…" = "Map wijzigen…";
 "App defaults" = "App-standaard";
 "Custom" = "Aangepast";
 "Thresholds" = "Drempels";
