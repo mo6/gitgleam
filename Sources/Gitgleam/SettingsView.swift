@@ -10,7 +10,7 @@ import AppKit
 /// control — grouped per section.
 struct SettingsView: View {
     @ObservedObject var settings: Settings
-    @State private var section: SettingsSection = .repositories
+    @State private var section: SettingsSection = .info
 
     var body: some View {
         NavigationSplitView {
@@ -162,7 +162,7 @@ struct SettingsView: View {
 
 /// A sidebar destination: a settings group, its icon, and localized title.
 private enum SettingsSection: CaseIterable, Identifiable {
-    case repositories, info, general, statusIcon, refresh, preview, debug
+    case info, general, repositories, statusIcon, refresh, preview, debug
 
     var id: Self { self }
 
