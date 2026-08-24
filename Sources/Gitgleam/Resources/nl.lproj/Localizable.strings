@@ -6,11 +6,12 @@
 "Settings…" = "Instellingen…";
 "No repositories configured" = "Geen repositories geconfigureerd";
 
-/* Overflow / full-list window */
-"All changes" = "Alle wijzigingen";
+/* Uncommitted window */
+"Uncommitted" = "Niet gecommit";
 "Repository removed" = "Repository verwijderd";
-"Show all %d changes…" = "Toon alle %d wijzigingen…";
-"%d more not shown" = "%d niet getoond";
+"%d changed" = "%d gewijzigd";
+"%d new" = "%d nieuw";
+"%d deleted" = "%d verwijderd";
 
 /* Section headers */
 "Changed" = "Gewijzigd";
@@ -89,8 +90,6 @@
 "Number of changes at or above which the icon turns red." = "Aantal wijzigingen waarbij het pictogram rood wordt.";
 "Poll interval" = "Pollinterval";
 "How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change." = "Hoe vaak Gitgleam de repository opnieuw controleert als vangnet. Een bestandssysteemwaarnemer ververst al direct bij elke wijziging.";
-"Max menu entries" = "Max. menu-items";
-"Largest number of file rows shown in the dropdown before an overflow window is offered instead." = "Maximaal aantal bestandsregels in het menu voordat in plaats daarvan een overloopvenster wordt aangeboden.";
 "Recent commits shown" = "Getoonde recente commits";
 "Number of recent commits listed in the submenu." = "Aantal recente commits in het submenu.";
 "viewmd path" = "viewmd-pad";

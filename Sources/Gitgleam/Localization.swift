@@ -16,13 +16,13 @@ enum L10n {
     static var settings: String { s("Settings…") }
     static var noRepositoriesConfigured: String { s("No repositories configured") }
 
-    // Overflow / full-list window
-    static var allChanges: String { s("All changes") }
+    // Uncommitted window
+    static var uncommitted: String { s("Uncommitted") }
     static var repositoryRemoved: String { s("Repository removed") }
-    /// Button that opens the full-list window, with the total change count.
-    static func showAll(_ count: Int) -> String { String(format: s("Show all %d changes…"), count) }
-    /// Menu indicator for files hidden by the entry cap.
-    static func moreNotShown(_ count: Int) -> String { String(format: s("%d more not shown"), count) }
+    /// Menu row category counts, e.g. "1 changed", "2 new", "1 deleted".
+    static func changedCount(_ count: Int) -> String { String(format: s("%d changed"), count) }
+    static func newCount(_ count: Int) -> String { String(format: s("%d new"), count) }
+    static func deletedCount(_ count: Int) -> String { String(format: s("%d deleted"), count) }
 
     // Section headers
     static var changed: String { s("Changed") }
@@ -121,10 +121,6 @@ enum L10n {
     static var refreshInterval: String { s("Poll interval") }
     static var refreshIntervalDescription: String {
         s("How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change.")
-    }
-    static var maxEntries: String { s("Max menu entries") }
-    static var maxEntriesDescription: String {
-        s("Largest number of file rows shown in the dropdown before an overflow window is offered instead.")
     }
     static var commitsShown: String { s("Recent commits shown") }
     static var commitsShownDescription: String { s("Number of recent commits listed in the submenu.") }

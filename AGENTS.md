@@ -20,20 +20,26 @@ below.)
   compare against the *summed* change count across every repo) and that summed
   count. A git error in any repo shows a ⚠️ instead.
 - The dropdown lists every configured repo as its own submenu (own severity
-  icon, label, and count). Inside a repo's submenu, files are grouped into
-  **Changed**, **New**, and **Deleted** sections; changed/new files open a
-  colored diff window, deleted files are shown as non-clickable text. Below the
-  repo list: Settings, Refresh (refreshes every repo), and Quit. Each repo's
-  section list is capped at `--max-entries` total rows (default 25); when more
-  files exist, an overflow row opens a **Show all changes** window
-  (`AllChangesView`) with that repo's full list.
+  icon, label, and count). Inside a repo's submenu: a single **Uncommitted**
+  row summarizing the category counts (e.g. "Uncommitted (1 changed, 1 new)"),
+  and a **Recent commits** submenu — no other file rows. Clicking Uncommitted
+  opens an `UncommittedView` split-view window: a sidebar lists every changed
+  file grouped into **Changed**, **New**, and **Deleted** sections, and a
+  detail pane (`FileDiffPane`) shows the colored diff for the selected file
+  (deleted files included — `git diff HEAD` diffs them same as any tracked
+  file). Below the repo list: Settings, Refresh (refreshes every repo), and
+  Quit.
 - Each repo submenu also has a **Recent commits** submenu listing its last
   `--commits` commits (default 10). Clicking one opens a `CommitDetailView`
   split-view window: a sidebar lists the files the commit changed and a detail
   pane (`CommitFilePane`) shows the colored diff for the selected file. The
-  first file is selected automatically.
+  first file is selected automatically. `UncommittedView`/`CommitDetailView`
+  share the same split-view shape (and `FileDiffPane`/`CommitFilePane` the
+  same header/diff/preview layout) so uncommitted changes and commits are
+  presented consistently — one lists the working tree's changes, the other one
+  commit's.
 - For **Markdown files**, when `--viewmd-path` points at a `viewmd.sh` launcher,
-  the diff window and each commit file pane gain a **Diff/Preview** toggle.
+  each file pane (uncommitted or commit) gains a **Diff/Preview** toggle.
   Preview renders the file as formatted Markdown — including Mermaid diagrams as
   ASCII art — by shelling out to `viewmd` and parsing its ANSI output. Preview is
   the default view for Markdown once viewmd is configured (override with
@@ -45,16 +51,15 @@ below.)
   highlight until viewmd ships that feature.
 - The repo list comes from repeatable `--repo <path>[:<label>]` flags at
   first launch (or a single `--path`/`--label`, for back-compat). Everything
-  else — the repo list itself, thresholds, poll interval, menu-entry cap,
-  recent-commits count, Markdown preview settings, language, and a debug
-  option — lives in `Settings` (`Settings.swift`), a `@MainActor
-  ObservableObject` seeded once from those flags (the first-launch defaults)
-  then persisted independently via `UserDefaults` under one global key.
-  `SettingsView` (opened from a new menu item, "Settings…", just above
-  Refresh) edits it live: `AppMonitor` observes `Settings.repos` (creating/
-  destroying a `RepoMonitor` per entry) and forwards `Settings`' other
-  changes, and any diff/commit/all-changes window opened afterwards reads the
-  current values.
+  else — the repo list itself, thresholds, poll interval, recent-commits
+  count, Markdown preview settings, language, and a debug option — lives in
+  `Settings` (`Settings.swift`), a `@MainActor ObservableObject` seeded once
+  from those flags (the first-launch defaults) then persisted independently
+  via `UserDefaults` under one global key. `SettingsView` (opened from a new
+  menu item, "Settings…", just above Refresh) edits it live: `AppMonitor`
+  observes `Settings.repos` (creating/destroying a `RepoMonitor` per entry)
+  and forwards `Settings`' other changes, and any uncommitted/commit window
+  opened afterwards reads the current values.
 - **Language** is one of those settings: "Automatic" (the previous,
   system-language-only behavior) or an explicit language, applied via
   `L10n.languageOverride`.
@@ -86,11 +91,12 @@ menu-bar indicator, instead of running one process per repo:
   tracking observers that pause every repo's refresh while a menu is open
   (see the "Refreshing pauses..." gotcha below) — `RepoMonitor` itself no
   longer registers its own.
-- `RepoFileChange`/`RepoCommit` (`RepoFileChange.swift`) bundle a repo's id/
-  path with a `FileChange`/`Commit` for `openWindow(id:value:)` — the diff/
-  commit windows need to know *which* repo a file or commit belongs to, now
-  that several repos can be open at once. `FileChange`/`Commit` themselves
-  stay untouched, pure parse models.
+- `RepoCommit` (`RepoCommit.swift`) bundles a repo's id/path with a `Commit`
+  for `openWindow(id:value:)` — the commit window needs to know *which* repo a
+  commit belongs to, now that several repos can be open at once. The
+  Uncommitted window instead takes just the repo `UUID` (see `GitgleamApp`)
+  since it shows every file at once rather than one. `Commit`/`FileChange`
+  themselves stay untouched, pure parse models.
 - Settings storage moved from a per-watched-path key
   (`"nl.mo6.gitgleam.settings.\(path)"`, one process per repo) to one global
   key (`Settings.storageKey`, one process for every repo). `Settings.init`
@@ -111,13 +117,13 @@ swift build -c release                                   # optimized build
 
 Flags: `--repo/-r` (repeatable, `<path>[:<label>]`), `--path/-p`,
 `--label/-l` (single-repo back-compat for `--repo`), `--warn/-w`,
-`--critical/-c`, `--interval/-i`, `--max-entries/-m`, `--commits/-C`,
+`--critical/-c`, `--interval/-i`, `--commits/-C`,
 `--viewmd-path/-V`, `--default-view`, `--preview-width`, `--help/-h` (see
 `AppConfig.swift`). No `--repo`/`--path` at all seeds one repo at the current
 directory. Warn defaults to 1, critical to 10, interval to 60 seconds
 (clamped to 10–300; a filesystem watcher gives instant updates, so this is only
-a fallback poll), max-entries to 25 (clamped to ≥1), commits to 10 (clamped
-to ≥1). `--viewmd-path` is unset by default (Markdown preview disabled);
+a fallback poll), commits to 10 (clamped to ≥1). `--viewmd-path` is unset by
+default (Markdown preview disabled);
 `--default-view` is `diff`|`preview` (defaults to `preview` once a viewmd path
 is set); `--preview-width` defaults to 100 (clamped to ≥20). All of these are
 only *first-launch* defaults — `Settings` takes over from there (the repo
@@ -146,20 +152,20 @@ before them) — they need a running git process/FSEvents/UI to exercise.
 ```
 Package.swift                          — SPM manifest (macOS 14+, executable + test target, localized resources)
 Sources/Gitgleam/
-  GitgleamApp.swift                    — @main App + MenuBarExtra + diff/commit/all-changes WindowGroups + AppDelegate
+  GitgleamApp.swift                    — @main App + MenuBarExtra + uncommitted/commit WindowGroups + AppDelegate
   AppConfig.swift                      — parses startup flags (initial repo list, thresholds, commit count, viewmd preview)
   RepoConfig.swift                     — model: one watched repo (stable UUID + path + label), persisted in Settings.repos
-  MenuContent.swift                    — the dropdown menu view: one submenu per repo (3 file sections, capped; recent-commits submenu)
-  AllChangesView.swift                 — window listing every change for one repo (opened on that repo's menu overflow)
+  MenuContent.swift                    — the dropdown menu view: one submenu per repo (Uncommitted row + recent-commits submenu)
+  UncommittedView.swift                — window: split view of every uncommitted file (file sidebar + per-file diff pane)
   AppMonitor.swift                     — owns one RepoMonitor per settings.repos entry; aggregates status/count for the menu bar
   RepoMonitor.swift                    — runs git status + recent commits for one repo, publishes state, derives color; coalesced refresh
-  RepoFileChange.swift                 — RepoFileChange/RepoCommit: FileChange/Commit bundled with which repo, for openWindow
+  RepoCommit.swift                     — RepoCommit: Commit bundled with which repo, for openWindow
   RepoWatcher.swift                    — FSEvents watcher on one repo tree; triggers an instant refresh on any change
   Git.swift                            — central git runner (status, per-file diff, log, commit diff, file-at-ref), takes a path
   FileChange.swift                     — model: parses a porcelain line into status + path + category
   Commit.swift                         — model: parses a git-log record into sha + subject + author + date
   CommitFile.swift                     — model: parses a name-status line into status + path (one file in a commit)
-  DiffView.swift                       — window: working-tree file, colored diff + optional Markdown preview toggle
+  FileDiffPane.swift                   — detail pane: one uncommitted file, colored diff + optional Markdown preview toggle
   CommitDetailView.swift               — commit window: split view (file sidebar + per-file diff pane)
   CommitFilePane.swift                 — detail pane: one commit file, colored diff + optional Markdown preview toggle
   ColoredDiffView.swift                — colored unified-diff renderer (builds an AttributedString from a diff)
@@ -196,10 +202,11 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 - **Config flows one way.** `GitgleamApp.config` is parsed once from
   `CommandLine.arguments` and used only to seed `Settings` (repo list,
   thresholds, preview settings). From then on the scene closures read
-  `settings`/`monitor` (an `AppMonitor`) directly — `DiffView`/
-  `CommitDetailView` get their repo path from the `RepoFileChange`/
-  `RepoCommit` value passed to `openWindow`, not from a static config. There
-  is no global mutable state.
+  `settings`/`monitor` (an `AppMonitor`) directly — `UncommittedView` gets its
+  repo from the `UUID` passed to `openWindow` (looked up in `monitor`/
+  `settings` at open time), and `CommitDetailView` from the `RepoCommit` value
+  passed the same way, not from a static config. There is no global mutable
+  state.
 
 ## Gotchas (important when editing)
 
@@ -236,9 +243,10 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
   against `Bundle.module.localizations` and loading that `.lproj` directly. Force
   a language per-launch with the standard override, e.g.
   `swift run Gitgleam -AppleLanguages '(nl)'` (the `(nl)` tuple must be quoted).
-- **Diff window vs. accessory policy.** The app runs as `.accessory`, so opening
-  the diff `WindowGroup` also calls `NSApp.activate(ignoringOtherApps:)` to pull
-  the window to the front. Without that the window can open behind other apps.
+- **Uncommitted/commit windows vs. accessory policy.** The app runs as
+  `.accessory`, so opening the Uncommitted or commit `WindowGroup` also calls
+  `NSApp.activate(ignoringOtherApps:)` to pull the window to the front.
+  Without that the window can open behind other apps.
 - **Untracked file diffs.** `git diff HEAD` does not show untracked files, so
   `Git.diff(for:at:)` special-cases `??` and runs `git diff --no-index --
   /dev/null <file>`. That exits 1 when there are differences (normal), so only an

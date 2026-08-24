@@ -54,17 +54,6 @@ struct GitgleamApp: App {
         }
         .menuBarExtraStyle(.menu)
 
-        // Diff window: one per file, opened from the menu with the chosen
-        // `RepoFileChange` as its value (bundles which repo the file
-        // belongs to, now that several repos can be open at once).
-        WindowGroup(id: "diff", for: RepoFileChange.self) { $entry in
-            if let entry {
-                DiffView(change: entry.change, repoPath: entry.repoPath, preview: settings.previewSettings)
-                    .navigationTitle(entry.change.path)
-            }
-        }
-        .windowResizability(.contentSize)
-
         // Commit-detail window: one per commit, opened from the "Recent commits"
         // submenu with the chosen `RepoCommit` as its value.
         WindowGroup(id: "commit", for: RepoCommit.self) { $entry in
@@ -75,13 +64,15 @@ struct GitgleamApp: App {
         }
         .windowResizability(.contentSize)
 
-        // Full-list window: showing every change for one repo when its menu
-        // cap overflows, keyed by repo id. It reads live from `monitor`/
-        // `settings`, so it updates as the repo changes (or is edited/removed).
-        WindowGroup(L10n.allChanges, id: "all", for: UUID.self) { $repoID in
+        // Uncommitted window: one per repo, opened from that repo's single
+        // "Uncommitted" menu row, keyed by repo id. A split view of every
+        // changed file (like the commit-detail window). It reads live from
+        // `monitor`/`settings`, so it updates as the repo changes (or is
+        // edited/removed).
+        WindowGroup(L10n.uncommitted, id: "uncommitted", for: UUID.self) { $repoID in
             if let repoID, let repoMonitor = monitor.monitors[repoID],
                let repo = settings.repos.first(where: { $0.id == repoID }) {
-                AllChangesView(monitor: repoMonitor, repo: repo)
+                UncommittedView(monitor: repoMonitor, repo: repo, preview: settings.previewSettings)
                     .navigationTitle(repo.label)
             } else {
                 Text(L10n.repositoryRemoved)
@@ -89,6 +80,7 @@ struct GitgleamApp: App {
                     .frame(minWidth: 420, minHeight: 480)
             }
         }
+        .windowResizability(.contentSize)
 
         // Settings window: a single reused window for editing the live
         // defaults (repos, thresholds, refresh interval, viewmd path, …).

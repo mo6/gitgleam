@@ -43,11 +43,6 @@ final class RepoMonitor: ObservableObject {
     var newFiles: [FileChange] { changes.filter { $0.category == .new } }
     var deletedFiles: [FileChange] { changes.filter { $0.category == .deleted } }
 
-    /// Largest number of file rows the dropdown menu shows before overflowing
-    /// into the "Show all changes" window. Exposes the live setting without
-    /// widening access to the whole `Settings` object.
-    var maxMenuEntries: Int { settings.maxEntries }
-
     /// The path being watched (fixed for this monitor's lifetime — `AppMonitor`
     /// recreates the monitor if the repo's path is edited in Settings).
     private let path: String
@@ -97,8 +92,8 @@ final class RepoMonitor: ObservableObject {
             Task { @MainActor in self?.refresh() }
         }
 
-        // `status`/`maxMenuEntries` read `settings` directly, but they're
-        // plain computed properties: a `Settings`-only change wouldn't
+        // `status` reads `settings` directly, but it's a plain computed
+        // property: a `Settings`-only change wouldn't
         // otherwise tell SwiftUI views observing `self` to re-render, so
         // forward it. `commits`/`refreshInterval` additionally need an
         // actual re-fetch/re-schedule, not just a re-render.

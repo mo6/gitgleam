@@ -91,12 +91,6 @@ struct SettingsView: View {
                 )
                 Divider()
                 SliderRow(
-                    label: L10n.maxEntries, description: L10n.maxEntriesDescription,
-                    value: intBinding($settings.maxEntries), range: 1...200,
-                    step: 1, defaultValue: Double(AppConfig.defaultMaxEntries), valueText: { "\(Int($0))" }
-                )
-                Divider()
-                SliderRow(
                     label: L10n.commitsShown, description: L10n.commitsShownDescription,
                     value: intBinding($settings.commits), range: 1...100,
                     step: 1, defaultValue: Double(AppConfig.defaultCommits), valueText: { "\(Int($0))" }

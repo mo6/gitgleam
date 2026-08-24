@@ -44,13 +44,6 @@ final class Settings: ObservableObject {
             save()
         }
     }
-    @Published var maxEntries: Int {
-        didSet {
-            let clamped = max(1, maxEntries)
-            guard clamped == maxEntries else { maxEntries = clamped; return }
-            save()
-        }
-    }
     @Published var commits: Int {
         didSet {
             let clamped = max(1, commits)
@@ -120,7 +113,6 @@ final class Settings: ObservableObject {
         warnThreshold = seed?.warnThreshold ?? config.warnThreshold
         criticalThreshold = seed?.criticalThreshold ?? config.criticalThreshold
         refreshInterval = seed?.refreshInterval ?? config.refreshInterval
-        maxEntries = seed?.maxEntries ?? config.maxEntries
         commits = seed?.commits ?? config.commits
         viewmdPath = seed?.viewmdPath ?? (config.viewmdPath ?? "")
         defaultView = seed?.defaultView ?? (config.defaultView ?? .preview)
@@ -154,7 +146,7 @@ final class Settings: ObservableObject {
     private var snapshot: StoredSettings {
         StoredSettings(
             language: language, repos: repos, warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
-            refreshInterval: refreshInterval, maxEntries: maxEntries, commits: commits,
+            refreshInterval: refreshInterval, commits: commits,
             viewmdPath: viewmdPath, defaultView: defaultView, previewWidth: previewWidth,
             debugKeepPreviewFiles: debugKeepPreviewFiles
         )
@@ -166,7 +158,6 @@ final class Settings: ObservableObject {
         warnThreshold = seed.warnThreshold
         criticalThreshold = seed.criticalThreshold
         refreshInterval = seed.refreshInterval
-        maxEntries = seed.maxEntries
         commits = seed.commits
         viewmdPath = seed.viewmdPath
         defaultView = seed.defaultView
@@ -190,7 +181,6 @@ final class Settings: ObservableObject {
         var warnThreshold: Int
         var criticalThreshold: Int
         var refreshInterval: TimeInterval
-        var maxEntries: Int
         var commits: Int
         var viewmdPath: String
         var defaultView: ViewMode

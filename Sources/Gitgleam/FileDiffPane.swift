@@ -1,19 +1,21 @@
 import SwiftUI
 
-/// Window showing the colored diff of one file, with a short summary
-/// (status and the number of added/removed lines) at the top.
+/// The detail pane of the Uncommitted split view: a header (path, status and
+/// +/- counts) above the colored diff of one working-tree file's uncommitted
+/// change. Mirrors `CommitFilePane`, but reads the working tree via
+/// `Git.diff(for:)` instead of a commit's `git show`.
 ///
 /// For a Markdown file, when a viewmd path is configured (`preview != nil`), a
-/// Diff/Preview toggle appears: Preview renders the working-tree file as
-/// formatted Markdown (Mermaid included) via `viewmd`.
-struct DiffView: View {
+/// Diff/Preview toggle appears: Preview renders the working-tree version of
+/// the file as formatted Markdown (Mermaid included) via `viewmd`.
+struct FileDiffPane: View {
     let change: FileChange
     /// Repository the file belongs to (used to run `git diff` / read the file).
     let repoPath: String
     /// Preview settings, or nil when preview is unavailable (diff only).
     let preview: AppConfig.PreviewSettings?
 
-    @State private var mode: ViewMode
+    @State private var mode: ViewMode = .diff
     @State private var diff: String = ""
     @State private var previewText: AttributedString?
     @State private var isLoading = true
@@ -22,29 +24,22 @@ struct DiffView: View {
     // background) to the window's actual appearance — see `Viewmd.render`.
     @Environment(\.colorScheme) private var colorScheme
 
-    init(change: FileChange, repoPath: String, preview: AppConfig.PreviewSettings?) {
-        self.change = change
-        self.repoPath = repoPath
-        self.preview = preview
-        // Open in preview when the file supports it; otherwise the diff.
-        let canPreview = preview != nil && FileKind.isMarkdown(change.path)
-        _mode = State(initialValue: canPreview ? preview!.defaultView : .diff)
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Divider()
             content
         }
-        .frame(minWidth: 640, minHeight: 420)
-        // Reload on file change or when toggling to a not-yet-loaded preview.
+        // Reload when the selected file changes or the mode flips.
         .task(id: taskKey) { await load() }
+        // A new selection resets the toggle to this file's default view.
+        .onChange(of: change.id) { resetModeForCurrentFile() }
+        .onAppear(perform: resetModeForCurrentFile)
     }
 
     // MARK: - Parts
 
-    /// Header with the file name, status, +/- counts, and the view toggle.
+    /// Header with the file path, status, +/- counts, and the view toggle.
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(change.path)
@@ -104,9 +99,15 @@ struct DiffView: View {
     /// Re-runs the load task when the file changes or the mode flips.
     private var taskKey: String { "\(change.id)#\(mode.rawValue)" }
 
+    /// Sets the mode to this file's default (preview for Markdown when
+    /// available, else diff). Clears any stale preview from a prior file.
+    private func resetModeForCurrentFile() {
+        previewText = nil
+        mode = canPreview ? preview!.defaultView : .diff
+    }
+
     // MARK: - Diff processing
 
-    /// The diff split into colored lines, for the header's +/- counts.
     private var lines: [ColoredDiffView.DiffLine] { ColoredDiffView.lines(from: diff) }
     private var addedCount: Int { ColoredDiffView.addedCount(in: lines) }
     private var removedCount: Int { ColoredDiffView.removedCount(in: lines) }
@@ -114,10 +115,8 @@ struct DiffView: View {
     private func load() async {
         isLoading = true
         // Always load the diff: it drives the +/- counts and is the preview's
-        // fallback. Loaded once; toggling modes reuses it.
-        if diff.isEmpty {
-            diff = await Git.diff(for: change, at: repoPath)
-        }
+        // fallback.
+        diff = await Git.diff(for: change, at: repoPath)
         if canPreview, mode == .preview, previewText == nil {
             await loadPreview()
         }

@@ -14,27 +14,25 @@ changed file to see a colored diff. Built with Swift + SwiftUI
   up to the critical threshold, 🔴 red at/above it — or ⚠️ if any repo has a
   git error) and the summed change count.
 - The dropdown lists every configured repo as its own submenu (with its own
-  severity icon and count), grouping that repo's files into **Changed**,
-  **New**, and **Deleted** sections. Changed/new files open a colored diff
-  window; deleted files are shown as text. Each repo's list is capped (default
-  25, configurable via `--max-entries`); when a large update exceeds the cap,
-  an overflow row opens a **Show all changes** window listing everything for
-  that repo.
+  severity icon and count): an **Uncommitted** row summarizing the change
+  counts (e.g. "1 changed, 1 new"), and a **Recent commits** submenu. Clicking
+  Uncommitted opens a split-view window with a sidebar of every changed file —
+  grouped into **Changed**, **New**, and **Deleted** — and a colored diff for
+  the selected file.
 - Each repo submenu also has a **Recent commits** submenu listing its last few
-  commits (default 10, configurable via `--commits`); clicking one opens a
-  split-view window with a sidebar of the files it changed and a colored diff
-  for the selected file.
+  commits (default 10, configurable via `--commits`); clicking one opens the
+  same kind of split-view window, for the files that commit changed.
 - **Markdown files** can be previewed as formatted Markdown — including Mermaid
   diagrams — instead of a raw diff, when a [viewmd](https://github.com/mo6/viewmd)
-  launcher is configured via `--viewmd-path`. The diff and commit windows then
-  show a Diff/Preview toggle (Preview is the default for Markdown).
+  launcher is configured via `--viewmd-path`. The Uncommitted and commit windows
+  then show a Diff/Preview toggle (Preview is the default for Markdown).
 - The repo list is set via `--repo` flags at first launch, then managed live
   from **Settings… → Repositories** (add, relabel, re-point, or remove a
   repo — no restart needed). Everything else — thresholds, poll interval,
-  menu entry cap, recent-commits count, Markdown preview settings, language,
-  and a debug option — also lives in **Settings…** (menu item, above
-  Refresh) and applies immediately; the flags below are just its
-  first-launch defaults, persisted independently afterwards.
+  recent-commits count, Markdown preview settings, language, and a debug
+  option — also lives in **Settings…** (menu item, above Refresh) and
+  applies immediately; the flags below are just its first-launch defaults,
+  persisted independently afterwards.
 
 ## Requirements
 
@@ -65,7 +63,6 @@ menu ("Quit"), or with Ctrl-C in the terminal that ran `swift run`.
 -c, --critical <n>     Change count at/above which the icon is red (default: 10)
 -i, --interval <secs>  Safety-net poll interval; a filesystem watcher refreshes
                        instantly (default: 60, min: 10, max: 300)
--m, --max-entries <n>  Max file rows in the menu before overflow (default: 25)
 -C, --commits <n>      Recent commits listed in the submenu (default: 10)
 -V, --viewmd-path <p>  Path to viewmd.sh; enables the Markdown Preview toggle
     --default-view <v> Initial view for a Markdown file: diff | preview

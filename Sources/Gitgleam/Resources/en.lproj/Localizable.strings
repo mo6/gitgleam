@@ -6,11 +6,12 @@
 "Settings…" = "Settings…";
 "No repositories configured" = "No repositories configured";
 
-/* Overflow / full-list window */
-"All changes" = "All changes";
+/* Uncommitted window */
+"Uncommitted" = "Uncommitted";
 "Repository removed" = "Repository removed";
-"Show all %d changes…" = "Show all %d changes…";
-"%d more not shown" = "%d more not shown";
+"%d changed" = "%d changed";
+"%d new" = "%d new";
+"%d deleted" = "%d deleted";
 
 /* Section headers */
 "Changed" = "Changed";
@@ -90,8 +91,6 @@
 "Number of changes at or above which the icon turns red." = "Number of changes at or above which the icon turns red.";
 "Poll interval" = "Poll interval";
 "How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change." = "How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change.";
-"Max menu entries" = "Max menu entries";
-"Largest number of file rows shown in the dropdown before an overflow window is offered instead." = "Largest number of file rows shown in the dropdown before an overflow window is offered instead.";
 "Recent commits shown" = "Recent commits shown";
 "Number of recent commits listed in the submenu." = "Number of recent commits listed in the submenu.";
 "viewmd path" = "viewmd path";

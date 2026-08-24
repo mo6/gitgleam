@@ -82,8 +82,7 @@ final class AppConfigTests: XCTestCase {
         XCTAssertEqual(parse(["--interval", "9999"]).refreshInterval, AppConfig.maxInterval)
     }
 
-    func testEntryAndCommitFloors() {
-        XCTAssertEqual(parse(["--max-entries", "0"]).maxEntries, 1)
+    func testCommitFloor() {
         XCTAssertEqual(parse(["--commits", "0"]).commits, 1)
     }
 

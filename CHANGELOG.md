@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Simplified the repo submenu.** Each repo's Changed/New/Deleted file
+  sections (and the "Show all changes" overflow window) are replaced by a
+  single **Uncommitted** row summarizing the category counts (e.g.
+  "Uncommitted (1 changed, 1 new)"). Clicking it opens a split-view window —
+  a sidebar of every changed file plus a colored diff for the selected one —
+  matching how the "Recent commits" submenu already opens a commit's changes.
+  The now-unused **Max menu entries** setting/`--max-entries` flag is removed.
+
 ## [1.2.0] - 2026-08-23
 
 ### Added

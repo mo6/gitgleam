@@ -18,9 +18,6 @@ struct AppConfig {
     let criticalThreshold: Int
     /// How often to re-check the repository, in seconds.
     let refreshInterval: TimeInterval
-    /// Largest number of file rows the dropdown menu shows before overflowing
-    /// into the "Show all changes" window.
-    let maxEntries: Int
     /// Number of recent commits listed in the "Recent commits" submenu.
     let commits: Int
     /// Path to the `viewmd.sh` launcher used to render Markdown previews, or
@@ -70,8 +67,6 @@ struct AppConfig {
     /// instant the repo changes, so the periodic check only has to catch
     /// anything the watcher misses.
     static let defaultInterval: TimeInterval = 60
-    /// Menu entry cap used when `--max-entries` is not given.
-    static let defaultMaxEntries = 25
     /// Commit count used when `--commits` is not given.
     static let defaultCommits = 10
     /// Preview render width used when `--preview-width` is not given.
@@ -83,8 +78,8 @@ struct AppConfig {
     static let repoCountCap = 20
 
     /// Parses the flags: `--repo/-r` (repeatable), `--path/-p`, `--label/-l`,
-    /// `--warn/-w`, `--critical/-c`, `--interval/-i`, `--max-entries/-m`,
-    /// `--commits/-C`, `--help/-h`. Unknown flags are ignored; `--help` prints
+    /// `--warn/-w`, `--critical/-c`, `--interval/-i`, `--commits/-C`,
+    /// `--help/-h`. Unknown flags are ignored; `--help` prints
     /// usage and exits.
     static func parse(_ arguments: [String]) -> AppConfig {
         var repoFlags: [String] = []
@@ -93,7 +88,6 @@ struct AppConfig {
         var warn = defaultWarnThreshold
         var critical = defaultCriticalThreshold
         var interval = defaultInterval
-        var maxEntries = defaultMaxEntries
         var commits = defaultCommits
         var viewmdPath: String?
         var defaultView: ViewMode?
@@ -124,8 +118,6 @@ struct AppConfig {
                 if let raw = value(after: &i), let n = Int(raw) { critical = n }
             case "--interval", "-i":
                 if let raw = value(after: &i), let n = TimeInterval(raw) { interval = n }
-            case "--max-entries", "-m":
-                if let raw = value(after: &i), let n = Int(raw) { maxEntries = n }
             case "--commits", "-C":
                 if let raw = value(after: &i), let n = Int(raw) { commits = n }
             case "--viewmd-path", "-V":
@@ -160,9 +152,6 @@ struct AppConfig {
         // Clamp the refresh interval to the allowed range.
         interval = min(maxInterval, max(minInterval, interval))
 
-        // Show at least one entry before overflowing.
-        maxEntries = max(1, maxEntries)
-
         // List at least one commit in the submenu.
         commits = max(1, commits)
 
@@ -177,7 +166,6 @@ struct AppConfig {
             warnThreshold: warn,
             criticalThreshold: critical,
             refreshInterval: interval,
-            maxEntries: maxEntries,
             commits: commits,
             viewmdPath: resolvedViewmdPath,
             defaultView: defaultView,
@@ -215,7 +203,6 @@ struct AppConfig {
           -c, --critical <n>     Change count at/above which the icon is red (default: 10)
           -i, --interval <secs>  Safety-net poll interval; a filesystem watcher
                                  refreshes instantly (default: 60, min: 10, max: 300)
-          -m, --max-entries <n>  Max file rows in the menu before overflow (default: 25)
           -C, --commits <n>      Recent commits listed in the submenu (default: 10)
           -V, --viewmd-path <p>  Path to viewmd.sh; enables the Markdown Preview toggle
               --default-view <v> Initial view for a Markdown file: diff | preview

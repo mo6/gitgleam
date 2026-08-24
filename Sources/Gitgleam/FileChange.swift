@@ -16,6 +16,13 @@ struct FileChange: Identifiable, Hashable, Codable {
     /// differently (compared against /dev/null).
     var isUntracked: Bool { status.trimmingCharacters(in: .whitespaces) == "??" }
 
+    /// The leading status letter (M/A/D/R/C/U/?…), without the second XY
+    /// column — for a compact sidebar indicator, mirroring `CommitFile`.
+    var statusLetter: String { String(status.trimmingCharacters(in: .whitespaces).prefix(1)) }
+
+    /// The last path component, for a compact sidebar label.
+    var fileName: String { (path as NSString).lastPathComponent }
+
     /// Coarse grouping for the menu sections.
     enum Category {
         case changed // modified, renamed, copied, conflict
