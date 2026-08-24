@@ -15,13 +15,12 @@ changed file to see a colored diff. Built with Swift + SwiftUI
   git error) and the summed change count.
 - The dropdown lists every configured repo as its own submenu (with its own
   severity icon and count): an **Uncommitted** row summarizing the change
-  counts (e.g. "1 changed, 1 new"), and a **Recent commits** submenu. Clicking
-  Uncommitted opens a split-view window with a sidebar of every changed file —
-  grouped into **Changed**, **New**, and **Deleted** — and a colored diff for
-  the selected file.
-- Each repo submenu also has a **Recent commits** submenu listing its last few
-  commits (default 10, configurable via `--commits`); clicking one opens the
-  same kind of split-view window, for the files that commit changed.
+  counts (e.g. "1 changed, 1 new"), then — below a divider — its last few
+  commits (default 10, configurable via `--commits`), each its own row.
+  Clicking Uncommitted opens a split-view window with a sidebar of every
+  changed file — grouped into **Changed**, **New**, and **Deleted** — and a
+  colored diff for the selected file; clicking a commit opens the same kind
+  of split-view window for the files that commit changed.
 - **Markdown files** can be previewed as formatted Markdown — including Mermaid
   diagrams — instead of a raw diff, when a [viewmd](https://github.com/mo6/viewmd)
   launcher is configured via `--viewmd-path`. The Uncommitted and commit windows

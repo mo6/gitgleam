@@ -12,7 +12,6 @@ enum L10n {
     static var noChanges: String { s("No changes") }
     static var refresh: String { s("Refresh") }
     static var quit: String { s("Quit") }
-    static var recentCommits: String { s("Recent commits") }
     static var settings: String { s("Settings…") }
     static var noRepositoriesConfigured: String { s("No repositories configured") }
 

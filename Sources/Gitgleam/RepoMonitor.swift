@@ -72,8 +72,9 @@ final class RepoMonitor: ObservableObject {
     /// True while one of the app's own menus (the menu-bar dropdown, or a
     /// submenu/context menu within it) is open. A refresh while a menu is
     /// open — even one that changes nothing visible — rebuilds the menu and
-    /// dismisses any open submenu (e.g. "Recent commits" closing the instant
-    /// it opens), so refreshes are deferred until the menu closes instead.
+    /// dismisses any open submenu (e.g. a repo's own submenu closing the
+    /// instant it opens), so refreshes are deferred until the menu closes
+    /// instead.
     /// Toggled by `AppMonitor` (which owns the single pair of `NSMenu`
     /// notification observers shared by every repo) via `menuOpened()`/
     /// `menuClosed()`.
@@ -136,8 +137,8 @@ final class RepoMonitor: ObservableObject {
     /// tree — including `.git`, which `git status` itself touches — so most
     /// refreshes find nothing different. An unconditional reassignment would
     /// still fire `objectWillChange` and rebuild the menu on every one of
-    /// those no-op refreshes, which was closing the "Recent commits" submenu
-    /// the instant it opened.
+    /// those no-op refreshes, which was closing a repo's own submenu the
+    /// instant it opened.
     func refresh() {
         guard !refreshInFlight else { pendingRefresh = true; return }
         guard !menuIsOpen else { pendingRefresh = true; return }

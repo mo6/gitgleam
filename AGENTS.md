@@ -22,20 +22,19 @@ below.)
 - The dropdown lists every configured repo as its own submenu (own severity
   icon, label, and count). Inside a repo's submenu: a single **Uncommitted**
   row summarizing the category counts (e.g. "Uncommitted (1 changed, 1 new)"),
-  and a **Recent commits** submenu — no other file rows. Clicking Uncommitted
-  opens an `UncommittedView` split-view window: a sidebar lists every changed
-  file grouped into **Changed**, **New**, and **Deleted** sections, and a
-  detail pane (`FileDiffPane`) shows the colored diff for the selected file
-  (deleted files included — `git diff HEAD` diffs them same as any tracked
-  file). Below the repo list: Settings, Refresh (refreshes every repo), and
-  Quit.
-- Each repo submenu also has a **Recent commits** submenu listing its last
-  `--commits` commits (default 10). Clicking one opens a `CommitDetailView`
-  split-view window: a sidebar lists the files the commit changed and a detail
-  pane (`CommitFilePane`) shows the colored diff for the selected file. The
-  first file is selected automatically. `UncommittedView`/`CommitDetailView`
-  share the same split-view shape (and `FileDiffPane`/`CommitFilePane` the
-  same header/diff/preview layout) so uncommitted changes and commits are
+  then — below a divider — its last `--commits` commits (default 10), each its
+  own row rather than nested in a further submenu. Clicking Uncommitted opens
+  an `UncommittedView` split-view window: a sidebar lists every changed file
+  grouped into **Changed**, **New**, and **Deleted** sections, and a detail
+  pane (`FileDiffPane`) shows the colored diff for the selected file (deleted
+  files included — `git diff HEAD` diffs them same as any tracked file).
+  Clicking a commit row opens a `CommitDetailView` split-view window: a
+  sidebar lists the files the commit changed and a detail pane
+  (`CommitFilePane`) shows the colored diff for the selected file. The first
+  file is selected automatically. Below the repo list: Settings, Refresh
+  (refreshes every repo), and Quit. `UncommittedView`/`CommitDetailView` share
+  the same split-view shape (and `FileDiffPane`/`CommitFilePane` the same
+  header/diff/preview layout) so uncommitted changes and commits are
   presented consistently — one lists the working tree's changes, the other one
   commit's.
 - For **Markdown files**, when `--viewmd-path` points at a `viewmd.sh` launcher,

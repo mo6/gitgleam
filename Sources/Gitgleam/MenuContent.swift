@@ -3,9 +3,9 @@ import SwiftUI
 /// The menu-bar dropdown content. Because the style is `.menu`, `Text` and
 /// `Button` render as native menu items.
 ///
-/// One submenu per configured repo, each with its own severity icon and its
-/// own Changed/New/Deleted sections + Recent commits — the menu-bar label
-/// itself only shows the aggregate across all of them.
+/// One submenu per configured repo, each with its own severity icon, an
+/// "Uncommitted" row, and its recent commits listed below a divider — the
+/// menu-bar label itself only shows the aggregate across all of them.
 struct MenuContent: View {
     @ObservedObject var monitor: AppMonitor
 
@@ -61,7 +61,8 @@ struct MenuContent: View {
 
     /// The content of one repo's submenu: error/empty state or a single
     /// "Uncommitted" row (opening the split-view window with every changed
-    /// file), and a nested Recent commits submenu.
+    /// file), then — separated by a divider — the recent commits, each its
+    /// own row.
     @ViewBuilder
     private func repoMenu(_ repo: RepoConfig, _ repoMonitor: RepoMonitor) -> some View {
         if let errorMessage = repoMonitor.errorMessage {
@@ -77,12 +78,10 @@ struct MenuContent: View {
 
         if !repoMonitor.commits.isEmpty {
             Divider()
-            Menu(L10n.recentCommits) {
-                ForEach(repoMonitor.commits) { commit in
-                    Button(commitLabel(commit)) {
-                        openWindow(id: "commit", value: RepoCommit(repoID: repo.id, repoPath: repo.path, commit: commit))
-                        NSApp.activate(ignoringOtherApps: true)
-                    }
+            ForEach(repoMonitor.commits) { commit in
+                Button(commitLabel(commit)) {
+                    openWindow(id: "commit", value: RepoCommit(repoID: repo.id, repoPath: repo.path, commit: commit))
+                    NSApp.activate(ignoringOtherApps: true)
                 }
             }
         }

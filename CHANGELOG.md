@@ -14,8 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   single **Uncommitted** row summarizing the category counts (e.g.
   "Uncommitted (1 changed, 1 new)"). Clicking it opens a split-view window —
   a sidebar of every changed file plus a colored diff for the selected one —
-  matching how the "Recent commits" submenu already opens a commit's changes.
-  The now-unused **Max menu entries** setting/`--max-entries` flag is removed.
+  matching how clicking a commit already opens that commit's changes. The
+  now-unused **Max menu entries** setting/`--max-entries` flag is removed.
+- **Flattened "Recent commits" into the repo submenu.** Commits are no longer
+  nested in their own "Recent commits" submenu; they're listed directly in
+  the repo submenu, below a divider under the Uncommitted row.
 
 ## [1.2.0] - 2026-08-23
 

@@ -54,8 +54,8 @@ struct GitgleamApp: App {
         }
         .menuBarExtraStyle(.menu)
 
-        // Commit-detail window: one per commit, opened from the "Recent commits"
-        // submenu with the chosen `RepoCommit` as its value.
+        // Commit-detail window: one per commit, opened from a repo's commit
+        // row with the chosen `RepoCommit` as its value.
         WindowGroup(id: "commit", for: RepoCommit.self) { $entry in
             if let entry {
                 CommitDetailView(commit: entry.commit, repoPath: entry.repoPath, preview: settings.previewSettings)
