@@ -12,7 +12,7 @@ final class AppConfigTests: XCTestCase {
     func testPreviewDisabledByDefault() {
         let c = parse([])
         XCTAssertNil(c.viewmdPath)
-        XCTAssertNil(c.previewSettings)          // no viewmd path ⇒ diff only
+        XCTAssertNil(c.previewSettings)          // no viewmd path ⇒ no viewmd Preview
         XCTAssertNil(c.defaultView)
         XCTAssertEqual(c.previewWidth, AppConfig.defaultPreviewWidth)
     }
@@ -35,10 +35,22 @@ final class AppConfigTests: XCTestCase {
     }
 
     func testDefaultViewWithoutViewmdPathStaysDisabled() {
-        // --default-view is recorded, but with no viewmd path there is no preview.
+        // --default-view is recorded, but with no viewmd path there is no viewmd Preview.
         let c = parse(["--default-view", "preview"])
         XCTAssertEqual(c.defaultView, .preview)
         XCTAssertNil(c.previewSettings)
+    }
+
+    func testDefaultViewWebWithoutViewmdPath() {
+        let c = parse(["--default-view", "web"])
+        XCTAssertEqual(c.defaultView, .web)
+        XCTAssertNil(c.previewSettings)
+    }
+
+    func testDefaultViewWebWithViewmdPath() {
+        let c = parse(["-V", "/opt/viewmd/viewmd.sh", "--default-view", "web"])
+        XCTAssertEqual(c.defaultView, .web)
+        XCTAssertEqual(c.previewSettings?.defaultView, .web)
     }
 
     func testInvalidDefaultViewIsIgnored() {

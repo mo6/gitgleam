@@ -51,7 +51,8 @@ final class Settings: ObservableObject {
             save()
         }
     }
-    /// Path to `viewmd.sh`, or empty to disable Markdown preview.
+    /// Path to `viewmd.sh`, or empty to hide the viewmd Preview toggle.
+    /// The built-in Web preview does not need this.
     @Published var viewmdPath: String { didSet { save() } }
     @Published var defaultView: ViewMode { didSet { save() } }
     @Published var previewWidth: Int {
@@ -71,9 +72,9 @@ final class Settings: ObservableObject {
     /// Whether each repo's submenu shows an "Open in Terminal" row.
     @Published var showOpenInTerminal: Bool { didSet { save() } }
 
-    /// Preview settings for the diff/commit windows, or nil when no viewmd
-    /// path is set (diff-only). Mirrors `AppConfig.previewSettings`, but
-    /// reflects the live, editable values.
+    /// viewmd settings for the file panes, or nil when no viewmd path is set.
+    /// Mirrors `AppConfig.previewSettings`, but reflects the live values.
+    /// Markdown still has the built-in Web preview without this.
     var previewSettings: AppConfig.PreviewSettings? {
         let path = viewmdPath.trimmingCharacters(in: .whitespaces)
         guard !path.isEmpty else { return nil }

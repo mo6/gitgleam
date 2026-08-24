@@ -118,10 +118,11 @@ struct SettingsView: View {
                     Picker("", selection: $settings.defaultView) {
                         Text(L10n.diffView).tag(ViewMode.diff)
                         Text(L10n.preview).tag(ViewMode.preview)
+                        Text(L10n.webPreview).tag(ViewMode.web)
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
-                    .frame(width: 140)
+                    .frame(width: 220)
                 }
                 Divider()
                 SliderRow(

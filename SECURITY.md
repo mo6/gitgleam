@@ -21,17 +21,22 @@ within a few days.
 
 Gitgleam is a local, unsandboxed macOS menu bar app that shells out to
 `/usr/bin/git` and (optionally) a user-configured `viewmd.sh` script against a
-repository path you point it at. It does not run as a service, accept network
-input, or transmit data anywhere. Reports involving arbitrary code execution
-via a specially crafted repository (e.g. through git output, commit
-metadata, or Markdown/Mermaid content rendered in previews) are in scope.
+repository path you point it at. Markdown **Web** preview also renders that
+file's HTML in a `WKWebView` with JavaScript enabled for marked/mermaid. It
+does not run as a service, accept network input, or transmit data anywhere.
+Reports involving arbitrary code execution via a specially crafted repository
+(e.g. through git output, commit metadata, or Markdown/Mermaid content
+rendered in previews) are in scope.
 
 ## Security measures
 
 ### Development
 
-- **No third-party dependencies.** The package has zero external
-  dependencies, so there is no supply-chain surface from transitive packages.
+- **No Swift package dependencies.** The package has zero external Swift
+  dependencies. The Markdown **Web** preview vendors two JavaScript libraries
+  (`marked`, `mermaid`) in `Sources/Gitgleam/WebPreview/` and loads them from
+  the app bundle over `file://` — no CDN, no runtime network. They are pinned
+  by file, not resolved through SwiftPM.
 - **Swift 6 strict concurrency** is enabled throughout, so UI state can only
   be mutated on the main actor, eliminating a class of data races between the
   filesystem watcher, the periodic poll, and user-triggered refreshes.
@@ -55,6 +60,12 @@ metadata, or Markdown/Mermaid content rendered in previews) are in scope.
   color/style escapes and strips OSC 8 hyperlink sequences down to their
   label text; it does not act on other OSC/DCS sequences that a malicious
   file (via `viewmd`) could try to smuggle through the pipe.
+- **Web preview stays on the bundled page.** `WKWebView` loads `preview.html`
+  from the resource bundle (`loadFileURL` + read access only to that folder).
+  In-page navigation is cancelled except that `file://` load; `http(s)` links
+  are handed to the system browser. Mermaid runs with `securityLevel: strict`.
+  A light sanitizer strips `script`/`iframe`/`on*` handlers from marked's
+  HTML; it is not a complete HTML sanitizer.
 - **No App Sandbox entitlements are requested**, which is a deliberate
   trade-off for an unbundled SPM binary rather than a hidden default — see
   the *Scope notes* above.

@@ -37,9 +37,10 @@
 "No textual differences (possibly binary or mode-only changes)." = "No textual differences (possibly binary or mode-only changes).";
 "git failed" = "git failed";
 
-/* Preview (viewmd) */
+/* Preview */
 "Diff" = "Diff";
 "Preview" = "Preview";
+"Web" = "Web";
 "viewmd failed" = "viewmd failed";
 
 /* Settings window: sidebar sections */
@@ -101,9 +102,9 @@
 "Recent commits shown" = "Recent commits shown";
 "Number of recent commits listed in the submenu." = "Number of recent commits listed in the submenu.";
 "viewmd path" = "viewmd path";
-"Location of the viewmd.sh launcher used to render Markdown previews. Leave empty to disable previews." = "Location of the viewmd.sh launcher used to render Markdown previews. Leave empty to disable previews.";
+"Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works.";
 "Default view" = "Default view";
-"Which view a Markdown window opens in by default." = "Which view a Markdown window opens in by default.";
+"Which rendering a Markdown file opens in. Preview needs viewmd; Web is built-in." = "Which rendering a Markdown file opens in. Preview needs viewmd; Web is built-in.";
 "Preview width" = "Preview width";
 "Render width, in columns, passed to viewmd." = "Render width, in columns, passed to viewmd.";
 "Keep preview files" = "Keep preview files";

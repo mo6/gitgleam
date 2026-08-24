@@ -3,25 +3,28 @@ import SwiftUI
 /// The detail pane of the commit split view: a header (path, status and +/-
 /// counts) above the colored diff a commit made to one file.
 ///
-/// For a Markdown file, when a viewmd path is configured (`preview != nil`), a
-/// Diff/Preview toggle appears: Preview renders the commit's version of the
-/// file as formatted Markdown (Mermaid included) via `viewmd`.
+/// Markdown files gain a view toggle: Diff always, Web (built-in HTML/Mermaid
+/// preview) always, and Preview (viewmd) when `preview != nil`.
 struct CommitFilePane: View {
     /// The commit whose change to `file` is shown.
     let sha: String
     let file: CommitFile
     /// Repository the commit belongs to (used to run `git show`).
     let repoPath: String
-    /// Preview settings, or nil when preview is unavailable (diff only).
+    /// viewmd settings, or nil when the viewmd Preview toggle is unavailable.
     let preview: AppConfig.PreviewSettings?
+    /// Which view a Markdown file should open in (from Settings).
+    let defaultView: ViewMode
 
     @State private var mode: ViewMode = .diff
     @State private var diff: String = ""
     @State private var previewText: AttributedString?
+    @State private var webMarkdown: String?
     @State private var isLoading = true
 
     // Matches viewmd's rendered palette (including the `viewmd:mark` highlight
     // background) to the window's actual appearance — see `Viewmd.render`.
+    // Also drives the Web preview's mermaid/page theme.
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -55,9 +58,9 @@ struct CommitFilePane: View {
                     .foregroundStyle(.green)
                 Label("\(removedCount)", systemImage: "minus")
                     .foregroundStyle(.red)
-                if canPreview {
+                if isMarkdown {
                     Spacer()
-                    viewPicker
+                    MarkdownViewPicker(mode: $mode, hasViewmd: canViewmd)
                 }
             }
             .font(.subheadline)
@@ -66,24 +69,16 @@ struct CommitFilePane: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// Diff/Preview segmented toggle (only shown when preview is available).
-    private var viewPicker: some View {
-        Picker("", selection: $mode) {
-            Text(L10n.diffView).tag(ViewMode.diff)
-            Text(L10n.preview).tag(ViewMode.preview)
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .fixedSize()
-    }
-
-    /// The diff or preview, or a loading indicator.
+    /// The diff, viewmd preview, or Web preview — or a loading indicator.
     @ViewBuilder
     private var content: some View {
         if isLoading {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if canPreview, mode == .preview, let previewText {
+        } else if isMarkdown, mode == .web, let webMarkdown {
+            WebPreviewView(markdown: webMarkdown, colorScheme: colorScheme)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if canViewmd, mode == .preview, let previewText {
             MonospacedTextScroll(attributed: previewText)
         } else {
             // Diff mode, or a preview that failed to render → the colored diff.
@@ -93,17 +88,19 @@ struct CommitFilePane: View {
 
     // MARK: - Helpers
 
-    /// Whether the Diff/Preview toggle applies to this file.
-    private var canPreview: Bool { preview != nil && FileKind.isMarkdown(file.path) }
+    private var isMarkdown: Bool { FileKind.isMarkdown(file.path) }
+    /// Whether the viewmd Preview toggle applies to this file.
+    private var canViewmd: Bool { preview != nil && isMarkdown }
 
     /// Re-runs the load task when the file changes or the mode flips.
     private var taskKey: String { "\(file.id)#\(mode.rawValue)" }
 
-    /// Sets the mode to this file's default (preview for Markdown when
-    /// available, else diff). Clears any stale preview from a prior file.
+    /// Sets the mode to this file's default. Clears any stale preview from a
+    /// prior file.
     private func resetModeForCurrentFile() {
         previewText = nil
-        mode = canPreview ? preview!.defaultView : .diff
+        webMarkdown = nil
+        mode = ViewMode.initial(preferred: defaultView, isMarkdown: isMarkdown, hasViewmd: canViewmd)
     }
 
     // MARK: - Diff processing
@@ -117,10 +114,20 @@ struct CommitFilePane: View {
         // Always load the diff: it drives the +/- counts and is the preview's
         // fallback.
         diff = await Git.commitFileDiff(sha: sha, file: file.path, at: repoPath)
-        if canPreview, mode == .preview, previewText == nil {
+        if isMarkdown, mode == .web, webMarkdown == nil {
+            await loadWeb()
+        } else if canViewmd, mode == .preview, previewText == nil {
             await loadPreview()
         }
         isLoading = false
+    }
+
+    /// Reads the commit's version of the file and injects `viewmd:mark`
+    /// sentinels for the Web preview. On any failure `webMarkdown` stays nil
+    /// and `content` falls back to the diff.
+    private func loadWeb() async {
+        guard let content = await Git.fileContents(ref: sha, file: file.path, at: repoPath) else { return }
+        webMarkdown = MarkdownHighlighter.mark(content, unifiedDiff: diff)
     }
 
     /// Renders the commit's version of the file as Markdown via viewmd. On any

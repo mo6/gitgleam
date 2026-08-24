@@ -12,11 +12,11 @@ Existing one-liners in `AGENTS.md` (Finder, editor, syntax highlighting,
 
 ## File-type viewers (configurable)
 
-Today preview is one special case: if the path looks like Markdown
-(`FileKind.isMarkdown`) and Settings has a `viewmd` launcher, `DiffView` /
-`CommitFilePane` show a Diff/Preview toggle and shell out to `Viewmd.render`.
-Everything else is the colored unified diff. `ViewMode` is only `diff` |
-`preview`.
+Today preview is a Markdown special case: `FileDiffPane` / `CommitFilePane`
+show a Diff/Web toggle for Markdown (Web is a bundled `WKWebView` + marked +
+mermaid.js), plus a viewmd Preview toggle when Settings has a launcher.
+Everything else is the colored unified diff. `ViewMode` is `diff` | `preview`
+| `web`.
 
 A better model is a **list of viewer rules** in Settings, keyed by file type,
 with the existing Markdown/viewmd pair as the first built-in row.

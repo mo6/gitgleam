@@ -2,9 +2,10 @@ import Foundation
 
 /// File-type detection used to decide which renderings a file supports.
 ///
-/// Stage 1 only distinguishes Markdown (which can be previewed via `viewmd`)
-/// from everything else (diff only). Extend `markdownExtensions` — or add new
-/// kinds here — as more file-type-dependent rendering is added.
+/// Stage 1 only distinguishes Markdown (which can be previewed via the
+/// built-in Web view and, optionally, `viewmd`) from everything else (diff
+/// only). Extend `markdownExtensions` — or add new kinds here — as more
+/// file-type-dependent rendering is added.
 enum FileKind {
     /// Extensions treated as Markdown (lowercased, without the dot).
     static let markdownExtensions: Set<String> = [

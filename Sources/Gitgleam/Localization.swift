@@ -52,9 +52,10 @@ enum L10n {
     static var noTextualDiff: String { s("No textual differences (possibly binary or mode-only changes).") }
     static var gitFailed: String { s("git failed") }
 
-    // Preview (viewmd)
+    // Preview (viewmd + Web)
     static var diffView: String { s("Diff") }
     static var preview: String { s("Preview") }
+    static var webPreview: String { s("Web") }
     static var viewmdFailed: String { s("viewmd failed") }
 
     // Settings window: sidebar sections
@@ -137,10 +138,12 @@ enum L10n {
     static var commitsShownDescription: String { s("Number of recent commits listed in the submenu.") }
     static var viewmdPath: String { s("viewmd path") }
     static var viewmdPathDescription: String {
-        s("Location of the viewmd.sh launcher used to render Markdown previews. Leave empty to disable previews.")
+        s("Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works.")
     }
     static var defaultViewLabel: String { s("Default view") }
-    static var defaultViewDescription: String { s("Which view a Markdown window opens in by default.") }
+    static var defaultViewDescription: String {
+        s("Which rendering a Markdown file opens in. Preview needs viewmd; Web is built-in.")
+    }
     static var previewWidth: String { s("Preview width") }
     static var previewWidthDescription: String { s("Render width, in columns, passed to viewmd.") }
     static var debugKeepPreviewFiles: String { s("Keep preview files") }

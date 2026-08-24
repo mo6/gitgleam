@@ -21,16 +21,17 @@ struct AppConfig {
     /// Number of recent commits listed in the "Recent commits" submenu.
     let commits: Int
     /// Path to the `viewmd.sh` launcher used to render Markdown previews, or
-    /// nil when preview is disabled (no `--viewmd-path` given).
+    /// nil when the viewmd Preview toggle is off (no `--viewmd-path` given).
+    /// The built-in Web preview does not need this.
     let viewmdPath: String?
-    /// Which view a Markdown window opens in, when preview is available. Nil
-    /// means "preview" (the default once viewmd is configured).
+    /// Which view a Markdown window opens in. Nil means "preview" (which
+    /// falls back to Web when viewmd isn't configured).
     let defaultView: ViewMode?
     /// Render width (columns) passed to viewmd for previews.
     let previewWidth: Int
 
-    /// Everything a view needs to render (and default to) a Markdown preview.
-    /// Nil when preview is unavailable, so a nil value means "diff only".
+    /// Everything a view needs to render the viewmd Preview. Nil when no
+    /// viewmd path is set — the built-in Web preview still works for Markdown.
     struct PreviewSettings {
         let viewmdPath: String
         let width: Int
@@ -50,7 +51,8 @@ struct AppConfig {
         }
     }
 
-    /// Preview settings for the windows, or nil when `--viewmd-path` is unset.
+    /// viewmd settings for the windows, or nil when `--viewmd-path` is unset.
+    /// Markdown still has the built-in Web preview without this.
     var previewSettings: PreviewSettings? {
         guard let viewmdPath else { return nil }
         return PreviewSettings(viewmdPath: viewmdPath, width: previewWidth, defaultView: defaultView ?? .preview)
@@ -204,17 +206,19 @@ struct AppConfig {
           -i, --interval <secs>  Safety-net poll interval; a filesystem watcher
                                  refreshes instantly (default: 60, min: 10, max: 300)
           -C, --commits <n>      Recent commits listed in the submenu (default: 10)
-          -V, --viewmd-path <p>  Path to viewmd.sh; enables the Markdown Preview toggle
-              --default-view <v> Initial view for a Markdown file: diff | preview
-                                 (default: preview, when --viewmd-path is set)
+          -V, --viewmd-path <p>  Path to viewmd.sh; enables the viewmd Preview toggle
+              --default-view <v> Initial view for a Markdown file: diff | preview | web
+                                 (default: preview, which falls back to web
+                                 without viewmd)
               --preview-width <n> Columns passed to viewmd for previews (default: 100)
           -h, --help             Show this help and exit
 
         These are only first-launch defaults: the repo list, thresholds, and
         preview settings are all editable live afterwards from Settings, and
         persist independently of these flags.
-        With --viewmd-path set, Markdown files gain a Diff/Preview toggle (Preview
-        renders formatted Markdown, including Mermaid diagrams, via viewmd).
+        Markdown files always gain a Diff/Web toggle (Web is a bundled HTML
+        preview with Mermaid). With --viewmd-path set, a third Preview toggle
+        renders via viewmd as ANSI.
         """)
     }
 }

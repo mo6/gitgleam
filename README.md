@@ -24,9 +24,12 @@ changed file to see a colored diff. Built with Swift + SwiftUI
   submenu ends with **Open in Finder** / **Open in Terminal** rows for its
   folder (each can be turned off in Settings; both on by default).
 - **Markdown files** can be previewed as formatted Markdown — including Mermaid
-  diagrams — instead of a raw diff, when a [viewmd](https://github.com/mo6/viewmd)
-  launcher is configured via `--viewmd-path`. The Uncommitted and commit windows
-  then show a Diff/Preview toggle (Preview is the default for Markdown).
+  diagrams — instead of a raw diff. A built-in **Web** view (HTML + mermaid.js)
+  is always available; a [viewmd](https://github.com/mo6/viewmd) **Preview**
+  (ANSI art) appears when a launcher is configured via `--viewmd-path`. The
+  Uncommitted and commit windows show a Diff/Web toggle, plus Preview when
+  viewmd is set. Preview is the default once viewmd is configured (otherwise
+  Web).
 - The repo list is set via `--repo` flags at first launch, then managed live
   from **Settings… → Repositories** (add, relabel, re-point, or remove a
   repo — no restart needed). Everything else — thresholds, poll interval,
@@ -66,9 +69,9 @@ menu ("Quit"), or with Ctrl-C in the terminal that ran `swift run`.
 -i, --interval <secs>  Safety-net poll interval; a filesystem watcher refreshes
                        instantly (default: 60, min: 10, max: 300)
 -C, --commits <n>      Recent commits listed in the submenu (default: 10)
--V, --viewmd-path <p>  Path to viewmd.sh; enables the Markdown Preview toggle
-    --default-view <v> Initial view for a Markdown file: diff | preview
-                       (default: preview, when --viewmd-path is set)
+-V, --viewmd-path <p>  Path to viewmd.sh; enables the viewmd Preview toggle
+    --default-view <v> Initial view for a Markdown file: diff | preview | web
+                       (default: preview, which falls back to web without viewmd)
     --preview-width <n> Columns passed to viewmd for previews (default: 100)
 -h, --help             Show this help and exit
 ```
@@ -82,16 +85,23 @@ is yellow, `count ≥ --critical` is red. A git error shows a ⚠️ instead.
 
 ### Markdown preview
 
-`--viewmd-path` must point at an installed [viewmd](https://github.com/mo6/viewmd)
-launcher (`viewmd.sh`, with its virtualenv set up per viewmd's README). Gitgleam
-runs it per file to render formatted Markdown — including Mermaid diagrams as
-ASCII art — for the Preview toggle. If viewmd is missing or errors, Preview
-falls back to the colored diff, so the flag is safe to leave set.
+Markdown files in the Uncommitted and commit windows have a **Diff / Web**
+toggle. **Web** is built in: it renders the file as HTML with Mermaid diagrams
+as SVG, using copies of marked and mermaid.js shipped in the app (no network).
+Changed blocks are highlighted from the same `viewmd:mark` comments the
+viewmd path uses.
+
+**Preview** (viewmd) is optional. `--viewmd-path` must point at an installed
+[viewmd](https://github.com/mo6/viewmd) launcher (`viewmd.sh`, with its
+virtualenv set up per viewmd's README). Gitgleam runs it per file to render
+formatted Markdown — including Mermaid diagrams as ASCII art. If viewmd is
+missing or errors, Preview falls back to the colored diff, so the flag is safe
+to leave set.
 
 Gitgleam also marks the blocks that changed so viewmd can highlight them; this
 needs a viewmd that understands the `viewmd:mark` markers (viewmd issue
-VIEWMD-0104). Until then the markers are invisible and Preview simply shows the
-formatted file without change highlighting.
+VIEWMD-0104). Until then the markers are invisible in Preview. The Web view
+already wraps those comments in a highlight.
 
 ```bash
 .build/release/Gitgleam --repo ~/notes:Notes \

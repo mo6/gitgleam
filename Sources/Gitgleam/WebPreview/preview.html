@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview</title>
+<style>
+:root[data-theme="dark"] {
+  --bg: #1c1c1e;
+  --fg: #e8e8ed;
+  --muted: #8e8e93;
+  --code-bg: #2c2c2e;
+  --border: #3a3a3c;
+  --mark-changed: rgba(255, 214, 10, 0.18);
+  --mark-added: rgba(48, 209, 88, 0.18);
+  --link: #64d2ff;
+  --quote: #636366;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #1c1c1e;
+  --muted: #6e6e73;
+  --code-bg: #f2f2f7;
+  --border: #d1d1d6;
+  --mark-changed: rgba(255, 204, 0, 0.28);
+  --mark-added: rgba(52, 199, 89, 0.22);
+  --link: #007aff;
+  --quote: #c7c7cc;
+}
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+}
+body {
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  padding: 16px 20px 40px;
+}
+a { color: var(--link); }
+img, svg { max-width: 100%; }
+pre {
+  background: var(--code-bg);
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 8px;
+}
+code {
+  font-family: ui-monospace, Menlo, Monaco, monospace;
+  font-size: 0.9em;
+}
+:not(pre) > code {
+  background: var(--code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+blockquote {
+  margin-left: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--quote);
+  color: var(--muted);
+}
+table { border-collapse: collapse; }
+th, td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+}
+hr { border: 0; border-top: 1px solid var(--border); }
+.gg-mark {
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin: 8px -6px;
+}
+.gg-mark-changed { background: var(--mark-changed); }
+.gg-mark-added { background: var(--mark-added); }
+.mermaid { background: transparent; text-align: center; }
+</style>
+</head>
+<body>
+<article id="content"></article>
+<script src="marked.min.js"></script>
+<script src="mermaid.min.js"></script>
+<script src="preview.js"></script>
+</body>
+</html>

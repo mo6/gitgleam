@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Web Markdown preview.** Markdown files gain a built-in **Web** view
+  (`WKWebView` + bundled [marked](https://github.com/markedjs/marked) and
+  [mermaid.js](https://github.com/mermaid-js/mermaid), offline, no CDN) in
+  addition to the existing viewmd **Preview**. Web is available even without
+  a viewmd path; `--default-view` accepts `web`. Preview without viewmd falls
+  back to Web. Changed blocks still use `viewmd:mark` comments, which the Web
+  view wraps in a highlight after parsing.
+
 ## [1.3.0] - 2026-08-24
 
 ### Added

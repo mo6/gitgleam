@@ -14,8 +14,10 @@ struct UncommittedView: View {
     @ObservedObject var monitor: RepoMonitor
     /// The repo these files belong to (used to run `git diff` / read files).
     let repo: RepoConfig
-    /// Preview settings, forwarded to the file pane (nil = diff only).
+    /// viewmd settings, forwarded to the file pane (nil = no viewmd Preview).
     let preview: AppConfig.PreviewSettings?
+    /// Which view a Markdown file should open in.
+    let defaultView: ViewMode
 
     @State private var selection: FileChange.ID?
 
@@ -49,7 +51,7 @@ struct UncommittedView: View {
             .navigationSplitViewColumnWidth(min: 220, ideal: 300, max: 460)
         } detail: {
             if let file = selectedFile {
-                FileDiffPane(change: file, repoPath: repo.path, preview: preview)
+                FileDiffPane(change: file, repoPath: repo.path, preview: preview, defaultView: defaultView)
             } else {
                 Text(L10n.noChanges)
                     .foregroundStyle(.secondary)

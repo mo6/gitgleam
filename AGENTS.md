@@ -40,17 +40,17 @@ below.)
   Finder** and **Open in Terminal** rows for that repo's folder — each
   independently toggleable (on by default) from Settings → General
   (`showOpenInFinder`/`showOpenInTerminal`).
-- For **Markdown files**, when `--viewmd-path` points at a `viewmd.sh` launcher,
-  each file pane (uncommitted or commit) gains a **Diff/Preview** toggle.
-  Preview renders the file as formatted Markdown — including Mermaid diagrams as
-  ASCII art — by shelling out to `viewmd` and parsing its ANSI output. Preview is
-  the default view for Markdown once viewmd is configured (override with
-  `--default-view diff`); a viewmd failure falls back to the colored diff.
-  Before rendering, `MarkdownHighlighter` wraps the blocks that changed in
-  `viewmd:mark` sentinel comments so viewmd can highlight them (see viewmd issue
-  VIEWMD-0104). These are plain HTML comments, invisible to a viewmd that
-  doesn't yet support them — so the marking is injected now and simply doesn't
-  highlight until viewmd ships that feature.
+- For **Markdown files**, each file pane (uncommitted or commit) gains a
+  **Diff/Web** toggle. **Web** is built in: a `WKWebView` loads bundled
+  `preview.html` + marked + mermaid.js (offline) and renders the file as HTML
+  with Mermaid as SVG. When `--viewmd-path` points at a `viewmd.sh` launcher,
+  a third **Preview** toggle shells out to viewmd and parses its ANSI output
+  (Mermaid as ASCII art). Preview is the default once viewmd is configured
+  (otherwise Web; override with `--default-view diff|web`); a viewmd failure
+  falls back to the colored diff. Before either preview, `MarkdownHighlighter`
+  wraps the blocks that changed in `viewmd:mark` sentinel comments. viewmd
+  that doesn't yet support them (VIEWMD-0104) ignores the comments; the Web
+  view wraps the parsed nodes between them in a highlight.
 - The repo list comes from repeatable `--repo <path>[:<label>]` flags at
   first launch (or a single `--path`/`--label`, for back-compat). Everything
   else — the repo list itself, thresholds, poll interval, recent-commits
@@ -126,12 +126,12 @@ Flags: `--repo/-r` (repeatable, `<path>[:<label>]`), `--path/-p`,
 directory. Warn defaults to 1, critical to 10, interval to 60 seconds
 (clamped to 10–300; a filesystem watcher gives instant updates, so this is only
 a fallback poll), commits to 10 (clamped to ≥1). `--viewmd-path` is unset by
-default (Markdown preview disabled);
-`--default-view` is `diff`|`preview` (defaults to `preview` once a viewmd path
-is set); `--preview-width` defaults to 100 (clamped to ≥20). All of these are
-only *first-launch* defaults — `Settings` takes over from there (the repo
-list included), editable live in the Settings window and persisted
-independently.
+default (no viewmd Preview toggle; the built-in Web preview still works);
+`--default-view` is `diff`|`preview`|`web` (defaults to `preview`, which falls
+back to Web without viewmd); `--preview-width` defaults to 100 (clamped to ≥20).
+All of these are only *first-launch* defaults — `Settings` takes over from
+there (the repo list included), editable live in the Settings window and
+persisted independently.
 
 The launched app appears in the menu bar (top-right), not the Dock. Quit it from
 its own menu ("Quit") or with Ctrl-C in the terminal that ran `swift run`. See
@@ -144,8 +144,9 @@ adaptation), `FileKind`, `RepoConfig` (`Codable` round-trip), `AppConfig` flag
 parsing/clamping (including the repeatable `--repo` flag and `--path`/
 `--label` back-compat), `Settings` (seeding from `AppConfig`, clamping,
 persistence round-trip including `repos`, backward-compatible decoding, the
-legacy-per-path-key migration), and `MarkdownHighlighter` (diff → block
-markers, list-item/front-matter splitting). Add tests here when you add
+legacy-per-path-key migration), `ViewMode.initial` (Markdown default-view
+fallback), and `MarkdownHighlighter` (diff → block markers, list-item/front-
+matter splitting). Add tests here when you add
 similar logic (e.g. porcelain parsing in `FileChange`). There's no dedicated
 coverage for `RepoMonitor`/`AppMonitor` (as there wasn't for `GitMonitor`
 before them) — they need a running git process/FSEvents/UI to exercise.
@@ -168,16 +169,19 @@ Sources/Gitgleam/
   FileChange.swift                     — model: parses a porcelain line into status + path + category
   Commit.swift                         — model: parses a git-log record into sha + subject + author + date
   CommitFile.swift                     — model: parses a name-status line into status + path (one file in a commit)
-  FileDiffPane.swift                   — detail pane: one uncommitted file, colored diff + optional Markdown preview toggle
+  FileDiffPane.swift                   — detail pane: one uncommitted file, colored diff + Markdown Diff/Web/Preview toggle
   CommitDetailView.swift               — commit window: split view (file sidebar + per-file diff pane)
-  CommitFilePane.swift                 — detail pane: one commit file, colored diff + optional Markdown preview toggle
+  CommitFilePane.swift                 — detail pane: one commit file, colored diff + Markdown Diff/Web/Preview toggle
   ColoredDiffView.swift                — colored unified-diff renderer (builds an AttributedString from a diff)
-  MonospacedTextScroll.swift           — shared scroll shell: one fixed-size monospaced Text (diff + preview)
+  MonospacedTextScroll.swift           — shared scroll shell: one fixed-size monospaced Text (diff + viewmd preview)
   ANSIText.swift                       — parses ANSI/SGR escapes into a colored AttributedString (viewmd output)
   Viewmd.swift                         — runs the external viewmd launcher to render Markdown to ANSI
+  WebPreviewView.swift                 — WKWebView Markdown/Mermaid preview (bundled marked + mermaid.js)
+  MarkdownViewPicker.swift             — segmented Diff / Preview / Web control
+  WebPreview/                          — preview.html, preview.js, vendored marked.min.js + mermaid.min.js
   MarkdownHighlighter.swift            — wraps changed blocks in viewmd:mark sentinels (diff → markers)
   FileKind.swift                       — file-type detection (currently: is this path Markdown?)
-  ViewMode.swift                       — enum diff | preview (the window's current/default rendering)
+  ViewMode.swift                       — enum diff | preview | web (the window's current/default rendering)
   Settings.swift                       — live, persisted defaults (repos, thresholds, interval, viewmd, language, debug flag); export/import JSON
   SettingsView.swift                   — the Settings window: sidebar sections + card rows
   RepositoriesSettingsView.swift       — Settings Repositories tab (pause, reorder, thresholds, export/import)
@@ -185,7 +189,7 @@ Sources/Gitgleam/
   Localization.swift                   — L10n: central lookup of user-facing strings + language-override support
   Resources/en.lproj/Localizable.strings — English (default)
   Resources/nl.lproj/Localizable.strings — Dutch (example translation)
-Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, RepoConfig, AppConfig, Settings, MarkdownHighlighter); run with `swift test`
+Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, RepoConfig, AppConfig, Settings, ViewMode, MarkdownHighlighter); run with `swift test`
 README.md, CHANGELOG.md, IMPROVEMENTS.md — user-facing docs + living product backlog; CHANGELOG follows Keep a Changelog + SemVer
 SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 ```
@@ -308,7 +312,16 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
   line in the after-file, so a purely-removed block isn't marked (matches
   VIEWMD-0104's non-goals). Until viewmd implements VIEWMD-0104 the sentinels
   are invisible HTML comments and add a little blank-line spacing around changed
-  blocks — the cost of shipping the marking ahead of the renderer.
+  blocks — the cost of shipping the marking ahead of the renderer. The Web
+  preview already wraps those comments in a highlight after `marked` parses.
+- **Web Markdown preview is a bundled `WKWebView`.** `WebPreviewView` loads
+  `preview.html` with `loadFileURL` from the `WebPreview/` resource folder
+  (`Package.swift` uses `.copy("WebPreview")` so the JS files aren't flattened
+  or mangled). marked 15.0.12 and mermaid 11.6.0 are vendored there; no CDN.
+  Swift injects the Markdown via `callAsyncJavaScript` after the page
+  finishes loading. Theme follows `colorScheme`. Do **not** wrap Markdown in
+  a block HTML tag before parse — CommonMark will not parse inside it; wrap
+  the resulting DOM nodes between the `viewmd:mark` comments instead.
 - **Changing a LaunchAgent's flags needs a reload, not a restart.** `launchctl
   kickstart -k` relaunches with launchd's *cached* `ProgramArguments`, so after
   editing a plist (e.g. adding `--viewmd-path`) you must `launchctl bootout`

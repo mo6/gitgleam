@@ -58,7 +58,10 @@ struct GitgleamApp: App {
         // row with the chosen `RepoCommit` as its value.
         WindowGroup(id: "commit", for: RepoCommit.self) { $entry in
             if let entry {
-                CommitDetailView(commit: entry.commit, repoPath: entry.repoPath, preview: settings.previewSettings)
+                CommitDetailView(
+                    commit: entry.commit, repoPath: entry.repoPath,
+                    preview: settings.previewSettings, defaultView: settings.defaultView
+                )
                     .navigationTitle(entry.commit.shortSHA)
             }
         }
@@ -72,7 +75,10 @@ struct GitgleamApp: App {
         WindowGroup(L10n.uncommitted, id: "uncommitted", for: UUID.self) { $repoID in
             if let repoID, let repoMonitor = monitor.monitors[repoID],
                let repo = settings.repos.first(where: { $0.id == repoID }) {
-                UncommittedView(monitor: repoMonitor, repo: repo, preview: settings.previewSettings)
+                UncommittedView(
+                    monitor: repoMonitor, repo: repo,
+                    preview: settings.previewSettings, defaultView: settings.defaultView
+                )
                     .navigationTitle(repo.label)
             } else {
                 Text(L10n.repositoryRemoved)

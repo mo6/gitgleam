@@ -8,8 +8,10 @@ struct CommitDetailView: View {
     let commit: Commit
     /// Repository the commit belongs to (used to run `git show`).
     let repoPath: String
-    /// Preview settings, forwarded to each file pane (nil = diff only).
+    /// viewmd settings, forwarded to each file pane (nil = no viewmd Preview).
     let preview: AppConfig.PreviewSettings?
+    /// Which view a Markdown file should open in.
+    let defaultView: ViewMode
 
     @State private var files: [CommitFile] = []
     @State private var selection: CommitFile.ID?
@@ -61,7 +63,10 @@ struct CommitDetailView: View {
             .navigationSplitViewColumnWidth(min: 220, ideal: 300, max: 460)
         } detail: {
             if let file = selectedFile {
-                CommitFilePane(sha: commit.sha, file: file, repoPath: repoPath, preview: preview)
+                CommitFilePane(
+                    sha: commit.sha, file: file, repoPath: repoPath,
+                    preview: preview, defaultView: defaultView
+                )
             } else if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

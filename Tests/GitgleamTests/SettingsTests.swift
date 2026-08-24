@@ -100,6 +100,15 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(second.viewmdPath, "/opt/viewmd.sh")
     }
 
+    func testDefaultViewWebPersistsAcrossInstances() {
+        let defaults = freshDefaults()
+        let first = Settings(config: parse([]), defaults: defaults)
+        first.defaultView = .web
+
+        let second = Settings(config: parse([]), defaults: defaults)
+        XCTAssertEqual(second.defaultView, .web)
+    }
+
     func testReposPersistAcrossInstances() {
         let defaults = freshDefaults()
         let first = Settings(config: parse([]), defaults: defaults)

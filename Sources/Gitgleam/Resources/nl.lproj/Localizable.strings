@@ -37,9 +37,10 @@
 "No textual differences (possibly binary or mode-only changes)." = "Geen tekstuele verschillen (mogelijk binair of alleen rechten/modus).";
 "git failed" = "git faalde";
 
-/* Preview (viewmd) */
+/* Preview */
 "Diff" = "Diff";
 "Preview" = "Voorbeeld";
+"Web" = "Web";
 "viewmd failed" = "viewmd faalde";
 
 /* Settings window: sidebar sections */
@@ -100,9 +101,9 @@
 "Recent commits shown" = "Getoonde recente commits";
 "Number of recent commits listed in the submenu." = "Aantal recente commits in het submenu.";
 "viewmd path" = "viewmd-pad";
-"Location of the viewmd.sh launcher used to render Markdown previews. Leave empty to disable previews." = "Locatie van de viewmd.sh-launcher voor het weergeven van Markdown-voorbeelden. Laat leeg om voorbeelden uit te schakelen.";
+"Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "Locatie van de viewmd.sh-launcher voor de Voorbeeld-weergave. Laat leeg om die weergave te verbergen; het ingebouwde webvoorbeeld blijft werken.";
 "Default view" = "Standaardweergave";
-"Which view a Markdown window opens in by default." = "Welke weergave een Markdown-venster standaard opent.";
+"Which rendering a Markdown file opens in. Preview needs viewmd; Web is built-in." = "In welke weergave een Markdown-bestand opent. Voorbeeld heeft viewmd nodig; Web is ingebouwd.";
 "Preview width" = "Voorbeeldbreedte";
 "Render width, in columns, passed to viewmd." = "Renderbreedte, in kolommen, doorgegeven aan viewmd.";
 "Keep preview files" = "Bewaar voorbeeldbestanden";

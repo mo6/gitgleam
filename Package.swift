@@ -12,7 +12,10 @@ let package = Package(
             name: "Gitgleam",
             path: "Sources/Gitgleam",
             resources: [
-                .process("Resources")
+                .process("Resources"),
+                // Copied as a directory so preview.html can load marked/mermaid
+                // by relative path. `.process` would flatten/mangle the JS.
+                .copy("WebPreview"),
             ]
         ),
         .testTarget(
