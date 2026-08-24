@@ -42,6 +42,8 @@
 "Preview" = "Voorbeeld";
 "Web" = "Web";
 "viewmd failed" = "viewmd faalde";
+"Field" = "Veld";
+"Value" = "Waarde";
 
 /* Settings window: sidebar sections */
 "Info" = "Info";

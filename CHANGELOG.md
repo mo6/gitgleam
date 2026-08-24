@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a viewmd path; `--default-view` accepts `web`. Preview without viewmd falls
   back to Web. Changed blocks still use `viewmd:mark` comments, which the Web
   view wraps in a highlight after parsing.
+- **Front-matter table in Web preview.** A leading YAML `---` block is parsed
+  (same shape as viewmd: flat keys, nested dotted keys, lists) and shown as a
+  Field/Value table above the rendered body.
 
 ## [1.3.0] - 2026-08-24
 

@@ -321,7 +321,10 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
   Swift injects the Markdown via `callAsyncJavaScript` after the page
   finishes loading. Theme follows `colorScheme`. Do **not** wrap Markdown in
   a block HTML tag before parse — CommonMark will not parse inside it; wrap
-  the resulting DOM nodes between the `viewmd:mark` comments instead.
+  the resulting DOM nodes between the `viewmd:mark` comments instead. A
+  leading YAML front-matter block is stripped before `marked` and rendered as
+  a Field/Value HTML table (viewmd's split/flatten rules: nested keys become
+  dotted, empty fields are omitted).
 - **Changing a LaunchAgent's flags needs a reload, not a restart.** `launchctl
   kickstart -k` relaunches with launchd's *cached* `ProgramArguments`, so after
   editing a plist (e.g. adding `--viewmd-path`) you must `launchctl bootout`

@@ -57,6 +57,8 @@ enum L10n {
     static var preview: String { s("Preview") }
     static var webPreview: String { s("Web") }
     static var viewmdFailed: String { s("viewmd failed") }
+    static var frontMatterField: String { s("Field") }
+    static var frontMatterValue: String { s("Value") }
 
     // Settings window: sidebar sections
     static var settingsInfo: String { s("Info") }

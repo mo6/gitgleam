@@ -91,9 +91,15 @@ struct WebPreviewView: NSViewRepresentable {
             pendingMarkdown = nil
             pendingTheme = nil
             isRendering = true
-            let body = "return await gitgleamRender(markdown, theme);"
+            let body = "return await gitgleamRender(markdown, theme, fieldLabel, valueLabel);"
             webView.callAsyncJavaScript(
-                body, arguments: ["markdown": markdown, "theme": theme],
+                body,
+                arguments: [
+                    "markdown": markdown,
+                    "theme": theme,
+                    "fieldLabel": L10n.frontMatterField,
+                    "valueLabel": L10n.frontMatterValue,
+                ],
                 in: nil, in: WKContentWorld.page
             ) { [weak self] (_: Result<Any, Error>) in
                 Task { @MainActor in

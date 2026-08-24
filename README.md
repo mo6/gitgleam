@@ -89,7 +89,8 @@ Markdown files in the Uncommitted and commit windows have a **Diff / Web**
 toggle. **Web** is built in: it renders the file as HTML with Mermaid diagrams
 as SVG, using copies of marked and mermaid.js shipped in the app (no network).
 Changed blocks are highlighted from the same `viewmd:mark` comments the
-viewmd path uses.
+viewmd path uses. A leading YAML front-matter block renders as a Field/Value
+table above the body.
 
 **Preview** (viewmd) is optional. `--viewmd-path` must point at an installed
 [viewmd](https://github.com/mo6/viewmd) launcher (`viewmd.sh`, with its
