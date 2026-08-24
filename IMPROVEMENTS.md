@@ -168,15 +168,176 @@ Remote pull/push, stash, and branch switching belong in a Git client.
 
 ## App packaging
 
-Still a raw SPM executable + LaunchAgent.
+Still a raw SPM executable + LaunchAgent. A real `.app` is the next
+distribution step; it does not require the Mac App Store, the App Sandbox, or
+an Xcode project.
 
-- **Real `.app` bundle** (backlog) so Login Items work and the binary +
-  `Gitgleam_Gitgleam.bundle` stay together. `LSUIElement` / accessory policy
-  already exists in the `AppDelegate`. Multiple instances used to be a
-  feature; one process now watches every repo, so
-  `LSMultipleInstancesProhibited` is acceptable.
-- **Sparkle** (or similar) only after it is a bundle; until then "rebuild
-  the LaunchAgent binary" is the update story.
+### Why a bundle
+
+Today Gitgleam is a binary at `.build/release/Gitgleam` plus
+`Gitgleam_Gitgleam.bundle` (localized strings) next to it. Login Items,
+Spotlight, and Finder cannot treat that as an app; a LaunchAgent plist with
+absolute paths and `kickstart` after every rebuild is the stand-in. A bundle
+would:
+
+- Let Login Items start `Gitgleam.app` (the LaunchAgent can go away).
+- Keep the binary and the strings bundle together — moving only the
+  executable silently drops translations.
+- Give a stable `CFBundleIdentifier` (e.g. `nl.mo6.gitgleam`) so
+  `UserDefaults`, TCC prompts, and “this app wants to…” use a real name
+  instead of a generic `Gitgleam.plist` keyed by process name.
+- Make notarized GitHub zips / Sparkle updates possible later.
+
+The Dock can stay hidden: `AppDelegate` already sets `.accessory`, and the
+plist would add `LSUIElement`. Multiple instances used to be a reason *not*
+to bundle (`LSMultipleInstancesProhibited`); one process now watches every
+repo, so that objection is gone.
+
+### Still ship from GitHub
+
+The `.app` belongs on a **GitHub Release** (zip or DMG attached to the tag),
+not in the git tree. The repo stays source: Swift package, docs, tags. Users
+download the zip, drop the app in `/Applications`, and optionally add Login
+Items.
+
+Do not commit the built `.app`. It changes every release, is awkward in git
+(size, arch, codesigning), and is a *product* of `swift build`, not a source
+file. `.gitignore` it; a script (or CI) produces it at tag time, then
+`gh release upload`.
+
+GitHub does not replace Gatekeeper. Other people’s Macs want Developer ID
+signing **and** notarization (below). Without that, they may have to
+right-click → Open the first time, or it may not run.
+
+### What it takes to *create* the `.app`
+
+Not Xcode. A folder with a fixed layout plus a small **build script** is
+enough. An **icon** is optional for launch, expected for a real ship.
+
+```
+Gitgleam.app/
+  Contents/
+    Info.plist
+    MacOS/Gitgleam                    ← swift build -c release binary
+    Resources/
+      Gitgleam_Gitgleam.bundle        ← L10n (must travel with the binary)
+      AppIcon.icns                    ← optional until there is artwork
+```
+
+`Info.plist` is the piece SPM does not generate. Needed keys:
+
+- `CFBundleIdentifier` — e.g. `nl.mo6.gitgleam` (this becomes the
+  `UserDefaults` domain)
+- `CFBundleExecutable` — `Gitgleam`
+- `CFBundleName` / `CFBundleDisplayName`
+- `CFBundleShortVersionString` / `CFBundleVersion` — today version only
+  lives in `AppInfo.version`; copy or generate it here
+- `LSMinimumSystemVersion` — `14.0`
+- `LSUIElement` = `true` — what Login Items / Finder expect for a menu-bar
+  app (the `AppDelegate` policy can stay)
+
+A script is the natural fit while `Package.swift` stays the source of truth:
+
+```bash
+swift build -c release
+mkdir -p Gitgleam.app/Contents/MacOS Gitgleam.app/Contents/Resources
+cp .build/release/Gitgleam Gitgleam.app/Contents/MacOS/
+cp -R .build/release/Gitgleam_Gitgleam.bundle Gitgleam.app/Contents/Resources/
+cp Info.plist Gitgleam.app/Contents/
+# cp AppIcon.icns Gitgleam.app/Contents/Resources/   # once you have one
+```
+
+Then confirm Settings still localizes: `L10n` uses `Bundle.module`. Inside
+an `.app` that bundle must sit where Foundation looks
+(`Contents/Resources/`). If strings go English-only, also try next to the
+binary and fix the layout once.
+
+The menu-bar extra can keep the colored emoji; `AppIcon.icns` is Finder /
+Login Items / the about identity, not the status item. Produce it from a
+1024×1024 (or asset catalog) via `iconutil`, and set `CFBundleIconFile` =
+`AppIcon`.
+
+An Xcode app target can generate plist, icon slots, and signing for you —
+more moving parts if the goal is to keep SPM as the build.
+
+**First slice:** `Info.plist` + `scripts/bundle.sh` that copies the release
+binary and `Gitgleam_Gitgleam.bundle`. Add an icon when there is artwork.
+Sign/notarize only when attaching a zip to a Release for other people.
+
+### App Sandbox — don’t, unless the Mac App Store
+
+A Developer ID `.app` on GitHub **does not have to be sandboxed**. That
+keeps today’s model: read any repo the user adds, run `/usr/bin/git`, watch
+with FSEvents, shell out to `viewmd.sh`. Sandbox is a Store requirement, not
+a notarization requirement.
+
+If it were sandboxed anyway, Apple’s intended fix is **user-selected files +
+security-scoped bookmarks**. The folder picker already exists; the sandbox
+only makes you *remember* the grant:
+
+1. Entitlements: `com.apple.security.app-sandbox`,
+   `com.apple.security.files.user-selected.read-write`,
+   `com.apple.security.files.bookmarks.app-scope`.
+2. When the user adds or re-points a repo, keep the `URL` from `NSOpenPanel`
+   (not only `url.path`).
+3. `url.bookmarkData(options: .withSecurityScope)` stored next to
+   `RepoConfig`.
+4. On launch, resolve with `.withSecurityScope`,
+   `startAccessingSecurityScopedResource()` before git/FSEvents, and
+   `stopAccessing…` when the repo is paused or removed.
+
+A saved path string is not enough; access dies when the app quits. CLI
+`--repo` / `--path` and imported JSON with bare paths cannot grant access —
+those folders would have to be re-picked in the UI. `/usr/bin/git` is a
+system binary and is fine once the repo URL is in scope. Preview temp files
+would use `FileManager.default.temporaryDirectory` (the container), not
+`/tmp` (the debug keep-files toggle would not survive).
+
+**viewmd is the leftover that does not have a clean sandbox fix.** Preview
+does not only read `viewmd.sh`; it runs `/bin/bash` on a script that needs
+its own tree (venv, Python). A bookmark on the `.sh` does not allow
+executing the interpreter beside it. Options: GitHub build keeps preview and
+a Store build is diff-only; vendor viewmd inside `Contents/Helpers/`; or
+bookmark a whole install directory (brittle). Copying repos into the app
+container, “Full Disk Access” (that is TCC, not sandbox), or entitling
+“all of `~/Documents`” are not solutions.
+
+**Recommendation:** ship an unsandboxed, notarized `.app` from GitHub; add
+bookmarks only if a Store build happens later.
+
+### Notarization
+
+Notarization is Apple’s malware scan for apps you did **not** ship through
+the Store. You upload the **signed** `.app` (zip or DMG); their scanners
+run; if it passes they issue a **ticket**; you **staple** that ticket onto
+the app so Gatekeeper can see it offline.
+
+It is not App Review, not the sandbox, and not a substitute for **code
+signing** (a Developer ID certificate that proves *you* built this binary).
+Notarization requires that signature first.
+
+Since ~macOS 10.15 Gatekeeper blocks or heavily warns on Developer ID apps
+that are not notarized. An unsigned `swift build` binary is “unidentified
+developer.” Signed-but-not-notarized is better but may still be blocked.
+Signed **and** notarized is what “Open” from Downloads is supposed to allow
+without the scary dialog — the user still downloaded it from GitHub, not
+the Store.
+
+The loop: `codesign` with Developer ID Application →
+`xcrun notarytool submit` the zip/DMG → wait for Accepted →
+`xcrun stapler staple Gitgleam.app` → zip that stapled app for the Release.
+That needs an Apple Developer Program membership. Without it you can still
+build an `.app` for *this* Mac; other people’s Macs are where notarization
+starts to matter.
+
+### After the bundle exists
+
+- **Sparkle** (or similar) can check GitHub Releases for updates. Until
+  then the story is “download the new zip” (today: rebuild the LaunchAgent
+  binary).
+- The Mac App Store is optional and separate; it would force the sandbox
+  and the viewmd problem above.
+
 
 ---
 
