@@ -4,8 +4,10 @@ import SwiftUI
 /// `Button` render as native menu items.
 ///
 /// One submenu per configured repo, each with its own severity icon, an
-/// "Uncommitted" row, and its recent commits listed below a divider — the
-/// menu-bar label itself only shows the aggregate across all of them.
+/// "Uncommitted" row, its recent commits listed below a divider, and — below
+/// a further divider — "Open in Finder"/"Open in Terminal" for that repo's
+/// folder. The menu-bar label itself only shows the aggregate across all of
+/// them.
 struct MenuContent: View {
     @ObservedObject var monitor: AppMonitor
 
@@ -85,6 +87,29 @@ struct MenuContent: View {
                 }
             }
         }
+
+        Divider()
+        Button(L10n.openInFinder) { openInFinder(repo) }
+        Button(L10n.openInTerminal) { openInTerminal(repo) }
+    }
+
+    /// Opens the repo's folder in Finder, like double-clicking it there.
+    private func openInFinder(_ repo: RepoConfig) {
+        NSWorkspace.shared.open(URL(fileURLWithPath: repo.path))
+    }
+
+    /// Opens a new Terminal window at the repo's folder.
+    ///
+    /// Shells out to `/usr/bin/open` (a system binary, always at this fixed
+    /// path — unlike `git`, no `-C`-style "run in this directory" flag exists
+    /// for launching another app) rather than using `NSWorkspace`, which has
+    /// no equivalent of `open -a <app> <path>` for opening a *folder* in an
+    /// app that isn't already running on it.
+    private func openInTerminal(_ repo: RepoConfig) {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-a", "Terminal", repo.path]
+        try? process.run()
     }
 
     /// A menu label for a commit: date/time, short SHA, then a trimmed subject

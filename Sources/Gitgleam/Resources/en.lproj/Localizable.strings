@@ -4,6 +4,8 @@
 "Quit" = "Quit";
 "Settings…" = "Settings…";
 "No repositories configured" = "No repositories configured";
+"Open in Finder" = "Open in Finder";
+"Open in Terminal" = "Open in Terminal";
 
 /* Uncommitted window */
 "Uncommitted" = "Uncommitted";

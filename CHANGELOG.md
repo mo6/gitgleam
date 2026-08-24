@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **"Open in Finder" / "Open in Terminal"** rows at the bottom of each repo's
+  submenu, below a divider, for jumping straight to that repo's folder.
+
 ### Changed
 
 - **Simplified the repo submenu.** Each repo's Changed/New/Deleted file

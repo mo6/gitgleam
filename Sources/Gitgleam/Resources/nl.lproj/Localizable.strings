@@ -4,6 +4,8 @@
 "Quit" = "Afsluiten";
 "Settings…" = "Instellingen…";
 "No repositories configured" = "Geen repositories geconfigureerd";
+"Open in Finder" = "Open in Finder";
+"Open in Terminal" = "Open in Terminal";
 
 /* Uncommitted window */
 "Uncommitted" = "Niet gecommit";

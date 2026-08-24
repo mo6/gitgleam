@@ -14,6 +14,8 @@ enum L10n {
     static var quit: String { s("Quit") }
     static var settings: String { s("Settings…") }
     static var noRepositoriesConfigured: String { s("No repositories configured") }
+    static var openInFinder: String { s("Open in Finder") }
+    static var openInTerminal: String { s("Open in Terminal") }
 
     // Uncommitted window
     static var uncommitted: String { s("Uncommitted") }
