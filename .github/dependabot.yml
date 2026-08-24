@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /scripts/webpreview
+    schedule:
+      interval: weekly
+    # Exact pins in package.json; Dependabot PRs bump them. After merge,
+    # run scripts/vendor-webpreview.sh so the copies in Sources/Gitgleam/WebPreview
+    # match, then scripts/check-webpreview-deps.sh.

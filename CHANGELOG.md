@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Front-matter table in Web preview.** A leading YAML `---` block is parsed
   (same shape as viewmd: flat keys, nested dotted keys, lists) and shown as a
   Field/Value table above the rendered body.
+- **WebPreview dependency audit.** Vendored marked/mermaid are pinned in
+  `scripts/webpreview/package.json`. CI runs `npm audit` on every push/PR and
+  weekly; Dependabot watches that lockfile. mermaid is 11.17.1 (was 11.6.0)
+  to clear a high-severity lodash-es advisory in its tree.
 
 ## [1.3.0] - 2026-08-24
 

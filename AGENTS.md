@@ -145,11 +145,15 @@ parsing/clamping (including the repeatable `--repo` flag and `--path`/
 `--label` back-compat), `Settings` (seeding from `AppConfig`, clamping,
 persistence round-trip including `repos`, backward-compatible decoding, the
 legacy-per-path-key migration), `ViewMode.initial` (Markdown default-view
-fallback), and `MarkdownHighlighter` (diff → block markers, list-item/front-
-matter splitting). Add tests here when you add
-similar logic (e.g. porcelain parsing in `FileChange`). There's no dedicated
-coverage for `RepoMonitor`/`AppMonitor` (as there wasn't for `GitMonitor`
-before them) — they need a running git process/FSEvents/UI to exercise.
+fallback), `MarkdownHighlighter` (diff → block markers, list-item/front-
+matter splitting), and WebPreview pin lockstep (`NOTICE.txt` vs
+`scripts/webpreview/package.json` vs the vendored JS headers). Known
+advisories against those pins are checked by `scripts/check-webpreview-deps.sh`
+(`npm audit`, run in GitHub Actions and locally when node is available).
+Add tests here when you add similar logic (e.g. porcelain parsing in
+`FileChange`). There's no dedicated coverage for `RepoMonitor`/`AppMonitor`
+(as there wasn't for `GitMonitor` before them) — they need a running git
+process/FSEvents/UI to exercise.
 
 ## Project layout
 
@@ -189,7 +193,12 @@ Sources/Gitgleam/
   Localization.swift                   — L10n: central lookup of user-facing strings + language-override support
   Resources/en.lproj/Localizable.strings — English (default)
   Resources/nl.lproj/Localizable.strings — Dutch (example translation)
-Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, RepoConfig, AppConfig, Settings, ViewMode, MarkdownHighlighter); run with `swift test`
+Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, RepoConfig, AppConfig, Settings, ViewMode, MarkdownHighlighter, WebPreview pins); run with `swift test`
+scripts/check-webpreview-deps.sh       — npm audit + version sync for vendored marked/mermaid
+scripts/vendor-webpreview.sh           — re-download WebPreview JS to match scripts/webpreview/package.json
+scripts/webpreview/                    — package.json + lockfile (audit/Dependabot only; not shipped)
+.github/workflows/ci.yml               — runs the WebPreview dependency audit on push/PR/weekly
+.github/dependabot.yml                 — weekly npm PRs for scripts/webpreview
 README.md, CHANGELOG.md, IMPROVEMENTS.md — user-facing docs + living product backlog; CHANGELOG follows Keep a Changelog + SemVer
 SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 ```
@@ -317,7 +326,7 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
 - **Web Markdown preview is a bundled `WKWebView`.** `WebPreviewView` loads
   `preview.html` with `loadFileURL` from the `WebPreview/` resource folder
   (`Package.swift` uses `.copy("WebPreview")` so the JS files aren't flattened
-  or mangled). marked 15.0.12 and mermaid 11.6.0 are vendored there; no CDN.
+  or mangled). marked 15.0.12 and mermaid 11.17.1 are vendored there; no CDN.
   Swift injects the Markdown via `callAsyncJavaScript` after the page
   finishes loading. Theme follows `colorScheme`. Do **not** wrap Markdown in
   a block HTML tag before parse — CommonMark will not parse inside it; wrap

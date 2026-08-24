@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  schedule:
+    # Catch newly published advisories even when nothing else landed.
+    - cron: "17 4 * * 1"
+
+jobs:
+  webpreview-deps:
+    name: WebPreview dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: scripts/webpreview/package-lock.json
+      - name: Audit vendored marked/mermaid
+        run: bash scripts/check-webpreview-deps.sh

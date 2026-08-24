@@ -1,0 +1,9 @@
+{
+  "name": "gitgleam-webpreview",
+  "private": true,
+  "description": "Pins the vendored WebPreview JS (marked, mermaid) so npm audit and Dependabot can flag security updates. Not used at runtime — Gitgleam loads the copies in Sources/Gitgleam/WebPreview/.",
+  "dependencies": {
+    "marked": "15.0.12",
+    "mermaid": "11.17.1"
+  }
+}

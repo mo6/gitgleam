@@ -78,6 +78,13 @@ rendered in previews) are in scope.
   well-formed ones), `MarkdownHighlighter` is tested against diffs with
   fenced code blocks and partial/whole-block changes, and `AppConfig` is
   tested for flag-parsing and threshold-clamping edge cases.
+- **Vendored WebPreview JS is audited as npm packages.** `scripts/webpreview/package.json`
+  pins the same marked/mermaid versions as `NOTICE.txt`. GitHub Actions runs
+  `scripts/check-webpreview-deps.sh` (`npm audit --audit-level=moderate`) on
+  every push/PR and weekly; Dependabot opens PRs against that lockfile. After
+  a pin bump, `scripts/vendor-webpreview.sh` refreshes the copies in
+  `Sources/Gitgleam/WebPreview/`. `swift test` checks the pins stay in lockstep
+  with those files.
 - **Every change is verified with a debug build, a release build, and the
   full test suite** before being committed (see `AGENTS.md`), so a
   regression in argument handling or parsing is caught before it ships.

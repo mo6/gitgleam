@@ -3,5 +3,5 @@ bundle at runtime — no CDN, no network.
 
 - marked 15.0.12 (MIT) — https://github.com/markedjs/marked
   See LICENSE.marked
-- mermaid 11.6.0 (MIT) — https://github.com/mermaid-js/mermaid
+- mermaid 11.17.1 (MIT) — https://github.com/mermaid-js/mermaid
   See LICENSE.mermaid
