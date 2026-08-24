@@ -89,7 +89,8 @@ npm dependencies in a lockfile that is never installed into the app:
 | --- | --- |
 | `scripts/webpreview/package.json` | Exact pins (`marked`, `mermaid`). Source of truth for bumps. |
 | `scripts/webpreview/package-lock.json` | Lockfile `npm audit` and Dependabot read. |
-| `Sources/Gitgleam/WebPreview/NOTICE.txt` | Same pins, plus MIT attribution. |
+| `Sources/Gitgleam/WebPreview/NOTICE.txt` | Same pins, plus MIT attribution (ships in the bundle). |
+| `THIRD_PARTY_NOTICES.md` | Repo-root index of those licenses (GitHub / source checkout). |
 | `Sources/Gitgleam/WebPreview/*.min.js` | Runtime copies loaded by `WKWebView`. |
 
 Current pins: **marked 15.0.12**, **mermaid 11.17.1**.
@@ -107,7 +108,7 @@ pull request, and weekly (`cron: 17 4 * * 1`). The script:
 only. After merging (or before, on the PR branch):
 
 ```bash
-scripts/vendor-webpreview.sh          # re-download min.js + LICENSE + NOTICE
+scripts/vendor-webpreview.sh          # re-download min.js + LICENSE + NOTICE + THIRD_PARTY_NOTICES.md
 scripts/check-webpreview-deps.sh      # confirm lockstep + clean audit
 ```
 

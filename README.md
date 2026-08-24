@@ -221,3 +221,9 @@ swift run Gitgleam --repo ~/repo -AppleLanguages '(nl)'
 ```
 
 See [CLAUDE.md](CLAUDE.md) for architecture and development notes.
+
+## License
+
+Gitgleam is MIT; see [LICENSE](LICENSE). Notices for the JavaScript vendored
+into the Markdown Web preview are in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -31,6 +31,15 @@ final class WebPreviewDependencyTests: XCTestCase {
         )
     }
 
+    func testThirdPartyNoticesMatchesPins() throws {
+        let pins = try npmPins()
+        let notices = try String(
+            contentsOf: repoRoot.appendingPathComponent("THIRD_PARTY_NOTICES.md"), encoding: .utf8
+        )
+        XCTAssertTrue(notices.contains("## marked \(pins.marked)\n"), "THIRD_PARTY_NOTICES.md should heading-pin marked")
+        XCTAssertTrue(notices.contains("## mermaid \(pins.mermaid)\n"), "THIRD_PARTY_NOTICES.md should heading-pin mermaid")
+    }
+
     // MARK: - Paths
 
     private var repoRoot: URL {

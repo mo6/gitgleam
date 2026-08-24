@@ -30,4 +30,41 @@ bundle at runtime — no CDN, no network.
   See LICENSE.mermaid
 EOF
 
+{
+  cat <<EOF
+# Third-party notices
+
+Gitgleam itself is MIT; see [LICENSE](LICENSE).
+
+The Markdown **Web** preview vendors two JavaScript libraries (loaded from
+the app bundle over \`file://\`, no CDN). The copies that ship are under
+[\`Sources/Gitgleam/WebPreview/\`](Sources/Gitgleam/WebPreview/). \`NOTICE.txt\`
+in that folder travels with the binary; this file is the repo-root index.
+
+Versions are pinned in \`scripts/webpreview/package.json\` (see
+[SECURITY.md](SECURITY.md)). After a bump, \`scripts/vendor-webpreview.sh\`
+refreshes the vendored files and this document.
+
+## marked ${marked_ver}
+
+[marked](https://github.com/markedjs/marked) — vendored as \`marked.min.js\`.
+Upstream license text is also in \`Sources/Gitgleam/WebPreview/LICENSE.marked\`.
+
+\`\`\`
+EOF
+  cat "$dest/LICENSE.marked"
+  cat <<EOF
+\`\`\`
+
+## mermaid ${mermaid_ver}
+
+[mermaid](https://github.com/mermaid-js/mermaid) — vendored as \`mermaid.min.js\`.
+Upstream license text is also in \`Sources/Gitgleam/WebPreview/LICENSE.mermaid\`.
+
+\`\`\`
+EOF
+  cat "$dest/LICENSE.mermaid"
+  printf '\n\`\`\`\n'
+} > "$root/THIRD_PARTY_NOTICES.md"
+
 echo "Vendored marked ${marked_ver} and mermaid ${mermaid_ver} into $dest"

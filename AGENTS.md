@@ -200,7 +200,7 @@ scripts/webpreview/                    — package.json + lockfile (audit/Depend
 .github/workflows/ci.yml               — runs the WebPreview dependency audit on push/PR/weekly
 .github/dependabot.yml                 — weekly npm PRs for scripts/webpreview
 README.md, CHANGELOG.md, IMPROVEMENTS.md — user-facing docs + living product backlog; CHANGELOG follows Keep a Changelog + SemVer
-SECURITY.md, CODE_OF_CONDUCT.md, LICENSE — repo governance docs (LICENSE: MIT)
+SECURITY.md, CODE_OF_CONDUCT.md, LICENSE, THIRD_PARTY_NOTICES.md — repo governance docs (LICENSE: MIT)
 ```
 
 ## Architecture notes

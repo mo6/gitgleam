@@ -6,6 +6,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 notice="$root/Sources/Gitgleam/WebPreview/NOTICE.txt"
+notices="$root/THIRD_PARTY_NOTICES.md"
 marked_js="$root/Sources/Gitgleam/WebPreview/marked.min.js"
 mermaid_js="$root/Sources/Gitgleam/WebPreview/mermaid.min.js"
 pkg_dir="$root/scripts/webpreview"
@@ -38,8 +39,16 @@ if ! grep -q "version:\"${pkg_mermaid}\"" "$mermaid_js"; then
   echo "mermaid.min.js does not contain version:\"${pkg_mermaid}\" (re-vendor after bumping package.json)" >&2
   fail=1
 fi
+if ! grep -q "^## marked ${pkg_marked}$" "$notices"; then
+  echo "THIRD_PARTY_NOTICES.md is missing heading '## marked ${pkg_marked}'" >&2
+  fail=1
+fi
+if ! grep -q "^## mermaid ${pkg_mermaid}$" "$notices"; then
+  echo "THIRD_PARTY_NOTICES.md is missing heading '## mermaid ${pkg_mermaid}'" >&2
+  fail=1
+fi
 if [[ "$fail" -ne 0 ]]; then
-  echo "Update Sources/Gitgleam/WebPreview/ to match scripts/webpreview/package.json (see scripts/vendor-webpreview.sh)." >&2
+  echo "Update Sources/Gitgleam/WebPreview/ and THIRD_PARTY_NOTICES.md to match scripts/webpreview/package.json (see scripts/vendor-webpreview.sh)." >&2
   exit 1
 fi
 

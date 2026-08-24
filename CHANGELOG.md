@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `scripts/webpreview/package.json`. CI runs `npm audit` on every push/PR and
   weekly; Dependabot watches that lockfile. mermaid is 11.17.1 (was 11.6.0)
   to clear a high-severity lodash-es advisory in its tree.
+- **Third-party notices.** [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+  lists the vendored marked and mermaid licenses at the repo root.
 
 ## [1.3.0] - 2026-08-24
 
