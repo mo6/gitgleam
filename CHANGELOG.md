@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **"Open in Finder" / "Open in Terminal"** rows at the bottom of each repo's
-  submenu, below a divider, for jumping straight to that repo's folder.
+  submenu, below a divider, for jumping straight to that repo's folder. Each
+  is independently toggleable from Settings → General (both on by default).
 
 ### Changed
 

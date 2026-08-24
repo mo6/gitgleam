@@ -20,7 +20,9 @@ changed file to see a colored diff. Built with Swift + SwiftUI
   Clicking Uncommitted opens a split-view window with a sidebar of every
   changed file — grouped into **Changed**, **New**, and **Deleted** — and a
   colored diff for the selected file; clicking a commit opens the same kind
-  of split-view window for the files that commit changed.
+  of split-view window for the files that commit changed. Each repo's
+  submenu ends with **Open in Finder** / **Open in Terminal** rows for its
+  folder (each can be turned off in Settings; both on by default).
 - **Markdown files** can be previewed as formatted Markdown — including Mermaid
   diagrams — instead of a raw diff, when a [viewmd](https://github.com/mo6/viewmd)
   launcher is configured via `--viewmd-path`. The Uncommitted and commit windows
@@ -28,10 +30,11 @@ changed file to see a colored diff. Built with Swift + SwiftUI
 - The repo list is set via `--repo` flags at first launch, then managed live
   from **Settings… → Repositories** (add, relabel, re-point, or remove a
   repo — no restart needed). Everything else — thresholds, poll interval,
-  recent-commits count, Markdown preview settings, language, and a debug
-  option — also lives in **Settings…** (menu item, above Refresh) and
-  applies immediately; the flags below are just its first-launch defaults,
-  persisted independently afterwards.
+  recent-commits count, Markdown preview settings, language, the Open in
+  Finder/Terminal row toggles, and a debug option — also lives in
+  **Settings…** (menu item, above Refresh) and applies immediately; the
+  flags below are just its first-launch defaults, persisted independently
+  afterwards.
 
 ## Requirements
 

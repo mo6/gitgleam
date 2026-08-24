@@ -31,7 +31,7 @@ struct GitgleamApp: App {
     var body: some Scene {
         MenuBarExtra {
             // Dropdown menu content.
-            MenuContent(monitor: monitor)
+            MenuContent(monitor: monitor, settings: settings)
         } label: {
             // Menu-bar label: the aggregate status icon + count across every
             // configured repo.

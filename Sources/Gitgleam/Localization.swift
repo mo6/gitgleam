@@ -17,6 +17,16 @@ enum L10n {
     static var openInFinder: String { s("Open in Finder") }
     static var openInTerminal: String { s("Open in Terminal") }
 
+    // Settings window: General section
+    static var showOpenInFinder: String { s("Show \"Open in Finder\"") }
+    static var showOpenInFinderDescription: String {
+        s("Adds an \"Open in Finder\" row to each repository's submenu.")
+    }
+    static var showOpenInTerminal: String { s("Show \"Open in Terminal\"") }
+    static var showOpenInTerminalDescription: String {
+        s("Adds an \"Open in Terminal\" row to each repository's submenu.")
+    }
+
     // Uncommitted window
     static var uncommitted: String { s("Uncommitted") }
     static var repositoryRemoved: String { s("Repository removed") }

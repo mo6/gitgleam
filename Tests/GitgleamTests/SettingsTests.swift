@@ -27,6 +27,8 @@ final class SettingsTests: XCTestCase {
         XCTAssertFalse(settings.debugKeepPreviewFiles)
         XCTAssertEqual(settings.language, "auto") // no CLI flag for it
         XCTAssertEqual(settings.repos, config.initialRepos)
+        XCTAssertTrue(settings.showOpenInFinder) // no CLI flag for it either
+        XCTAssertTrue(settings.showOpenInTerminal)
     }
 
     func testLanguagePersistsAcrossInstances() {
@@ -60,6 +62,21 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(settings.language, "auto")
         XCTAssertEqual(settings.warnThreshold, 4) // the rest of the legacy data still loaded
         XCTAssertEqual(settings.repos, config.initialRepos) // the one repo migrates in
+        XCTAssertTrue(settings.showOpenInFinder) // absent from the legacy blob too
+        XCTAssertTrue(settings.showOpenInTerminal)
+    }
+
+    func testOpenInFinderAndTerminalTogglesPersistAcrossInstances() {
+        let config = parse([])
+        let defaults = freshDefaults()
+
+        let first = Settings(config: config, defaults: defaults)
+        first.showOpenInFinder = false
+        first.showOpenInTerminal = false
+
+        let second = Settings(config: config, defaults: defaults)
+        XCTAssertFalse(second.showOpenInFinder)
+        XCTAssertFalse(second.showOpenInTerminal)
     }
 
     func testNoViewmdPathSeedsEmptyString() {

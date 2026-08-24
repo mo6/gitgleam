@@ -7,6 +7,12 @@
 "Open in Finder" = "Open in Finder";
 "Open in Terminal" = "Open in Terminal";
 
+/* Settings window: General section */
+"Show \"Open in Finder\"" = "Show \"Open in Finder\"";
+"Adds an \"Open in Finder\" row to each repository's submenu." = "Adds an \"Open in Finder\" row to each repository's submenu.";
+"Show \"Open in Terminal\"" = "Show \"Open in Terminal\"";
+"Adds an \"Open in Terminal\" row to each repository's submenu." = "Adds an \"Open in Terminal\" row to each repository's submenu.";
+
 /* Uncommitted window */
 "Uncommitted" = "Uncommitted";
 "Repository removed" = "Repository removed";

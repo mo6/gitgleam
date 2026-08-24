@@ -67,6 +67,14 @@ struct SettingsView: View {
                     .labelsHidden()
                     .frame(width: 220)
                 }
+                Divider()
+                Row(label: L10n.showOpenInFinder, description: L10n.showOpenInFinderDescription) {
+                    Toggle("", isOn: $settings.showOpenInFinder).labelsHidden()
+                }
+                Divider()
+                Row(label: L10n.showOpenInTerminal, description: L10n.showOpenInTerminalDescription) {
+                    Toggle("", isOn: $settings.showOpenInTerminal).labelsHidden()
+                }
             }
         case .statusIcon:
             SettingsCard {

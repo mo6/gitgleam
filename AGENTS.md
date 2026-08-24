@@ -36,7 +36,10 @@ below.)
   the same split-view shape (and `FileDiffPane`/`CommitFilePane` the same
   header/diff/preview layout) so uncommitted changes and commits are
   presented consistently — one lists the working tree's changes, the other one
-  commit's.
+  commit's. Below a further divider, each repo's submenu ends with **Open in
+  Finder** and **Open in Terminal** rows for that repo's folder — each
+  independently toggleable (on by default) from Settings → General
+  (`showOpenInFinder`/`showOpenInTerminal`).
 - For **Markdown files**, when `--viewmd-path` points at a `viewmd.sh` launcher,
   each file pane (uncommitted or commit) gains a **Diff/Preview** toggle.
   Preview renders the file as formatted Markdown — including Mermaid diagrams as
@@ -51,7 +54,8 @@ below.)
 - The repo list comes from repeatable `--repo <path>[:<label>]` flags at
   first launch (or a single `--path`/`--label`, for back-compat). Everything
   else — the repo list itself, thresholds, poll interval, recent-commits
-  count, Markdown preview settings, language, and a debug option — lives in
+  count, Markdown preview settings, language, the Open in Finder/Terminal
+  row toggles, and a debug option — lives in
   `Settings` (`Settings.swift`), a `@MainActor ObservableObject` seeded once
   from those flags (the first-launch defaults) then persisted independently
   via `UserDefaults` under one global key. `SettingsView` (opened from a new

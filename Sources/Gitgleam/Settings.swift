@@ -64,6 +64,12 @@ final class Settings: ObservableObject {
     /// When true, Markdown preview renders leave their input file in `/tmp/`
     /// for inspection instead of deleting it — see `Viewmd.render`.
     @Published var debugKeepPreviewFiles: Bool { didSet { save() } }
+    /// Whether each repo's submenu shows an "Open in Finder" row. Not seeded
+    /// from `AppConfig` — there's no CLI flag for it, so `true` is always the
+    /// first-launch default.
+    @Published var showOpenInFinder: Bool { didSet { save() } }
+    /// Whether each repo's submenu shows an "Open in Terminal" row.
+    @Published var showOpenInTerminal: Bool { didSet { save() } }
 
     /// Preview settings for the diff/commit windows, or nil when no viewmd
     /// path is set (diff-only). Mirrors `AppConfig.previewSettings`, but
@@ -118,6 +124,8 @@ final class Settings: ObservableObject {
         defaultView = seed?.defaultView ?? (config.defaultView ?? .preview)
         previewWidth = seed?.previewWidth ?? config.previewWidth
         debugKeepPreviewFiles = seed?.debugKeepPreviewFiles ?? false
+        showOpenInFinder = seed?.showOpenInFinder ?? true
+        showOpenInTerminal = seed?.showOpenInTerminal ?? true
 
         // `language`'s own didSet (which applies the override) doesn't fire
         // for this initializer's assignment above, so apply it explicitly.
@@ -148,7 +156,8 @@ final class Settings: ObservableObject {
             language: language, repos: repos, warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
             refreshInterval: refreshInterval, commits: commits,
             viewmdPath: viewmdPath, defaultView: defaultView, previewWidth: previewWidth,
-            debugKeepPreviewFiles: debugKeepPreviewFiles
+            debugKeepPreviewFiles: debugKeepPreviewFiles,
+            showOpenInFinder: showOpenInFinder, showOpenInTerminal: showOpenInTerminal
         )
     }
 
@@ -163,6 +172,8 @@ final class Settings: ObservableObject {
         defaultView = seed.defaultView
         previewWidth = seed.previewWidth
         debugKeepPreviewFiles = seed.debugKeepPreviewFiles
+        showOpenInFinder = seed.showOpenInFinder ?? true
+        showOpenInTerminal = seed.showOpenInTerminal ?? true
         L10n.languageOverride = (language == "auto") ? nil : language
     }
 
@@ -186,6 +197,10 @@ final class Settings: ObservableObject {
         var defaultView: ViewMode
         var previewWidth: Int
         var debugKeepPreviewFiles: Bool
+        /// Optional for the same reason as `language`/`repos`: absent from
+        /// settings persisted before these existed.
+        var showOpenInFinder: Bool?
+        var showOpenInTerminal: Bool?
     }
 
     private func save() {

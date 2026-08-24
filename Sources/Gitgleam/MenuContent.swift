@@ -5,11 +5,14 @@ import SwiftUI
 ///
 /// One submenu per configured repo, each with its own severity icon, an
 /// "Uncommitted" row, its recent commits listed below a divider, and — below
-/// a further divider — "Open in Finder"/"Open in Terminal" for that repo's
-/// folder. The menu-bar label itself only shows the aggregate across all of
-/// them.
+/// a further divider, each independently toggleable from Settings → General
+/// (`showOpenInFinder`/`showOpenInTerminal`, both on by default) —
+/// "Open in Finder"/"Open in Terminal" for that repo's folder. The menu-bar
+/// label itself only shows the aggregate across all of them.
 struct MenuContent: View {
     @ObservedObject var monitor: AppMonitor
+    /// Read for `showOpenInFinder`/`showOpenInTerminal` (Settings → General).
+    @ObservedObject var settings: Settings
 
     // Opens separate windows; one diff/commit/all-changes window per repo.
     @Environment(\.openWindow) private var openWindow
@@ -88,9 +91,15 @@ struct MenuContent: View {
             }
         }
 
-        Divider()
-        Button(L10n.openInFinder) { openInFinder(repo) }
-        Button(L10n.openInTerminal) { openInTerminal(repo) }
+        if settings.showOpenInFinder || settings.showOpenInTerminal {
+            Divider()
+            if settings.showOpenInFinder {
+                Button(L10n.openInFinder) { openInFinder(repo) }
+            }
+            if settings.showOpenInTerminal {
+                Button(L10n.openInTerminal) { openInTerminal(repo) }
+            }
+        }
     }
 
     /// Opens the repo's folder in Finder, like double-clicking it there.
