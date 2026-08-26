@@ -30,10 +30,12 @@ enum L10n {
     // Uncommitted window
     static var uncommitted: String { s("Uncommitted") }
     static var repositoryRemoved: String { s("Repository removed") }
-    /// Menu row category counts, e.g. "1 changed", "2 new", "1 deleted".
-    static func changedCount(_ count: Int) -> String { String(format: s("%d changed"), count) }
-    static func newCount(_ count: Int) -> String { String(format: s("%d new"), count) }
-    static func deletedCount(_ count: Int) -> String { String(format: s("%d deleted"), count) }
+    /// The menu row summarizing uncommitted changes, e.g.
+    /// "2 changes: README.md / CHANGELOG.md".
+    static func uncommittedSummary(_ count: Int, files: String) -> String {
+        let key = count == 1 ? "%d change: %@" : "%d changes: %@"
+        return String(format: s(key), count, files)
+    }
 
     // Section headers
     static var changed: String { s("Changed") }

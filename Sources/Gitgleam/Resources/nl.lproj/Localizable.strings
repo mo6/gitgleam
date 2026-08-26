@@ -16,9 +16,8 @@
 /* Uncommitted window */
 "Uncommitted" = "Niet gecommit";
 "Repository removed" = "Repository verwijderd";
-"%d changed" = "%d gewijzigd";
-"%d new" = "%d nieuw";
-"%d deleted" = "%d verwijderd";
+"%d change: %@" = "%d wijziging: %@";
+"%d changes: %@" = "%d wijzigingen: %@";
 
 /* Section headers */
 "Changed" = "Gewijzigd";

@@ -16,9 +16,8 @@
 /* Uncommitted window */
 "Uncommitted" = "Uncommitted";
 "Repository removed" = "Repository removed";
-"%d changed" = "%d changed";
-"%d new" = "%d new";
-"%d deleted" = "%d deleted";
+"%d change: %@" = "%d change: %@";
+"%d changes: %@" = "%d changes: %@";
 
 /* Section headers */
 "Changed" = "Changed";

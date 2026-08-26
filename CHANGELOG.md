@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The **Uncommitted** menu row now shows which files changed instead of a
+  changed/new/deleted category breakdown, e.g. "2 changes: README.md /
+  CHANGELOG.md" instead of "Uncommitted (2 changed)". As many file names are
+  listed as fit a reasonable menu width; the rest are collapsed into a
+  trailing "…" rather than stretching the menu to fit every one.
+
 ### Fixed
 
 - The Web Markdown preview's highlight for changed/added blocks

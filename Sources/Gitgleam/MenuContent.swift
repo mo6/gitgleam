@@ -131,16 +131,28 @@ struct MenuContent: View {
         return "\(commit.date)  \(commit.shortSHA)  \(subject)"
     }
 
-    /// The "Uncommitted" row's label: category counts, e.g. "Uncommitted (1
-    /// changed, 1 new)". Only non-zero categories are listed.
+    /// The "Uncommitted" row's label: the total count and, as many file names
+    /// as fit a reasonable menu width, e.g. "2 changes: README.md /
+    /// CHANGELOG.md". Names beyond that budget are replaced by a trailing
+    /// "…" rather than stretching the menu to fit every one.
     private func uncommittedLabel(_ repoMonitor: RepoMonitor) -> String {
-        var parts: [String] = []
-        let changed = repoMonitor.changedFiles.count
-        let new = repoMonitor.newFiles.count
-        let deleted = repoMonitor.deletedFiles.count
-        if changed > 0 { parts.append(L10n.changedCount(changed)) }
-        if new > 0 { parts.append(L10n.newCount(new)) }
-        if deleted > 0 { parts.append(L10n.deletedCount(deleted)) }
-        return "\(L10n.uncommitted) (\(parts.joined(separator: ", ")))"
+        let names = repoMonitor.changes.map(\.fileName)
+        return L10n.uncommittedSummary(names.count, files: truncatedFileList(names))
+    }
+
+    /// Joins `names` with " / ", stopping once `maxLength` characters would be
+    /// exceeded (always including at least the first name) and appending "…"
+    /// if any were left out.
+    private func truncatedFileList(_ names: [String], maxLength: Int = 60) -> String {
+        var shown: [String] = []
+        var length = 0
+        for name in names {
+            let addition = name.count + (shown.isEmpty ? 0 : 3) // " / "
+            if length + addition > maxLength, !shown.isEmpty { break }
+            shown.append(name)
+            length += addition
+        }
+        let list = shown.joined(separator: " / ")
+        return shown.count < names.count ? "\(list) …" : list
     }
 }
