@@ -106,7 +106,7 @@ struct SettingsView: View {
             }
         case .diff:
             SettingsCard {
-                Row(label: L10n.defaultViewLabel, description: L10n.defaultViewDescription) {
+                StackedRow(label: L10n.defaultViewLabel, description: L10n.defaultViewDescription) {
                     Picker("", selection: $settings.defaultView) {
                         Text(L10n.diffView).tag(ViewMode.diff)
                         Text(L10n.diffFullView).tag(ViewMode.diffFull)
@@ -115,7 +115,7 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
-                    .frame(width: 280)
+                    .fixedSize()
                 }
             }
         case .preview:
