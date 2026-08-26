@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-08-26
+
 ### Changed
 
 - The **Uncommitted** menu row now shows which files changed instead of a
@@ -208,7 +210,8 @@ Initial release.
   language and a per-launch `-AppleLanguages` override. English (default) and
   Dutch translations included.
 
-[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/mo6/gitgleam/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/mo6/gitgleam/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/mo6/gitgleam/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/mo6/gitgleam/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/mo6/gitgleam/compare/v1.1.0...v1.2.0

@@ -8,7 +8,7 @@ import Foundation
 /// so it's a plain literal. Bump it by hand alongside the CHANGELOG entry and
 /// git tag at release time (see AGENTS.md's release process).
 enum AppInfo {
-    static let version = "1.4.0"
+    static let version = "1.5.0"
     static let githubURL = URL(string: "https://github.com/mo6/gitgleam")!
     /// The link's display text — a bare URL, same in every language, so it's
     /// not localized like the surrounding row labels are.
