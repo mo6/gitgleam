@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **German, French, and Spanish translations** (`de`, `fr`, `es`), alongside
+  the existing English and Dutch ones. Each appears as a choice in
+  Settings → General → Language.
+
 ## [1.6.0] - 2026-08-26
 
 ### Added

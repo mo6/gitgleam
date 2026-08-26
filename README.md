@@ -213,9 +213,10 @@ By default the UI follows your macOS system language, falling back to
 English. Open **Settings… → General** to pick an explicit language instead of
 "Automatic". Translations live in
 `Sources/Gitgleam/Resources/<lang>.lproj/Localizable.strings` and are looked
-up via the `L10n` helper. A Dutch (`nl`) translation is included as an
-example; add a language by dropping in a new `.lproj` folder and translating
-the values — it then also appears as a choice in Settings.
+up via the `L10n` helper. Dutch (`nl`), German (`de`), French (`fr`), and
+Spanish (`es`) translations are included; add another language by dropping in
+a new `.lproj` folder and translating the values — it then also appears as a
+choice in Settings.
 
 Force a language for a single launch with the standard `-AppleLanguages`
 override (the tuple must be quoted), which is what "Automatic" honors:

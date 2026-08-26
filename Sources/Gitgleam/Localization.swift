@@ -197,6 +197,9 @@ enum L10n {
         switch code {
         case "en": return "English"
         case "nl": return "Nederlands"
+        case "de": return "Deutsch"
+        case "fr": return "Français"
+        case "es": return "Español"
         default: return Locale(identifier: code).localizedString(forLanguageCode: code) ?? code
         }
     }

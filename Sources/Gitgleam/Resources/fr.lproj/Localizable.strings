@@ -1,0 +1,117 @@
+/* Menu */
+"No changes" = "Aucune modification";
+"Refresh" = "Actualiser";
+"Quit" = "Quitter";
+"Settings…" = "Réglages…";
+"No repositories configured" = "Aucun dépôt configuré";
+"Open in Finder" = "Ouvrir dans le Finder";
+"Open in Terminal" = "Ouvrir dans le Terminal";
+
+/* Settings window: General section */
+"Show \"Open in Finder\"" = "Afficher « Ouvrir dans le Finder »";
+"Adds an \"Open in Finder\" row to each repository's submenu." = "Ajoute une ligne « Ouvrir dans le Finder » au sous-menu de chaque dépôt.";
+"Show \"Open in Terminal\"" = "Afficher « Ouvrir dans le Terminal »";
+"Adds an \"Open in Terminal\" row to each repository's submenu." = "Ajoute une ligne « Ouvrir dans le Terminal » au sous-menu de chaque dépôt.";
+
+/* Uncommitted window */
+"Uncommitted" = "Non validé";
+"Repository removed" = "Dépôt supprimé";
+"%d change: %@" = "%d modification : %@";
+"%d changes: %@" = "%d modifications : %@";
+
+/* Section headers */
+"Changed" = "Modifié";
+"New" = "Nouveau";
+"Deleted" = "Supprimé";
+
+/* File status descriptions */
+"Modified" = "Modifié";
+"Added" = "Ajouté";
+"Renamed" = "Renommé";
+"Copied" = "Copié";
+"Conflict" = "Conflit";
+"New (untracked)" = "Nouveau (non suivi)";
+
+/* Diff view */
+"No textual differences (possibly binary or mode-only changes)." = "Aucune différence textuelle (peut-être un fichier binaire ou un changement de mode uniquement).";
+"git failed" = "échec de git";
+
+/* Preview */
+"Diff" = "Diff";
+"Diff (full)" = "Diff (complet)";
+"Preview" = "Aperçu";
+"Web" = "Web";
+"viewmd failed" = "échec de viewmd";
+"Field" = "Champ";
+"Value" = "Valeur";
+
+/* Settings window: sidebar sections */
+"Info" = "Infos";
+"Repositories" = "Dépôts";
+"General" = "Général";
+"Status icon" = "Icône de statut";
+"Refresh" = "Actualiser";
+"Markdown preview" = "Aperçu Markdown";
+"Debug" = "Débogage";
+
+/* Settings window: Info section */
+"A small native macOS menu bar app that watches a git repository and shows the number of uncommitted changes, colored by severity, with a colored per-file diff." = "Une petite application native de la barre de menus macOS qui surveille un dépôt git et affiche le nombre de modifications non validées, colorées selon leur gravité, avec un diff coloré par fichier.";
+"Version" = "Version";
+"GitHub repository" = "Dépôt GitHub";
+
+/* Settings window: Repositories section */
+"Label" = "Étiquette";
+"Path" = "Chemin";
+"Add Repository…" = "Ajouter un dépôt…";
+"Remove repository" = "Supprimer le dépôt";
+"Add a repository to start watching its uncommitted changes." = "Ajoutez un dépôt pour commencer à surveiller ses modifications non validées.";
+"This folder doesn't look like a git repository." = "Ce dossier ne ressemble pas à un dépôt git.";
+"Initialize a git repository in this folder, add it anyway, or cancel." = "Initialisez un dépôt git dans ce dossier, ajoutez-le quand même, ou annulez.";
+"Initialize Git Repository" = "Initialiser le dépôt Git";
+"Add Anyway" = "Ajouter quand même";
+"Cancel" = "Annuler";
+"This folder is already in the list." = "Ce dossier figure déjà dans la liste.";
+"Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel." = "Surveiller deux fois le même chemin exécute deux observateurs sur un même arbre. Ajoutez-le quand même, ou annulez.";
+"Drag to reorder" = "Glisser pour réorganiser";
+"Watch this repository" = "Surveiller ce dépôt";
+"Active" = "Actif";
+"Paused" = "En pause";
+"Repository settings" = "Réglages du dépôt";
+"Change Folder…" = "Changer de dossier…";
+"App defaults" = "Valeurs par défaut de l'app";
+"Custom" = "Personnalisé";
+"Thresholds" = "Seuils";
+"Export…" = "Exporter…";
+"Import…" = "Importer…";
+"Replace all settings?" = "Remplacer tous les réglages ?";
+"Importing a settings file replaces the repository list and every other setting. This cannot be undone except by importing a previous export." = "Importer un fichier de réglages remplace la liste des dépôts et tous les autres réglages. Cela ne peut être annulé qu'en important un export précédent.";
+"Couldn't import settings" = "Impossible d'importer les réglages";
+"Couldn't export settings" = "Impossible d'exporter les réglages";
+"Can't add more than %d repositories." = "Impossible d'ajouter plus de %d dépôts.";
+"%d repositories — each adds a watcher and a git poll. Pause ones you don't need." = "%d dépôts — chacun ajoute un observateur et une vérification git. Mettez en pause ceux dont vous n'avez pas besoin.";
+
+/* Settings window: rows */
+"Language" = "Langue";
+"The language Gitgleam's menu and windows are displayed in." = "La langue dans laquelle le menu et les fenêtres de Gitgleam s'affichent.";
+"Automatic (System Language)" = "Automatique (langue du système)";
+"Choose…" = "Choisir…";
+"Warn threshold" = "Seuil d'avertissement";
+"Number of changes at or above which the menu-bar icon turns yellow." = "Nombre de modifications à partir duquel l'icône de la barre de menus devient jaune.";
+"Critical threshold" = "Seuil critique";
+"Number of changes at or above which the icon turns red." = "Nombre de modifications à partir duquel l'icône devient rouge.";
+"Poll interval" = "Intervalle de vérification";
+"How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change." = "Fréquence à laquelle Gitgleam revérifie le dépôt par sécurité. Un observateur du système de fichiers actualise déjà instantanément à chaque modification.";
+"Recent commits shown" = "Commits récents affichés";
+"Number of recent commits listed in the submenu." = "Nombre de commits récents listés dans le sous-menu.";
+"viewmd path" = "Chemin de viewmd";
+"Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "Emplacement du lanceur viewmd.sh utilisé pour le bouton Aperçu. Laissez vide pour masquer ce bouton ; l'aperçu Web intégré fonctionne toujours.";
+"Default view" = "Vue par défaut";
+"Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in." = "Dans quelle vue un fichier s'ouvre. Diff (complet) affiche le fichier entier avec les modifications colorées sur place ; Aperçu et Web (Markdown uniquement) rendent le fichier lui-même — Aperçu nécessite viewmd, Web est intégré.";
+"Preview width" = "Largeur de l'aperçu";
+"Render width, in columns, passed to viewmd." = "Largeur de rendu, en colonnes, transmise à viewmd.";
+"Keep preview files" = "Conserver les fichiers d'aperçu";
+"Markdown files sent to viewmd for preview are kept in /tmp instead of being deleted, so the exact input — including viewmd:mark highlighting — can be inspected." = "Les fichiers Markdown envoyés à viewmd pour l'aperçu sont conservés dans /tmp au lieu d'être supprimés, afin de pouvoir inspecter l'entrée exacte — y compris le surlignage viewmd:mark.";
+"seconds" = "secondes";
+"columns" = "colonnes";
+"Path to viewmd.sh (optional)" = "Chemin vers viewmd.sh (facultatif)";
+"Reset to default" = "Réinitialiser";

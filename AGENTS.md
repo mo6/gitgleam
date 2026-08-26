@@ -199,7 +199,10 @@ Sources/Gitgleam/
   AppInfo.swift                        — static version string + GitHub URL, shown in Settings' Info section
   Localization.swift                   — L10n: central lookup of user-facing strings + language-override support
   Resources/en.lproj/Localizable.strings — English (default)
-  Resources/nl.lproj/Localizable.strings — Dutch (example translation)
+  Resources/nl.lproj/Localizable.strings — Dutch
+  Resources/de.lproj/Localizable.strings — German
+  Resources/fr.lproj/Localizable.strings — French
+  Resources/es.lproj/Localizable.strings — Spanish
 Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, RepoConfig, AppConfig, Settings, ViewMode, MarkdownHighlighter, WebPreview pins); run with `swift test`
 scripts/check-webpreview-deps.sh       — npm audit + version sync for vendored marked/mermaid
 scripts/vendor-webpreview.sh           — re-download WebPreview JS to match scripts/webpreview/package.json
