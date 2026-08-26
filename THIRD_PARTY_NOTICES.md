@@ -11,7 +11,7 @@ Versions are pinned in `scripts/webpreview/package.json` (see
 [SECURITY.md](SECURITY.md)). After a bump, `scripts/vendor-webpreview.sh`
 refreshes the vendored files and this document.
 
-## marked 15.0.12
+## marked 18.0.10
 
 [marked](https://github.com/markedjs/marked) — vendored as `marked.min.js`.
 Upstream license text is also in `Sources/Gitgleam/WebPreview/LICENSE.marked`.

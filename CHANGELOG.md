@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Vendored **marked bumped from 15.0.12 to 18.0.10** (Dependabot PR #1),
+  clearing three years of upstream bug fixes. marked dropped its flat
+  `marked.min.js` browser bundle after v15 in favor of `lib/marked.umd.js`;
+  `scripts/vendor-webpreview.sh` now tries the old path first and falls back
+  to the new one so the vendored file keeps the same name and location.
+
 ## [1.5.0] - 2026-08-26
 
 ### Changed

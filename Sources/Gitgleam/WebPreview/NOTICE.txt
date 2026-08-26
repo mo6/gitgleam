@@ -1,7 +1,7 @@
 Vendored JavaScript for the Markdown Web preview. Loaded from the app
 bundle at runtime — no CDN, no network.
 
-- marked 15.0.12 (MIT) — https://github.com/markedjs/marked
+- marked 18.0.10 (MIT) — https://github.com/markedjs/marked
   See LICENSE.marked
 - mermaid 11.17.1 (MIT) — https://github.com/mermaid-js/mermaid
   See LICENSE.mermaid

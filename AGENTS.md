@@ -349,6 +349,23 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE, THIRD_PARTY_NOTICES.md — repo govern
   never has — `preview.html` zeroes `ul, ol { margin: 0 }` so split
   fragments stay flush. Test with a Markdown file that has one changed item
   in the middle of an otherwise-unchanged tight list.
+- **marked dropped its flat `marked.min.js` browser bundle after v15** in
+  favor of `lib/marked.umd.js` (still a plain global-assigning UMD build, so
+  `preview.html`'s `<script src="marked.min.js">` and `preview.js`'s global
+  `marked` usage don't need to change — only where the vendored bytes come
+  from). `scripts/vendor-webpreview.sh` tries the old flat path first, falls
+  back to `lib/marked.umd.js`, and does the same old-path-then-fallback dance
+  for `LICENSE.md` → `LICENSE` — so a future marked release restoring either
+  path doesn't need the script touched again.
+- **`vendor-webpreview.sh`'s closing code-fence `printf` must pass the
+  backticks through `%s`, never bake them into the format string.** Found
+  while bumping marked to 18.0.10 (`printf '\n\`\`\`\n'`, the original form):
+  bash's builtin `printf` leaves a stray backslash in front of an
+  unrecognized `\`` escape instead of stripping it (zsh's builtin strips it
+  cleanly), so running the script under `bash` corrupted
+  `THIRD_PARTY_NOTICES.md`'s last fence into literal `\`\`\`` text. `printf
+  '%s\n' '```'` sidesteps escape processing entirely, since printf never
+  interprets a `%s` argument's contents.
 - **Changing a LaunchAgent's flags needs a reload, not a restart.** `launchctl
   kickstart -k` relaunches with launchd's *cached* `ProgramArguments`, so after
   editing a plist (e.g. adding `--viewmd-path`) you must `launchctl bootout`
