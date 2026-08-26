@@ -59,6 +59,12 @@ blockquote {
   border-left: 3px solid var(--quote);
   color: var(--muted);
 }
+/* A marked list item's own <ul>/<ol> is split off from its neighbors (see
+   MarkdownHighlighter — one changed item is its own block), so consecutive
+   list fragments are separate elements even though they read as one list.
+   The UA default 1em list margin would then show as a gap between fragments
+   that plain list items never have; zero it so split lists stay flush. */
+ul, ol { margin: 0; }
 table { border-collapse: collapse; }
 th, td {
   border: 1px solid var(--border);
