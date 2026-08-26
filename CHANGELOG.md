@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The Web Markdown preview's highlight for changed/added blocks
+  (`.gg-mark`) added vertical space around the highlighted block instead of
+  only tinting its background. Marking a single changed list item splits it
+  into its own `<ul>` (so only that item is highlighted, not the whole
+  list — see 1.1.0's "marked an entire list" fix); the wrapper div's vertical
+  padding blocked that `<ul>`'s own margin from collapsing normally, and the
+  browser's default `~1em` list margin then showed as a gap between
+  highlighted and unhighlighted items that a plain, unsplit list never has.
+  Fixed by zeroing `.gg-mark`'s vertical padding/margin (so child margins
+  collapse straight through the wrapper) and zeroing `ul`/`ol` margin
+  (so split list fragments stay flush with their neighbors).
+
 ## [1.4.0] - 2026-08-24
 
 ### Added

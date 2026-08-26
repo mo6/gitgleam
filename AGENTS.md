@@ -334,6 +334,21 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE, THIRD_PARTY_NOTICES.md — repo govern
   leading YAML front-matter block is stripped before `marked` and rendered as
   a Field/Value HTML table (viewmd's split/flatten rules: nested keys become
   dotted, empty fields are omitted).
+- **The Web preview's `.gg-mark` highlight must add zero vertical layout
+  space — only background color.** `wrapMarks` (`preview.js`) wraps a marked
+  block in a `<div>`, and marking a single changed list item splits that item
+  into its own `<ul>` (so only it is highlighted, not the whole list — see
+  `MarkdownHighlighter`'s list-item block-splitting above). Two things
+  compound into a visible gap if not handled: (1) any *vertical* padding/
+  margin on `.gg-mark` blocks the CSS margin-collapsing that would otherwise
+  let a wrapped block's own top/bottom margin merge invisibly with its
+  neighbors — the div must keep vertical padding and margin at `0` (only
+  bleed the tint horizontally); (2) the browser's default `~1em` `<ul>`/`<ol>`
+  margin, once a list is split into several adjacent fragments, shows up as
+  a gap between highlighted and unhighlighted items that an unsplit list
+  never has — `preview.html` zeroes `ul, ol { margin: 0 }` so split
+  fragments stay flush. Test with a Markdown file that has one changed item
+  in the middle of an otherwise-unchanged tight list.
 - **Changing a LaunchAgent's flags needs a reload, not a restart.** `launchctl
   kickstart -k` relaunches with launchd's *cached* `ProgramArguments`, so after
   editing a plist (e.g. adding `--viewmd-path`) you must `launchctl bootout`
