@@ -345,10 +345,30 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE, THIRD_PARTY_NOTICES.md — repo govern
   they lazily load `shortDiff` only when `mode == .diff`. Added/removed
   counts are identical either way — context only changes how much unchanged
   surrounding text is included, never which lines are +/-.
+- **The Settings window can shrink per-section despite a fixed `.frame`,
+  because of `.windowResizability(.contentSize)`.** `GitgleamApp` sets that
+  on the Settings `Window`, so the live `NSWindow` tracks `SettingsView`'s
+  reported ideal size. `SettingsView.body` ends with
+  `.frame(width: 700, height: 460)` on the whole `NavigationSplitView` — but
+  empirically that outer fixed frame does *not* pin the ideal size
+  `NavigationSplitView` reports for window-resizability purposes; the split
+  view computes its own ideal width from its columns (sidebar +
+  `navigationSplitViewColumnWidth`, detail from its content), and a section
+  with little content (e.g. the Diff tab's single row) reports a smaller
+  ideal than a busier one (e.g. Refresh's sliders) — so the window visibly
+  resized when switching between them. Fixed by giving the detail
+  `ScrollView`'s content a `.frame(minWidth: 480, ...)` floor so every
+  section reports at least that width regardless of how little it contains.
+  If a future section needs to be wider than that floor, only its own
+  content's ideal size grows the window — the floor just stops it from ever
+  going *below* a comfortable size.
 - **Web Markdown preview is a bundled `WKWebView`.** `WebPreviewView` loads
   `preview.html` with `loadFileURL` from the `WebPreview/` resource folder
   (`Package.swift` uses `.copy("WebPreview")` so the JS files aren't flattened
-  or mangled). marked 15.0.12 and mermaid 11.17.1 are vendored there; no CDN.
+  or mangled). marked and mermaid are vendored there (versions pinned in
+  `scripts/webpreview/package.json`, kept in lockstep with `NOTICE.txt`/
+  `THIRD_PARTY_NOTICES.md` — see the WebPreview dependency-audit bullets
+  below); no CDN.
   Swift injects the Markdown via `callAsyncJavaScript` after the page
   finishes loading. Theme follows `colorScheme`. Do **not** wrap Markdown in
   a block HTML tag before parse — CommonMark will not parse inside it; wrap
