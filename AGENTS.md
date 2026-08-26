@@ -203,6 +203,8 @@ Sources/Gitgleam/
   Resources/de.lproj/Localizable.strings — German
   Resources/fr.lproj/Localizable.strings — French
   Resources/es.lproj/Localizable.strings — Spanish
+  Resources/zh-hans.lproj/Localizable.strings — Chinese, Simplified
+  Resources/zh-hant.lproj/Localizable.strings — Chinese, Traditional
 Tests/GitgleamTests/                   — unit tests (ANSIText, FileKind, RepoConfig, AppConfig, Settings, ViewMode, MarkdownHighlighter, WebPreview pins); run with `swift test`
 scripts/check-webpreview-deps.sh       — npm audit + version sync for vendored marked/mermaid
 scripts/vendor-webpreview.sh           — re-download WebPreview JS to match scripts/webpreview/package.json
@@ -262,6 +264,18 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE, THIRD_PARTY_NOTICES.md — repo govern
   generated `Gitgleam_Gitgleam.bundle` (next to the binary). All user-facing
   text goes through `L10n`; never hardcode a display string in a view. Add a
   language by adding a `Resources/<lang>.lproj/Localizable.strings`.
+- **SwiftPM lowercases script-tagged `.lproj` folder names when it copies
+  them into the resource bundle.** `Resources/zh-Hans.lproj`/`zh-Hant.lproj`
+  on disk end up as `zh-hans.lproj`/`zh-hant.lproj` in
+  `Gitgleam_Gitgleam.bundle` (verified with `Bundle(url:).localizations`),
+  unlike Xcode's own resource processing, which preserves the "Hans"/"Hant"
+  capitalization. `Bundle.module.localizations` — and therefore every code
+  string derived from it (`L10n.availableLanguages`, the value stored in
+  `Settings.language`, and the lookup in `L10n.resolvedBundle`) — is the
+  lowercase form, so `L10n.displayName`'s switch must match on `"zh-hans"`/
+  `"zh-hant"`, not `"zh-Hans"`/`"zh-Hant"`. The source folders themselves are
+  named lowercase too (`Resources/zh-hans.lproj`), matching what actually
+  ships, rather than the capitalized form BCP 47 would suggest.
 - **`L10n` picks the language itself.** A raw SPM executable has no localization
   info in `Bundle.main`, so `String(localized:)` / `Bundle.preferredLocalizations`
   ignore the system language and `-AppleLanguages` and always fall back to

@@ -200,6 +200,8 @@ enum L10n {
         case "de": return "Deutsch"
         case "fr": return "Français"
         case "es": return "Español"
+        case "zh-hans": return "简体中文"
+        case "zh-hant": return "繁體中文"
         default: return Locale(identifier: code).localizedString(forLanguageCode: code) ?? code
         }
     }

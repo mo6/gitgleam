@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **German, French, and Spanish translations** (`de`, `fr`, `es`), alongside
   the existing English and Dutch ones. Each appears as a choice in
   Settings → General → Language.
+- **Simplified and Traditional Chinese translations** (`zh-hans`, `zh-hant`).
 
 ## [1.6.0] - 2026-08-26
 

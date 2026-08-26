@@ -1,0 +1,117 @@
+/* Menu */
+"No changes" = "没有变更";
+"Refresh" = "刷新";
+"Quit" = "退出";
+"Settings…" = "设置…";
+"No repositories configured" = "未配置仓库";
+"Open in Finder" = "在 Finder 中打开";
+"Open in Terminal" = "在终端中打开";
+
+/* Settings window: General section */
+"Show \"Open in Finder\"" = "显示“在 Finder 中打开”";
+"Adds an \"Open in Finder\" row to each repository's submenu." = "在每个仓库的子菜单中添加“在 Finder 中打开”一行。";
+"Show \"Open in Terminal\"" = "显示“在终端中打开”";
+"Adds an \"Open in Terminal\" row to each repository's submenu." = "在每个仓库的子菜单中添加“在终端中打开”一行。";
+
+/* Uncommitted window */
+"Uncommitted" = "未提交";
+"Repository removed" = "仓库已移除";
+"%d change: %@" = "%d 处更改：%@";
+"%d changes: %@" = "%d 处更改：%@";
+
+/* Section headers */
+"Changed" = "已更改";
+"New" = "新增";
+"Deleted" = "已删除";
+
+/* File status descriptions */
+"Modified" = "已修改";
+"Added" = "已添加";
+"Renamed" = "已重命名";
+"Copied" = "已复制";
+"Conflict" = "冲突";
+"New (untracked)" = "新增（未跟踪）";
+
+/* Diff view */
+"No textual differences (possibly binary or mode-only changes)." = "没有文本差异（可能是二进制文件或仅权限/模式更改）。";
+"git failed" = "git 执行失败";
+
+/* Preview */
+"Diff" = "差异";
+"Diff (full)" = "差异（完整）";
+"Preview" = "预览";
+"Web" = "网页";
+"viewmd failed" = "viewmd 执行失败";
+"Field" = "字段";
+"Value" = "值";
+
+/* Settings window: sidebar sections */
+"Info" = "信息";
+"Repositories" = "仓库";
+"General" = "通用";
+"Status icon" = "状态图标";
+"Refresh" = "刷新";
+"Markdown preview" = "Markdown 预览";
+"Debug" = "调试";
+
+/* Settings window: Info section */
+"A small native macOS menu bar app that watches a git repository and shows the number of uncommitted changes, colored by severity, with a colored per-file diff." = "一款小巧的原生 macOS 菜单栏应用，用于监视 Git 仓库并显示未提交更改的数量，按严重程度着色，并提供按文件着色的差异对比。";
+"Version" = "版本";
+"GitHub repository" = "GitHub 仓库";
+
+/* Settings window: Repositories section */
+"Label" = "标签";
+"Path" = "路径";
+"Add Repository…" = "添加仓库…";
+"Remove repository" = "移除仓库";
+"Add a repository to start watching its uncommitted changes." = "添加一个仓库以开始监视其未提交的更改。";
+"This folder doesn't look like a git repository." = "此文件夹看起来不像是一个 Git 仓库。";
+"Initialize a git repository in this folder, add it anyway, or cancel." = "在此文件夹中初始化一个 Git 仓库、仍然添加它，或取消。";
+"Initialize Git Repository" = "初始化 Git 仓库";
+"Add Anyway" = "仍然添加";
+"Cancel" = "取消";
+"This folder is already in the list." = "此文件夹已在列表中。";
+"Watching the same path twice runs two watchers on one tree. Add it anyway, or cancel." = "重复监视同一路径会在同一目录树上运行两个监视器。仍然添加，或取消。";
+"Drag to reorder" = "拖动以重新排序";
+"Watch this repository" = "监视此仓库";
+"Active" = "活跃";
+"Paused" = "已暂停";
+"Repository settings" = "仓库设置";
+"Change Folder…" = "更改文件夹…";
+"App defaults" = "应用默认值";
+"Custom" = "自定义";
+"Thresholds" = "阈值";
+"Export…" = "导出…";
+"Import…" = "导入…";
+"Replace all settings?" = "替换所有设置？";
+"Importing a settings file replaces the repository list and every other setting. This cannot be undone except by importing a previous export." = "导入设置文件将替换仓库列表和所有其他设置。此操作无法撤销，除非导入之前的导出文件。";
+"Couldn't import settings" = "无法导入设置";
+"Couldn't export settings" = "无法导出设置";
+"Can't add more than %d repositories." = "最多只能添加 %d 个仓库。";
+"%d repositories — each adds a watcher and a git poll. Pause ones you don't need." = "%d 个仓库 — 每个仓库都会增加一个监视器和一次 Git 轮询。请暂停不需要的仓库。";
+
+/* Settings window: rows */
+"Language" = "语言";
+"The language Gitgleam's menu and windows are displayed in." = "Gitgleam 菜单和窗口所使用的显示语言。";
+"Automatic (System Language)" = "自动（系统语言）";
+"Choose…" = "选择…";
+"Warn threshold" = "警告阈值";
+"Number of changes at or above which the menu-bar icon turns yellow." = "菜单栏图标变为黄色时对应的更改数量。";
+"Critical threshold" = "严重阈值";
+"Number of changes at or above which the icon turns red." = "图标变为红色时对应的更改数量。";
+"Poll interval" = "轮询间隔";
+"How often Gitgleam re-checks the repository as a safety net. A filesystem watcher already refreshes instantly on any change." = "Gitgleam 作为安全保障重新检查仓库的频率。文件系统监视器已能在任何更改时立即刷新。";
+"Recent commits shown" = "显示的最近提交数";
+"Number of recent commits listed in the submenu." = "子菜单中列出的最近提交数量。";
+"viewmd path" = "viewmd 路径";
+"Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "用于“预览”切换按钮的 viewmd.sh 启动器的位置。留空以隐藏该切换按钮；内置的网页预览仍可使用。";
+"Default view" = "默认视图";
+"Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in." = "文件默认以哪种视图打开。“差异（完整）”会显示整个文件，并将更改就地着色；“预览”和“网页”（仅限 Markdown）会渲染文件本身 —— “预览”需要 viewmd，“网页”为内置功能。";
+"Preview width" = "预览宽度";
+"Render width, in columns, passed to viewmd." = "传递给 viewmd 的渲染宽度（以列为单位）。";
+"Keep preview files" = "保留预览文件";
+"Markdown files sent to viewmd for preview are kept in /tmp instead of being deleted, so the exact input — including viewmd:mark highlighting — can be inspected." = "发送给 viewmd 进行预览的 Markdown 文件将保留在 /tmp 中而不会被删除，以便检查确切的输入内容 —— 包括 viewmd:mark 高亮标记。";
+"seconds" = "秒";
+"columns" = "列";
+"Path to viewmd.sh (optional)" = "viewmd.sh 的路径（可选）";
+"Reset to default" = "恢复默认值";
