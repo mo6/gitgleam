@@ -10,7 +10,7 @@ struct CommitDetailView: View {
     let repoPath: String
     /// viewmd settings, forwarded to each file pane (nil = no viewmd Preview).
     let preview: AppConfig.PreviewSettings?
-    /// Which view a Markdown file should open in.
+    /// Which view a file should open in.
     let defaultView: ViewMode
 
     @State private var files: [CommitFile] = []

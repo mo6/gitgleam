@@ -24,8 +24,10 @@ struct AppConfig {
     /// nil when the viewmd Preview toggle is off (no `--viewmd-path` given).
     /// The built-in Web preview does not need this.
     let viewmdPath: String?
-    /// Which view a Markdown window opens in. Nil means "preview" (which
-    /// falls back to Web when viewmd isn't configured).
+    /// Which view a file pane opens in (`diff`/`diffFull` apply to every
+    /// file; `preview`/`web` apply to Markdown only). Nil means "preview"
+    /// (which falls back to Web when viewmd isn't configured, or to Diff for
+    /// non-Markdown files).
     let defaultView: ViewMode?
     /// Render width (columns) passed to viewmd for previews.
     let previewWidth: Int
@@ -207,18 +209,21 @@ struct AppConfig {
                                  refreshes instantly (default: 60, min: 10, max: 300)
           -C, --commits <n>      Recent commits listed in the submenu (default: 10)
           -V, --viewmd-path <p>  Path to viewmd.sh; enables the viewmd Preview toggle
-              --default-view <v> Initial view for a Markdown file: diff | preview | web
-                                 (default: preview, which falls back to web
-                                 without viewmd)
+              --default-view <v> Initial view for a file: diff | diff-full | preview | web
+                                 (preview/web apply to Markdown only; default:
+                                 preview, which falls back to web without
+                                 viewmd)
               --preview-width <n> Columns passed to viewmd for previews (default: 100)
           -h, --help             Show this help and exit
 
         These are only first-launch defaults: the repo list, thresholds, and
         preview settings are all editable live afterwards from Settings, and
         persist independently of these flags.
-        Markdown files always gain a Diff/Web toggle (Web is a bundled HTML
-        preview with Mermaid). With --viewmd-path set, a third Preview toggle
-        renders via viewmd as ANSI.
+        Every file gains a Diff/Diff (full) toggle (Diff shows a few lines of
+        context around each change; Diff (full) shows the whole file with
+        changes colored in place). Markdown files additionally gain a Web
+        toggle (a bundled HTML preview with Mermaid), plus a Preview toggle
+        (renders via viewmd as ANSI) when --viewmd-path is set.
         """)
     }
 }

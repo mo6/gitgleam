@@ -38,6 +38,7 @@
 
 /* Preview */
 "Diff" = "Diff";
+"Diff (full)" = "Diff (full)";
 "Preview" = "Preview";
 "Web" = "Web";
 "viewmd failed" = "viewmd failed";
@@ -105,7 +106,7 @@
 "viewmd path" = "viewmd path";
 "Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works.";
 "Default view" = "Default view";
-"Which rendering a Markdown file opens in. Preview needs viewmd; Web is built-in." = "Which rendering a Markdown file opens in. Preview needs viewmd; Web is built-in.";
+"Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in." = "Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in.";
 "Preview width" = "Preview width";
 "Render width, in columns, passed to viewmd." = "Render width, in columns, passed to viewmd.";
 "Keep preview files" = "Keep preview files";

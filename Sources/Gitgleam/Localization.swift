@@ -56,6 +56,7 @@ enum L10n {
 
     // Preview (viewmd + Web)
     static var diffView: String { s("Diff") }
+    static var diffFullView: String { s("Diff (full)") }
     static var preview: String { s("Preview") }
     static var webPreview: String { s("Web") }
     static var viewmdFailed: String { s("viewmd failed") }
@@ -68,6 +69,7 @@ enum L10n {
     static var settingsGeneral: String { s("General") }
     static var settingsStatusIcon: String { s("Status icon") }
     static var settingsRefresh: String { s("Refresh") }
+    static var settingsDiff: String { s("Diff") }
     static var settingsMarkdownPreview: String { s("Markdown preview") }
     static var settingsDebug: String { s("Debug") }
 
@@ -146,7 +148,7 @@ enum L10n {
     }
     static var defaultViewLabel: String { s("Default view") }
     static var defaultViewDescription: String {
-        s("Which rendering a Markdown file opens in. Preview needs viewmd; Web is built-in.")
+        s("Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in.")
     }
     static var previewWidth: String { s("Preview width") }
     static var previewWidthDescription: String { s("Render width, in columns, passed to viewmd.") }

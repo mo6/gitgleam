@@ -34,6 +34,11 @@ final class AppConfigTests: XCTestCase {
         XCTAssertEqual(c.previewSettings?.defaultView, .diff)
     }
 
+    func testDefaultViewDiffFullOverride() {
+        let c = parse(["--default-view", "diff-full"])
+        XCTAssertEqual(c.defaultView, .diffFull)
+    }
+
     func testDefaultViewWithoutViewmdPathStaysDisabled() {
         // --default-view is recorded, but with no viewmd path there is no viewmd Preview.
         let c = parse(["--default-view", "preview"])

@@ -16,7 +16,7 @@ struct UncommittedView: View {
     let repo: RepoConfig
     /// viewmd settings, forwarded to the file pane (nil = no viewmd Preview).
     let preview: AppConfig.PreviewSettings?
-    /// Which view a Markdown file should open in.
+    /// Which view a file should open in.
     let defaultView: ViewMode
 
     @State private var selection: FileChange.ID?

@@ -78,23 +78,30 @@ enum Git {
         return .success(changes)
     }
 
+    /// Unified-diff context, in lines, for the concise "Diff" view — git's own
+    /// default.
+    static let shortDiffContext = 3
+    /// Unified-diff context for the "Diff (full)" view: more lines than any
+    /// file has, so git emits the whole file as context around the changes
+    /// (capped at the file length) — a full-file view with the +/- lines
+    /// colored in place rather than only the changed hunks.
+    static let fullDiffContext = 1_000_000
+
     /// Fetches the diff for one file as plain text.
     ///
     /// For tracked files we compare the working tree against `HEAD` (staged and
     /// unstaged combined). Untracked files are not in git, so we compare against
-    /// `/dev/null`, which shows the whole file as additions.
+    /// `/dev/null`, which shows the whole file as additions (for untracked files
+    /// every line is already an addition, so `context` is a harmless no-op).
     ///
-    /// `-U1000000` sets the unified context to more lines than any file has, so
-    /// git emits the whole file as context around the changes (capped at the
-    /// file length) — a full-file view with the +/- lines colored in place
-    /// rather than only the changed hunks. (For untracked files every line is
-    /// already an addition, so the flag is a harmless no-op there.)
-    static func diff(for change: FileChange, at path: String) async -> String {
+    /// `context` is `shortDiffContext` or `fullDiffContext` — see `ViewMode`'s
+    /// `diff`/`diffFull` cases.
+    static func diff(for change: FileChange, at path: String, context: Int = fullDiffContext) async -> String {
         let output: Output
         if change.isUntracked {
-            output = await run(["diff", "--no-index", "-U1000000", "--", "/dev/null", change.path], at: path)
+            output = await run(["diff", "--no-index", "-U\(context)", "--", "/dev/null", change.path], at: path)
         } else {
-            output = await run(["diff", "HEAD", "-U1000000", "--", change.path], at: path)
+            output = await run(["diff", "HEAD", "-U\(context)", "--", change.path], at: path)
         }
 
         // `git diff --no-index` returns exit code 1 when there are differences —
@@ -158,14 +165,12 @@ enum Git {
     /// Fetches the diff a commit made to a single file, as plain text.
     ///
     /// `--format=` empties git's own commit header so it is not duplicated above
-    /// the diff — the pane renders its own header. `-U<large>` sets the unified
-    /// context to more lines than any file has, so the whole file is emitted as
-    /// context around the changes (git caps the context at the file length),
-    /// giving a full-file view with the +/- lines colored in place. Empty output
-    /// (e.g. a mode-only change) falls back to the "no textual differences"
-    /// message.
-    static func commitFileDiff(sha: String, file: String, at path: String) async -> String {
-        let output = await run(["show", "--patch", "--format=", "-U1000000", sha, "--", file], at: path)
+    /// the diff — the pane renders its own header. `context` is
+    /// `shortDiffContext` or `fullDiffContext` — see `ViewMode`'s
+    /// `diff`/`diffFull` cases. Empty output (e.g. a mode-only change) falls
+    /// back to the "no textual differences" message.
+    static func commitFileDiff(sha: String, file: String, at path: String, context: Int = fullDiffContext) async -> String {
+        let output = await run(["show", "--patch", "--format=", "-U\(context)", sha, "--", file], at: path)
 
         guard output.status == 0 else {
             let message = output.stderr.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -40,17 +40,22 @@ below.)
   Finder** and **Open in Terminal** rows for that repo's folder — each
   independently toggleable (on by default) from Settings → General
   (`showOpenInFinder`/`showOpenInTerminal`).
-- For **Markdown files**, each file pane (uncommitted or commit) gains a
-  **Diff/Web** toggle. **Web** is built in: a `WKWebView` loads bundled
-  `preview.html` + marked + mermaid.js (offline) and renders the file as HTML
-  with Mermaid as SVG. When `--viewmd-path` points at a `viewmd.sh` launcher,
-  a third **Preview** toggle shells out to viewmd and parses its ANSI output
-  (Mermaid as ASCII art). Preview is the default once viewmd is configured
-  (otherwise Web; override with `--default-view diff|web`); a viewmd failure
-  falls back to the colored diff. Before either preview, `MarkdownHighlighter`
-  wraps the blocks that changed in `viewmd:mark` sentinel comments. viewmd
-  that doesn't yet support them (VIEWMD-0104) ignores the comments; the Web
-  view wraps the parsed nodes between them in a highlight.
+- Every file pane (uncommitted or commit) gains a **Diff/Diff (full)**
+  toggle (`ViewModePicker`, shown for every file, not just Markdown): **Diff**
+  is the colored unified diff at git's default context (a few lines around
+  each change); **Diff (full)** is the same diff at unlimited context, so the
+  whole file is shown with the +/- lines colored in place. For **Markdown
+  files**, the same toggle gains a **Web** segment: a `WKWebView` loads
+  bundled `preview.html` + marked + mermaid.js (offline) and renders the file
+  as HTML with Mermaid as SVG. When `--viewmd-path` points at a `viewmd.sh`
+  launcher, a further **Preview** segment shells out to viewmd and parses its
+  ANSI output (Mermaid as ASCII art). Preview is the default once viewmd is
+  configured (otherwise Web; override with `--default-view
+  diff|diff-full|web`); a viewmd failure falls back to the full-context
+  colored diff. Before either Markdown preview, `MarkdownHighlighter` wraps
+  the blocks that changed in `viewmd:mark` sentinel comments. viewmd that
+  doesn't yet support them (VIEWMD-0104) ignores the comments; the Web view
+  wraps the parsed nodes between them in a highlight.
 - The repo list comes from repeatable `--repo <path>[:<label>]` flags at
   first launch (or a single `--path`/`--label`, for back-compat). Everything
   else — the repo list itself, thresholds, poll interval, recent-commits
@@ -127,8 +132,9 @@ directory. Warn defaults to 1, critical to 10, interval to 60 seconds
 (clamped to 10–300; a filesystem watcher gives instant updates, so this is only
 a fallback poll), commits to 10 (clamped to ≥1). `--viewmd-path` is unset by
 default (no viewmd Preview toggle; the built-in Web preview still works);
-`--default-view` is `diff`|`preview`|`web` (defaults to `preview`, which falls
-back to Web without viewmd); `--preview-width` defaults to 100 (clamped to ≥20).
+`--default-view` is `diff`|`diff-full`|`preview`|`web` (`preview`/`web` apply
+to Markdown only; defaults to `preview`, which falls back to Web without
+viewmd); `--preview-width` defaults to 100 (clamped to ≥20).
 All of these are only *first-launch* defaults — `Settings` takes over from
 there (the repo list included), editable live in the Settings window and
 persisted independently.
@@ -144,8 +150,9 @@ adaptation), `FileKind`, `RepoConfig` (`Codable` round-trip), `AppConfig` flag
 parsing/clamping (including the repeatable `--repo` flag and `--path`/
 `--label` back-compat), `Settings` (seeding from `AppConfig`, clamping,
 persistence round-trip including `repos`, backward-compatible decoding, the
-legacy-per-path-key migration), `ViewMode.initial` (Markdown default-view
-fallback), `MarkdownHighlighter` (diff → block markers, list-item/front-
+legacy-per-path-key migration), `ViewMode.initial` (default-view fallback,
+including non-Markdown files preferring `diff`/`diffFull`),
+`MarkdownHighlighter` (diff → block markers, list-item/front-
 matter splitting), and WebPreview pin lockstep (`NOTICE.txt` vs
 `scripts/webpreview/package.json` vs the vendored JS headers). Known
 advisories against those pins are checked by `scripts/check-webpreview-deps.sh`
@@ -173,19 +180,19 @@ Sources/Gitgleam/
   FileChange.swift                     — model: parses a porcelain line into status + path + category
   Commit.swift                         — model: parses a git-log record into sha + subject + author + date
   CommitFile.swift                     — model: parses a name-status line into status + path (one file in a commit)
-  FileDiffPane.swift                   — detail pane: one uncommitted file, colored diff + Markdown Diff/Web/Preview toggle
+  FileDiffPane.swift                   — detail pane: one uncommitted file, colored diff (short/full) + Markdown Web/Preview toggle
   CommitDetailView.swift               — commit window: split view (file sidebar + per-file diff pane)
-  CommitFilePane.swift                 — detail pane: one commit file, colored diff + Markdown Diff/Web/Preview toggle
+  CommitFilePane.swift                 — detail pane: one commit file, colored diff (short/full) + Markdown Web/Preview toggle
   ColoredDiffView.swift                — colored unified-diff renderer (builds an AttributedString from a diff)
   MonospacedTextScroll.swift           — shared scroll shell: one fixed-size monospaced Text (diff + viewmd preview)
   ANSIText.swift                       — parses ANSI/SGR escapes into a colored AttributedString (viewmd output)
   Viewmd.swift                         — runs the external viewmd launcher to render Markdown to ANSI
   WebPreviewView.swift                 — WKWebView Markdown/Mermaid preview (bundled marked + mermaid.js)
-  MarkdownViewPicker.swift             — segmented Diff / Preview / Web control
+  ViewModePicker.swift                 — segmented Diff / Diff (full) / Preview / Web control (Preview/Web only for Markdown)
   WebPreview/                          — preview.html, preview.js, vendored marked.min.js + mermaid.min.js
   MarkdownHighlighter.swift            — wraps changed blocks in viewmd:mark sentinels (diff → markers)
   FileKind.swift                       — file-type detection (currently: is this path Markdown?)
-  ViewMode.swift                       — enum diff | preview | web (the window's current/default rendering)
+  ViewMode.swift                       — enum diff | diffFull | preview | web (the pane's current/default rendering)
   Settings.swift                       — live, persisted defaults (repos, thresholds, interval, viewmd, language, debug flag); export/import JSON
   SettingsView.swift                   — the Settings window: sidebar sections + card rows
   RepositoriesSettingsView.swift       — Settings Repositories tab (pause, reorder, thresholds, export/import)
@@ -323,6 +330,21 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE, THIRD_PARTY_NOTICES.md — repo govern
   are invisible HTML comments and add a little blank-line spacing around changed
   blocks — the cost of shipping the marking ahead of the renderer. The Web
   preview already wraps those comments in a highlight after `marked` parses.
+  Parsing only needs a valid unified diff — hunk headers plus +/-/context
+  line prefixes — so it works identically whether `diff` was fetched at short
+  or full context; it happens to always receive the full-context one (see the
+  next bullet) since that's the pane's fallback/counts source regardless of
+  which diff mode is on screen.
+- **Two diff contexts, one Git function each.** `Git.diff`/`commitFileDiff`
+  take a `context` line count: `Git.shortDiffContext` (3, git's own default —
+  the concise **Diff** view) or `Git.fullDiffContext` (`1_000_000`, more lines
+  than any file has, so git emits the whole file as context around the
+  changes — the **Diff (full)** view). `FileDiffPane`/`CommitFilePane` always
+  load the full-context diff into `diff` (it drives the +/- counts and feeds
+  `MarkdownHighlighter`, and is the fallback if a Markdown preview fails);
+  they lazily load `shortDiff` only when `mode == .diff`. Added/removed
+  counts are identical either way — context only changes how much unchanged
+  surrounding text is included, never which lines are +/-.
 - **Web Markdown preview is a bundled `WKWebView`.** `WebPreviewView` loads
   `preview.html` with `loadFileURL` from the `WebPreview/` resource folder
   (`Package.swift` uses `.copy("WebPreview")` so the JS files aren't flattened

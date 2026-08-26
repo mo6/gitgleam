@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Diff (full)** toggle alongside **Diff** on every file pane (uncommitted
+  or commit), not just Markdown ones. **Diff** now shows a concise diff at
+  git's default context (a few lines around each change); **Diff (full)**
+  shows the whole file with the +/- lines colored in place — the app's
+  previous, only behavior. The **Default view** setting that picks between
+  them (plus Preview/Web for Markdown) moves out of Settings → Markdown
+  preview into a new Settings → **Diff** section, since it's no longer
+  Markdown-specific.
+
 ### Changed
 
 - Vendored **marked bumped from 15.0.12 to 18.0.10** (Dependabot PR #1),

@@ -3,8 +3,10 @@ import SwiftUI
 /// The detail pane of the commit split view: a header (path, status and +/-
 /// counts) above the colored diff a commit made to one file.
 ///
-/// Markdown files gain a view toggle: Diff always, Web (built-in HTML/Mermaid
-/// preview) always, and Preview (viewmd) when `preview != nil`.
+/// Every file gets a view toggle: Diff (short context) and Diff (full,
+/// unlimited context) always; Markdown files additionally gain Web
+/// (built-in HTML/Mermaid preview) always, and Preview (viewmd) when
+/// `preview != nil`.
 struct CommitFilePane: View {
     /// The commit whose change to `file` is shown.
     let sha: String
@@ -13,11 +15,15 @@ struct CommitFilePane: View {
     let repoPath: String
     /// viewmd settings, or nil when the viewmd Preview toggle is unavailable.
     let preview: AppConfig.PreviewSettings?
-    /// Which view a Markdown file should open in (from Settings).
+    /// Which view a file should open in (from Settings).
     let defaultView: ViewMode
 
     @State private var mode: ViewMode = .diff
+    /// Full-context diff — always loaded: it drives the +/- counts, feeds the
+    /// Markdown preview's change highlighting, and backs `.diffFull`.
     @State private var diff: String = ""
+    /// Short-context diff, loaded lazily only when `mode == .diff`.
+    @State private var shortDiff: String = ""
     @State private var previewText: AttributedString?
     @State private var webMarkdown: String?
     @State private var isLoading = true
@@ -58,10 +64,8 @@ struct CommitFilePane: View {
                     .foregroundStyle(.green)
                 Label("\(removedCount)", systemImage: "minus")
                     .foregroundStyle(.red)
-                if isMarkdown {
-                    Spacer()
-                    MarkdownViewPicker(mode: $mode, hasViewmd: canViewmd)
-                }
+                Spacer()
+                ViewModePicker(mode: $mode, isMarkdown: isMarkdown, hasViewmd: canViewmd)
             }
             .font(.subheadline)
         }
@@ -80,8 +84,13 @@ struct CommitFilePane: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if canViewmd, mode == .preview, let previewText {
             MonospacedTextScroll(attributed: previewText)
+        } else if mode == .diff {
+            // Short-context diff, or a preview that failed to render while in
+            // .diff mode → fall back to it (it's always loaded regardless).
+            ColoredDiffView(diff: shortDiff)
         } else {
-            // Diff mode, or a preview that failed to render → the colored diff.
+            // .diffFull, or a preview that failed to render in any other
+            // mode → the full-context diff (always loaded).
             ColoredDiffView(diff: diff)
         }
     }
@@ -111,9 +120,12 @@ struct CommitFilePane: View {
 
     private func load() async {
         isLoading = true
-        // Always load the diff: it drives the +/- counts and is the preview's
-        // fallback.
+        // Always load the full-context diff: it drives the +/- counts, feeds
+        // Markdown change highlighting, and is the preview's fallback.
         diff = await Git.commitFileDiff(sha: sha, file: file.path, at: repoPath)
+        if mode == .diff {
+            shortDiff = await Git.commitFileDiff(sha: sha, file: file.path, at: repoPath, context: Git.shortDiffContext)
+        }
         if isMarkdown, mode == .web, webMarkdown == nil {
             await loadWeb()
         } else if canViewmd, mode == .preview, previewText == nil {

@@ -104,6 +104,20 @@ struct SettingsView: View {
                     step: 1, defaultValue: Double(AppConfig.defaultCommits), valueText: { "\(Int($0))" }
                 )
             }
+        case .diff:
+            SettingsCard {
+                Row(label: L10n.defaultViewLabel, description: L10n.defaultViewDescription) {
+                    Picker("", selection: $settings.defaultView) {
+                        Text(L10n.diffView).tag(ViewMode.diff)
+                        Text(L10n.diffFullView).tag(ViewMode.diffFull)
+                        Text(L10n.preview).tag(ViewMode.preview)
+                        Text(L10n.webPreview).tag(ViewMode.web)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .frame(width: 280)
+                }
+            }
         case .preview:
             SettingsCard {
                 StackedRow(label: L10n.viewmdPath, description: L10n.viewmdPathDescription) {
@@ -112,17 +126,6 @@ struct SettingsView: View {
                             .textFieldStyle(.roundedBorder)
                         Button(L10n.choose) { chooseViewmdPath() }
                     }
-                }
-                Divider()
-                Row(label: L10n.defaultViewLabel, description: L10n.defaultViewDescription) {
-                    Picker("", selection: $settings.defaultView) {
-                        Text(L10n.diffView).tag(ViewMode.diff)
-                        Text(L10n.preview).tag(ViewMode.preview)
-                        Text(L10n.webPreview).tag(ViewMode.web)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .frame(width: 220)
                 }
                 Divider()
                 SliderRow(
@@ -165,7 +168,7 @@ struct SettingsView: View {
 
 /// A sidebar destination: a settings group, its icon, and localized title.
 private enum SettingsSection: CaseIterable, Identifiable {
-    case info, general, repositories, statusIcon, refresh, preview, debug
+    case info, general, repositories, statusIcon, refresh, diff, preview, debug
 
     var id: Self { self }
 
@@ -176,6 +179,7 @@ private enum SettingsSection: CaseIterable, Identifiable {
         case .general: return L10n.settingsGeneral
         case .statusIcon: return L10n.settingsStatusIcon
         case .refresh: return L10n.settingsRefresh
+        case .diff: return L10n.settingsDiff
         case .preview: return L10n.settingsMarkdownPreview
         case .debug: return L10n.settingsDebug
         }
@@ -188,6 +192,7 @@ private enum SettingsSection: CaseIterable, Identifiable {
         case .general: return "gearshape"
         case .statusIcon: return "gauge.with.dots.needle.50percent"
         case .refresh: return "arrow.triangle.2.circlepath"
+        case .diff: return "chevron.left.forwardslash.chevron.right"
         case .preview: return "doc.text.magnifyingglass"
         case .debug: return "ladybug"
         }

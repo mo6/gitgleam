@@ -23,13 +23,15 @@ changed file to see a colored diff. Built with Swift + SwiftUI
   of split-view window for the files that commit changed. Each repo's
   submenu ends with **Open in Finder** / **Open in Terminal** rows for its
   folder (each can be turned off in Settings; both on by default).
-- **Markdown files** can be previewed as formatted Markdown — including Mermaid
-  diagrams — instead of a raw diff. A built-in **Web** view (HTML + mermaid.js)
-  is always available; a [viewmd](https://github.com/mo6/viewmd) **Preview**
-  (ANSI art) appears when a launcher is configured via `--viewmd-path`. The
-  Uncommitted and commit windows show a Diff/Web toggle, plus Preview when
-  viewmd is set. Preview is the default once viewmd is configured (otherwise
-  Web).
+- Every file has a **Diff / Diff (full)** toggle: **Diff** shows a concise
+  diff (a few lines of context around each change); **Diff (full)** shows
+  the whole file with the +/- lines colored in place.
+- **Markdown files** can additionally be previewed as formatted Markdown —
+  including Mermaid diagrams — instead of a diff. A built-in **Web** view
+  (HTML + mermaid.js) is always available; a
+  [viewmd](https://github.com/mo6/viewmd) **Preview** (ANSI art) appears when
+  a launcher is configured via `--viewmd-path`. Preview is the default once
+  viewmd is configured (otherwise Web).
 - The repo list is set via `--repo` flags at first launch, then managed live
   from **Settings… → Repositories** (add, relabel, re-point, or remove a
   repo — no restart needed). Everything else — thresholds, poll interval,
@@ -70,8 +72,9 @@ menu ("Quit"), or with Ctrl-C in the terminal that ran `swift run`.
                        instantly (default: 60, min: 10, max: 300)
 -C, --commits <n>      Recent commits listed in the submenu (default: 10)
 -V, --viewmd-path <p>  Path to viewmd.sh; enables the viewmd Preview toggle
-    --default-view <v> Initial view for a Markdown file: diff | preview | web
-                       (default: preview, which falls back to web without viewmd)
+    --default-view <v> Initial view for a file: diff | diff-full | preview | web
+                       (preview/web apply to Markdown only; default: preview,
+                       which falls back to web without viewmd)
     --preview-width <n> Columns passed to viewmd for previews (default: 100)
 -h, --help             Show this help and exit
 ```
@@ -85,8 +88,9 @@ is yellow, `count ≥ --critical` is red. A git error shows a ⚠️ instead.
 
 ### Markdown preview
 
-Markdown files in the Uncommitted and commit windows have a **Diff / Web**
-toggle. **Web** is built in: it renders the file as HTML with Mermaid diagrams
+Markdown files in the Uncommitted and commit windows additionally have a
+**Web** toggle, alongside the Diff / Diff (full) every file gets. **Web** is
+built in: it renders the file as HTML with Mermaid diagrams
 as SVG, using copies of marked and mermaid.js shipped in the app (no network).
 Changed blocks are highlighted from the same `viewmd:mark` comments the
 viewmd path uses. A leading YAML front-matter block renders as a Field/Value
