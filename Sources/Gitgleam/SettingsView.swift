@@ -27,11 +27,19 @@ struct SettingsView: View {
                     card(for: section)
                 }
                 .padding(20)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                // A minimum width, not just maxWidth: .infinity, so a section
+                // with little content (e.g. Diff's single row) can't report a
+                // smaller ideal size than a busier one — under
+                // .windowResizability(.contentSize) (see GitgleamApp), the
+                // window shrinks to match whichever section is showing, and
+                // NavigationSplitView's own ideal-width reporting works
+                // around the outer .frame(width:) below rather than through
+                // it, so that alone doesn't pin the window size.
+                .frame(minWidth: 480, maxWidth: .infinity, alignment: .leading)
             }
         }
         .font(.system(size: 12))
-        .frame(width: 640, height: 440)
+        .frame(width: 700, height: 460)
     }
 
     // MARK: - Sections
