@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Settings → General → Language.
 - **Simplified and Traditional Chinese translations** (`zh-hans`, `zh-hant`).
 
+### Changed
+
+- **Diff and Diff (full) now wrap long lines and show old/new line-number
+  gutters**, instead of requiring horizontal scrolling. Each line is its own
+  row with a two-column gutter (old file line # | new file line #, parsed
+  from each hunk's `@@ -l,s +l,s @@` header); added lines show only their new
+  line number, removed lines only their old one, context lines show both.
+
 ## [1.6.0] - 2026-08-26
 
 ### Added
