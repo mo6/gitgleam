@@ -2,9 +2,11 @@ import Foundation
 
 /// User-editable defaults, shown and changed in the Settings window.
 ///
-/// Seeded once from the CLI-parsed `AppConfig` (so the existing `--warn`,
-/// `--viewmd-path`, `--repo`, etc. flags remain the *first-launch* defaults),
-/// then persisted independently via `UserDefaults` under one global key.
+/// Seeded once from the CLI-parsed `AppConfig` — only `--repo`/`--path`/
+/// `--label` (the repo list) and `--viewmd-path` remain *first-launch*
+/// defaults there; everything else seeds from `AppConfig`'s own `default*`
+/// constants, since there's no CLI flag for it — then persisted
+/// independently via `UserDefaults` under one global key.
 /// Every property applies live: `AppMonitor`/`RepoMonitor` and any newly
 /// opened diff/commit window read the current values, no restart needed.
 @MainActor
@@ -123,14 +125,14 @@ final class Settings: ObservableObject {
         // initializer), so no explicit re-entrancy guard is needed here.
         repos = seed?.repos ?? config.initialRepos
         language = seed?.language ?? "auto"
-        warnThreshold = seed?.warnThreshold ?? config.warnThreshold
-        criticalThreshold = seed?.criticalThreshold ?? config.criticalThreshold
-        refreshInterval = seed?.refreshInterval ?? config.refreshInterval
-        commits = seed?.commits ?? config.commits
+        warnThreshold = seed?.warnThreshold ?? AppConfig.defaultWarnThreshold
+        criticalThreshold = seed?.criticalThreshold ?? AppConfig.defaultCriticalThreshold
+        refreshInterval = seed?.refreshInterval ?? AppConfig.defaultInterval
+        commits = seed?.commits ?? AppConfig.defaultCommits
         viewmdPath = seed?.viewmdPath ?? (config.viewmdPath ?? "")
-        defaultView = seed?.defaultView ?? (config.defaultView ?? .preview)
+        defaultView = seed?.defaultView ?? .preview
         wrapDiffLines = seed?.wrapDiffLines ?? true
-        previewWidth = seed?.previewWidth ?? config.previewWidth
+        previewWidth = seed?.previewWidth ?? AppConfig.defaultPreviewWidth
         debugKeepPreviewFiles = seed?.debugKeepPreviewFiles ?? false
         showOpenInFinder = seed?.showOpenInFinder ?? true
         showOpenInTerminal = seed?.showOpenInTerminal ?? true

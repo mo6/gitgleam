@@ -39,6 +39,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   respecting `.gitignore`) gets its own sidebar row, change count, and diff
   — same as any other new file.
 
+### Removed
+
+- **The `--warn`, `--critical`, `--interval`, `--commits`, `--default-view`,
+  and `--preview-width` CLI flags.** Everything they set is fully
+  configurable live from Settings, so a CLI flag is no longer the only way
+  to change them; they now always start at a fixed default (unchanged:
+  warn 1, critical 10, interval 60s, commits 10, default view Preview,
+  preview width 100) instead of that default being overridable at launch. If
+  a LaunchAgent plist passes any of these, remove them — an unrecognized
+  flag is silently ignored, but the value it used to set now has to be
+  entered in Settings instead. `--repo`/`--path`/`--label` and
+  `--viewmd-path` are unaffected (still useful to pre-seed a fresh install,
+  e.g. from a LaunchAgent).
+
 ## [1.6.0] - 2026-08-26
 
 ### Added

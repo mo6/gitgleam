@@ -7,61 +7,16 @@ final class AppConfigTests: XCTestCase {
         AppConfig.parse(["Gitgleam"] + args)
     }
 
-    // MARK: - Defaults
+    // MARK: - viewmd flag
 
-    func testPreviewDisabledByDefault() {
+    func testViewmdPathUnsetByDefault() {
         let c = parse([])
         XCTAssertNil(c.viewmdPath)
-        XCTAssertNil(c.previewSettings)          // no viewmd path ⇒ no viewmd Preview
-        XCTAssertNil(c.defaultView)
-        XCTAssertEqual(c.previewWidth, AppConfig.defaultPreviewWidth)
     }
 
-    // MARK: - viewmd / preview flags
-
-    func testViewmdPathEnablesPreviewDefaultingToPreview() throws {
+    func testViewmdPathIsRecorded() {
         let c = parse(["--viewmd-path", "/opt/viewmd/viewmd.sh"])
         XCTAssertEqual(c.viewmdPath, "/opt/viewmd/viewmd.sh")
-        let settings = try XCTUnwrap(c.previewSettings)
-        XCTAssertEqual(settings.viewmdPath, "/opt/viewmd/viewmd.sh")
-        XCTAssertEqual(settings.defaultView, .preview)   // default once configured
-        XCTAssertEqual(settings.width, AppConfig.defaultPreviewWidth)
-    }
-
-    func testDefaultViewDiffOverride() {
-        let c = parse(["-V", "/opt/viewmd/viewmd.sh", "--default-view", "diff"])
-        XCTAssertEqual(c.defaultView, .diff)
-        XCTAssertEqual(c.previewSettings?.defaultView, .diff)
-    }
-
-    func testDefaultViewDiffFullOverride() {
-        let c = parse(["--default-view", "diff-full"])
-        XCTAssertEqual(c.defaultView, .diffFull)
-    }
-
-    func testDefaultViewWithoutViewmdPathStaysDisabled() {
-        // --default-view is recorded, but with no viewmd path there is no viewmd Preview.
-        let c = parse(["--default-view", "preview"])
-        XCTAssertEqual(c.defaultView, .preview)
-        XCTAssertNil(c.previewSettings)
-    }
-
-    func testDefaultViewWebWithoutViewmdPath() {
-        let c = parse(["--default-view", "web"])
-        XCTAssertEqual(c.defaultView, .web)
-        XCTAssertNil(c.previewSettings)
-    }
-
-    func testDefaultViewWebWithViewmdPath() {
-        let c = parse(["-V", "/opt/viewmd/viewmd.sh", "--default-view", "web"])
-        XCTAssertEqual(c.defaultView, .web)
-        XCTAssertEqual(c.previewSettings?.defaultView, .web)
-    }
-
-    func testInvalidDefaultViewIsIgnored() {
-        let c = parse(["-V", "/x/viewmd.sh", "--default-view", "sideways"])
-        XCTAssertNil(c.defaultView)                        // unparseable ⇒ nil
-        XCTAssertEqual(c.previewSettings?.defaultView, .preview)
     }
 
     func testViewmdPathTildeIsExpanded() {
@@ -71,36 +26,9 @@ final class AppConfigTests: XCTestCase {
         XCTAssertFalse(path.contains("~"))
     }
 
-    func testEmptyViewmdPathDisablesPreview() {
+    func testEmptyViewmdPathStaysNil() {
         let c = parse(["--viewmd-path", ""])
         XCTAssertNil(c.viewmdPath)
-        XCTAssertNil(c.previewSettings)
-    }
-
-    func testPreviewWidthClamp() {
-        XCTAssertEqual(parse(["--preview-width", "40"]).previewWidth, 40)
-        XCTAssertEqual(parse(["--preview-width", "5"]).previewWidth, 20)   // floor
-    }
-
-    // MARK: - Existing flags still behave
-
-    func testThresholdsAndClamps() {
-        // warn floors at 1; critical is raised to at least warn.
-        let c = parse(["--warn", "0", "--critical", "-3"])
-        XCTAssertEqual(c.warnThreshold, 1)
-        XCTAssertEqual(c.criticalThreshold, 1)
-
-        let c2 = parse(["--warn", "5", "--critical", "2"])
-        XCTAssertEqual(c2.criticalThreshold, 5)  // max(warn, critical)
-    }
-
-    func testIntervalClamp() {
-        XCTAssertEqual(parse(["--interval", "5"]).refreshInterval, AppConfig.minInterval)
-        XCTAssertEqual(parse(["--interval", "9999"]).refreshInterval, AppConfig.maxInterval)
-    }
-
-    func testCommitFloor() {
-        XCTAssertEqual(parse(["--commits", "0"]).commits, 1)
     }
 
     // MARK: - Repo list
@@ -143,5 +71,16 @@ final class AppConfigTests: XCTestCase {
         let c = parse(["--repo", "~/tools:Tools"])
         XCTAssertTrue(c.initialRepos[0].path.hasPrefix("/"))
         XCTAssertFalse(c.initialRepos[0].path.contains("~"))
+    }
+
+    // MARK: - Unknown flags
+
+    func testRemovedFlagsAreIgnoredNotCrashing() {
+        // --warn/--critical/--interval/--commits/--default-view/
+        // --preview-width used to be CLI flags; they're Settings-only now
+        // (see AppConfig's doc comment), so parsing must silently ignore
+        // them rather than crash or misparse the repo list around them.
+        let c = parse(["--warn", "3", "--repo", "/tmp/a", "--commits", "7"])
+        XCTAssertEqual(c.initialRepos.map(\.path), ["/tmp/a"])
     }
 }

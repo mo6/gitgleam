@@ -16,12 +16,15 @@ final class SettingsTests: XCTestCase {
     // MARK: - Seeding from AppConfig
 
     func testSeedsFromConfigWhenNothingStored() {
-        let config = parse(["--warn", "3", "--critical", "8", "--commits", "7", "-V", "/opt/viewmd.sh"])
+        // Only the repo list and viewmd path are still CLI-seedable —
+        // everything else has no flag at all and always starts at
+        // AppConfig's own default constants (see AppConfig's doc comment).
+        let config = parse(["-V", "/opt/viewmd.sh"])
         let settings = Settings(config: config, defaults: freshDefaults())
 
-        XCTAssertEqual(settings.warnThreshold, 3)
-        XCTAssertEqual(settings.criticalThreshold, 8)
-        XCTAssertEqual(settings.commits, 7)
+        XCTAssertEqual(settings.warnThreshold, AppConfig.defaultWarnThreshold)
+        XCTAssertEqual(settings.criticalThreshold, AppConfig.defaultCriticalThreshold)
+        XCTAssertEqual(settings.commits, AppConfig.defaultCommits)
         XCTAssertEqual(settings.viewmdPath, "/opt/viewmd.sh")
         XCTAssertEqual(settings.defaultView, .preview)
         XCTAssertFalse(settings.debugKeepPreviewFiles)
@@ -48,7 +51,7 @@ final class SettingsTests: XCTestCase {
         // rest of the stored values must still load, with language defaulting
         // to "auto" and repos migrating in from `config.initialRepos`, rather
         // than the whole decode failing.
-        let config = parse(["--path", "/tmp/legacy-repo", "--warn", "4"])
+        let config = parse(["--path", "/tmp/legacy-repo"])
         let defaults = freshDefaults()
         let legacyJSON = """
         {"warnThreshold":4,"criticalThreshold":10,"refreshInterval":60,"maxEntries":25,

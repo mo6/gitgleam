@@ -13,8 +13,8 @@ below.)
 - Lives in the menu bar only (no window, no Dock icon).
 - Refreshes the instant a repo changes: a filesystem watcher (`RepoWatcher`,
   FSEvents) on each watched path triggers `git status --porcelain`. A periodic
-  poll (default 60s, `--interval`, shared by every repo) is a safety net for
-  anything the watcher misses.
+  poll (default 60s, `Settings.refreshInterval`, shared by every repo) is a
+  safety net for anything the watcher misses.
 - The menu bar label shows a single **aggregated** icon (green below the warn
   threshold, yellow up to the critical threshold, red at/above it — thresholds
   compare against the *summed* change count across every repo) and that summed
@@ -22,8 +22,8 @@ below.)
 - The dropdown lists every configured repo as its own submenu (own severity
   icon, label, and count). Inside a repo's submenu: a single **Uncommitted**
   row summarizing the category counts (e.g. "Uncommitted (1 changed, 1 new)"),
-  then — below a divider — its last `--commits` commits (default 10), each its
-  own row rather than nested in a further submenu. Clicking Uncommitted opens
+  then — below a divider — its last `Settings.commits` commits (default 10),
+  each its own row rather than nested in a further submenu. Clicking Uncommitted opens
   an `UncommittedView` split-view window: a sidebar lists every changed file
   grouped into **Changed**, **New**, and **Deleted** sections, and a detail
   pane (`FileDiffPane`) shows the colored diff for the selected file (deleted
@@ -60,9 +60,9 @@ below.)
   as HTML with Mermaid as SVG. When `--viewmd-path` points at a `viewmd.sh`
   launcher, a further **Preview** segment shells out to viewmd and parses its
   ANSI output (Mermaid as ASCII art). Preview is the default once viewmd is
-  configured (otherwise Web; override with `--default-view
-  diff|diff-full|web`); a viewmd failure falls back to the full-context
-  colored diff. Before either Markdown preview, `MarkdownHighlighter` wraps
+  configured (otherwise Web; override via `Settings.defaultView`, Settings →
+  Diff's **Default view** picker); a viewmd failure falls back to the
+  full-context colored diff. Before either Markdown preview, `MarkdownHighlighter` wraps
   the blocks that changed in `viewmd:mark` sentinel comments. viewmd that
   doesn't yet support them (VIEWMD-0104) ignores the comments; the Web view
   wraps the parsed nodes between them in a highlight.
@@ -134,20 +134,20 @@ swift build -c release                                   # optimized build
 ```
 
 Flags: `--repo/-r` (repeatable, `<path>[:<label>]`), `--path/-p`,
-`--label/-l` (single-repo back-compat for `--repo`), `--warn/-w`,
-`--critical/-c`, `--interval/-i`, `--commits/-C`,
-`--viewmd-path/-V`, `--default-view`, `--preview-width`, `--help/-h` (see
-`AppConfig.swift`). No `--repo`/`--path` at all seeds one repo at the current
-directory. Warn defaults to 1, critical to 10, interval to 60 seconds
-(clamped to 10–300; a filesystem watcher gives instant updates, so this is only
-a fallback poll), commits to 10 (clamped to ≥1). `--viewmd-path` is unset by
-default (no viewmd Preview toggle; the built-in Web preview still works);
-`--default-view` is `diff`|`diff-full`|`preview`|`web` (`preview`/`web` apply
-to Markdown only; defaults to `preview`, which falls back to Web without
-viewmd); `--preview-width` defaults to 100 (clamped to ≥20).
-All of these are only *first-launch* defaults — `Settings` takes over from
-there (the repo list included), editable live in the Settings window and
-persisted independently.
+`--label/-l` (single-repo back-compat for `--repo`), `--viewmd-path/-V`,
+`--help/-h` (see `AppConfig.swift`). No `--repo`/`--path` at all seeds one
+repo at the current directory; `--viewmd-path` is unset by default (no
+viewmd Preview toggle; the built-in Web preview still works). That's the
+whole flag set — thresholds, poll interval, commit count, default view, and
+preview width used to have flags too (`--warn/-w`, `--critical/-c`,
+`--interval/-i`, `--commits/-C`, `--default-view`, `--preview-width`) but
+were cut once Settings covered the exact same ground and nothing (a
+LaunchAgent plist included) needs to set them before the app can show its
+own UI; they now seed straight from `AppConfig`'s `default*` constants
+(`defaultWarnThreshold`, etc.) with no flag to override them. The repo list
+and viewmd path are only *first-launch* defaults too — `Settings` takes over
+from there, editable live in the Settings window and persisted
+independently.
 
 The launched app appears in the menu bar (top-right), not the Dock. Quit it from
 its own menu ("Quit") or with Ctrl-C in the terminal that ran `swift run`. See
@@ -157,8 +157,10 @@ Tests live in `Tests/GitgleamTests` (a `.testTarget` in `Package.swift`); run
 them with `swift test`. Coverage is the pure logic that needs no running UI or
 git: `ANSIText` (SGR + OSC parsing, malformed escapes, light-mode background
 adaptation), `FileKind`, `RepoConfig` (`Codable` round-trip), `AppConfig` flag
-parsing/clamping (including the repeatable `--repo` flag and `--path`/
-`--label` back-compat), `Settings` (seeding from `AppConfig`, clamping,
+parsing (the repeatable `--repo` flag, `--path`/`--label` back-compat, and
+`--viewmd-path` expansion/blank-handling — the only flags left since the
+thresholds/interval/commits/default-view/preview-width flags were cut),
+`Settings` (seeding from `AppConfig` and its own `default*` constants, clamping,
 persistence round-trip including `repos`, backward-compatible decoding, the
 legacy-per-path-key migration), `ViewMode.initial` (default-view fallback,
 including non-Markdown files preferring `diff`/`diffFull`),

@@ -7,8 +7,8 @@ changed file to see a colored (full or minimal) diff. Built with Swift + SwiftUI
 
 - Lives in the menu bar only (no window, no Dock icon).
 - Refreshes the instant a repo changes (a filesystem watcher on each watched
-  path), with a periodic `git status --porcelain` poll as a safety net (default
-  60s, configurable via `--interval`).
+  path), with a periodic `git status --porcelain` poll as a safety net
+  (default 60s, configurable in Settings → Refresh).
 - The menu-bar label is a single **aggregated** indicator across every
   configured repo: a colored dot (🟢 green below the warn threshold, 🟡 yellow
   up to the critical threshold, 🔴 red at/above it — or ⚠️ if any repo has a
@@ -16,7 +16,7 @@ changed file to see a colored (full or minimal) diff. Built with Swift + SwiftUI
 - The dropdown lists every configured repo as its own submenu (with its own
   severity icon and count): an **Uncommitted** row summarizing the change
   counts (e.g. "1 changed, 1 new"), then — below a divider — its last few
-  commits (default 10, configurable via `--commits`), each its own row.
+  commits (default 10, configurable in Settings → Refresh), each its own row.
   Clicking Uncommitted opens a split-view window with a sidebar of every
   changed file — grouped into **Changed**, **New**, and **Deleted** (a
   brand-new folder's files are listed individually, recursively, rather than
@@ -73,25 +73,22 @@ menu ("Quit"), or with Ctrl-C in the terminal that ran `swift run`.
 -p, --path <dir>       Repository to watch (single-repo shorthand for
                        --repo; ignored if --repo is given)
 -l, --label <text>     Label for the --path repo
--w, --warn <n>         Change count at/above which the icon is yellow (default: 1)
--c, --critical <n>     Change count at/above which the icon is red (default: 10)
--i, --interval <secs>  Safety-net poll interval; a filesystem watcher refreshes
-                       instantly (default: 60, min: 10, max: 300)
--C, --commits <n>      Recent commits listed in the submenu (default: 10)
 -V, --viewmd-path <p>  Path to viewmd.sh; enables the viewmd Preview toggle
-    --default-view <v> Initial view for a file: diff | diff-full | preview | web
-                       (preview/web apply to Markdown only; default: preview,
-                       which falls back to web without viewmd)
-    --preview-width <n> Columns passed to viewmd for previews (default: 100)
 -h, --help             Show this help and exit
 ```
 
-These are only first-launch defaults for a fresh install — after that, the
-repo list and every other setting are edited live from **Settings…** and
-persist independently, regardless of what's passed on the command line.
+That's the whole flag set: only the repo list and the viewmd path are worth
+setting before the app can show its own UI (e.g. from a LaunchAgent plist, so
+the menu bar isn't empty on first login). Everything else — thresholds, poll
+interval, recent-commits count, default view, preview width, language, and
+more — has no CLI flag at all; open **Settings…** from the menu-bar dropdown
+to set it, and it persists independently from then on, regardless of what
+was passed on the command line at first launch.
 
-Color logic: `count == 0` (below `--warn`) is green, `--warn ≤ count < --critical`
-is yellow, `count ≥ --critical` is red. A git error shows a ⚠️ instead.
+Color logic: `count == 0` (below the warn threshold) is green, up to the
+critical threshold is yellow, at/above it is red — both tunable from
+Settings → Status icon (default: warn 1, critical 10). A git error shows a
+⚠️ instead.
 
 ### Markdown preview
 
