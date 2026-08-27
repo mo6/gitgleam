@@ -2,7 +2,7 @@
 
 A tiny native macOS menu bar app that watches one or more git repositories and
 shows the total number of uncommitted changes, colored by severity. Click a
-changed file to see a colored diff. Built with Swift + SwiftUI
+changed file to see a colored (full or minimal) diff. Built with Swift + SwiftUI
 (`MenuBarExtra`).
 
 - Lives in the menu bar only (no window, no Dock icon).

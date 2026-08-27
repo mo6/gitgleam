@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tint** (translucent green/red, theme-aware for light and dark) instead of
   colored +/- text, matching the diff style used by editors like Claude
   Code/VS Code.
+- **Word-level inline highlighting** for a replaced line: when a removed
+  line is immediately followed by an added line (git's usual layout for a
+  one-line edit), the specific words that changed get a stronger background
+  tint on top of the row's tint, so a small edit inside a long line stands
+  out instead of requiring a read of the whole line.
 
 ## [1.6.0] - 2026-08-26
 

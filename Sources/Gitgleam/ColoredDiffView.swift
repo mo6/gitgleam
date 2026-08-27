@@ -33,8 +33,7 @@ struct ColoredDiffView: View {
                             .foregroundStyle(.secondary)
                             .frame(width: columnWidth, alignment: .trailing)
                             .padding(.trailing, 8)
-                        Text(line.text.isEmpty ? " " : line.text)
-                            .foregroundColor(line.kind.textColor)
+                        Text(Self.attributedText(for: line, colorScheme: colorScheme))
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -60,6 +59,13 @@ struct ColoredDiffView: View {
         let kind: Kind
         var oldLine: Int?
         var newLine: Int?
+        /// Word-level changed spans within `text` (a replaced line's inner
+        /// edits — see `addInlineHighlights`), rendered with a stronger
+        /// background than the rest of the line. Empty when a line has no
+        /// paired opposite-side line to diff against, or when the two lines
+        /// share no common tokens (nothing more specific than "the whole
+        /// line changed" to highlight).
+        var innerHighlights: [Range<String.Index>] = []
     }
 
     /// What a diff line is, driving both its text color and (for added/
@@ -83,6 +89,16 @@ struct ColoredDiffView: View {
             switch self {
             case .added: return .green.opacity(colorScheme == .dark ? 0.18 : 0.15)
             case .removed: return .red.opacity(colorScheme == .dark ? 0.18 : 0.13)
+            case .hunkHeader, .fileHeader, .context: return nil
+            }
+        }
+
+        /// A stronger, theme-aware tint for a line's inner word-level edits —
+        /// nil for anything but added/removed lines.
+        func innerHighlight(for colorScheme: ColorScheme) -> Color? {
+            switch self {
+            case .added: return .green.opacity(colorScheme == .dark ? 0.5 : 0.4)
+            case .removed: return .red.opacity(colorScheme == .dark ? 0.5 : 0.35)
             case .hunkHeader, .fileHeader, .context: return nil
             }
         }
@@ -122,7 +138,115 @@ struct ColoredDiffView: View {
             }
             result.append(line)
         }
+        addInlineHighlights(to: &result)
         return result
+    }
+
+    /// Builds the line's displayed text as an `AttributedString`: the kind's
+    /// base text color, plus (for a replaced line's changed words) a
+    /// stronger background over just those spans.
+    static func attributedText(for line: DiffLine, colorScheme: ColorScheme) -> AttributedString {
+        let text = line.text.isEmpty ? " " : line.text
+        var attr = AttributedString(text)
+        attr.foregroundColor = line.kind.textColor
+        guard let highlight = line.kind.innerHighlight(for: colorScheme) else { return attr }
+        for range in line.innerHighlights {
+            guard let attrRange = Range(range, in: attr) else { continue }
+            attr[attrRange].backgroundColor = highlight
+        }
+        return attr
+    }
+
+    /// Finds each contiguous "removed lines, then added lines" replace group
+    /// (git's usual layout for a changed region) and, for each removed/added
+    /// line paired by position within the group, marks the words that
+    /// differ — a lightweight stand-in for git's own `--word-diff`, scoped to
+    /// same-position line pairs rather than a global word diff over the
+    /// whole hunk.
+    private static func addInlineHighlights(to lines: inout [DiffLine]) {
+        var i = 0
+        while i < lines.count {
+            guard lines[i].kind == .removed else { i += 1; continue }
+            var removedEnd = i
+            while removedEnd < lines.count, lines[removedEnd].kind == .removed { removedEnd += 1 }
+            var addedEnd = removedEnd
+            while addedEnd < lines.count, lines[addedEnd].kind == .added { addedEnd += 1 }
+            let pairCount = min(removedEnd - i, addedEnd - removedEnd)
+            for k in 0..<pairCount {
+                let (oldHighlights, newHighlights) = highlightsForPair(lines[i + k], lines[removedEnd + k])
+                lines[i + k].innerHighlights = oldHighlights
+                lines[removedEnd + k].innerHighlights = newHighlights
+            }
+            i = addedEnd
+        }
+    }
+
+    /// Word-diffs one removed/added line pair and returns the changed spans
+    /// on each side (empty on both when the two share no common tokens at
+    /// all — then the whole line already reads as changed via the row
+    /// background, and marking every word would add nothing).
+    private static func highlightsForPair(
+        _ oldLine: DiffLine, _ newLine: DiffLine
+    ) -> (old: [Range<String.Index>], new: [Range<String.Index>]) {
+        let oldTokens = tokenize(oldLine.text.dropFirst())
+        let newTokens = tokenize(newLine.text.dropFirst())
+        let (oldMarks, newMarks) = wordDiff(oldTokens.map(\.text), newTokens.map(\.text))
+        guard oldMarks.contains(false) || newMarks.contains(false) else { return ([], []) }
+        return (
+            zip(oldTokens, oldMarks).filter(\.1).map(\.0.range),
+            zip(newTokens, newMarks).filter(\.1).map(\.0.range)
+        )
+    }
+
+    /// Splits a line's content into whitespace/non-whitespace runs, each
+    /// paired with its range in the original string (so a changed token's
+    /// span can be highlighted directly, without re-searching for it).
+    private static func tokenize(_ s: Substring) -> [(text: String, range: Range<String.Index>)] {
+        guard s.startIndex != s.endIndex else { return [] }
+        var tokens: [(String, Range<String.Index>)] = []
+        var start = s.startIndex
+        var runIsSpace = s[start].isWhitespace
+        var idx = s.index(after: start)
+        while idx < s.endIndex {
+            let isSpace = s[idx].isWhitespace
+            if isSpace != runIsSpace {
+                tokens.append((String(s[start..<idx]), start..<idx))
+                start = idx
+                runIsSpace = isSpace
+            }
+            idx = s.index(after: idx)
+        }
+        tokens.append((String(s[start..<s.endIndex]), start..<s.endIndex))
+        return tokens
+    }
+
+    /// A classic LCS-based token diff: `true` at a position means that token
+    /// is not part of the longest common subsequence, i.e. it changed.
+    private static func wordDiff(_ old: [String], _ new: [String]) -> (old: [Bool], new: [Bool]) {
+        let n = old.count, m = new.count
+        guard n > 0, m > 0 else { return (Array(repeating: true, count: n), Array(repeating: true, count: m)) }
+        var lcs = Array(repeating: Array(repeating: 0, count: m + 1), count: n + 1)
+        for i in stride(from: n - 1, through: 0, by: -1) {
+            for j in stride(from: m - 1, through: 0, by: -1) {
+                lcs[i][j] = old[i] == new[j] ? lcs[i + 1][j + 1] + 1 : max(lcs[i + 1][j], lcs[i][j + 1])
+            }
+        }
+        var oldMarks = Array(repeating: true, count: n)
+        var newMarks = Array(repeating: true, count: m)
+        var i = 0, j = 0
+        while i < n, j < m {
+            if old[i] == new[j] {
+                oldMarks[i] = false
+                newMarks[j] = false
+                i += 1
+                j += 1
+            } else if lcs[i + 1][j] >= lcs[i][j + 1] {
+                i += 1
+            } else {
+                j += 1
+            }
+        }
+        return (oldMarks, newMarks)
     }
 
     /// Parses a hunk header (`@@ -l[,s] +l[,s] @@ ...`) into its old/new
