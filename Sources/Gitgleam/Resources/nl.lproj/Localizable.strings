@@ -106,6 +106,8 @@
 "Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "Locatie van de viewmd.sh-launcher voor de Voorbeeld-weergave. Laat leeg om die weergave te verbergen; het ingebouwde webvoorbeeld blijft werken.";
 "Default view" = "Standaardweergave";
 "Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in." = "In welke weergave een bestand opent. Diff (volledig) toont het hele bestand met wijzigingen gekleurd op hun plaats; Voorbeeld en Web (alleen Markdown) renderen het bestand zelf — Voorbeeld heeft viewmd nodig, Web is ingebouwd.";
+"Wrap lines" = "Regels afbreken";
+"Wrap long lines to the pane width. Turn off to keep each line on one row and scroll horizontally instead." = "Breekt lange regels af tot de paneelbreedte. Zet uit om elke regel op één rij te houden en horizontaal te scrollen.";
 "Preview width" = "Voorbeeldbreedte";
 "Render width, in columns, passed to viewmd." = "Renderbreedte, in kolommen, doorgegeven aan viewmd.";
 "Keep preview files" = "Bewaar voorbeeldbestanden";

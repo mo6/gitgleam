@@ -17,6 +17,9 @@ struct FileDiffPane: View {
     let preview: AppConfig.PreviewSettings?
     /// Which view a file should open in (from Settings).
     let defaultView: ViewMode
+    /// Whether Diff/Diff (full) wrap long lines or scroll horizontally
+    /// (from Settings).
+    let wrapLines: Bool
 
     @State private var mode: ViewMode = .diff
     /// Full-context diff — always loaded: it drives the +/- counts, feeds the
@@ -87,11 +90,11 @@ struct FileDiffPane: View {
         } else if mode == .diff {
             // Short-context diff, or a preview that failed to render while in
             // .diff mode → fall back to it (it's always loaded regardless).
-            ColoredDiffView(diff: shortDiff)
+            ColoredDiffView(diff: shortDiff, wrapLines: wrapLines)
         } else {
             // .diffFull, or a preview that failed to render in any other
             // mode → the full-context diff (always loaded).
-            ColoredDiffView(diff: diff)
+            ColoredDiffView(diff: diff, wrapLines: wrapLines)
         }
     }
 

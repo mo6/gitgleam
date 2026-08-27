@@ -107,6 +107,8 @@
 "Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "Speicherort des viewmd.sh-Starters für den Vorschau-Umschalter. Leer lassen, um diesen Umschalter auszublenden; die integrierte Web-Vorschau funktioniert weiterhin.";
 "Default view" = "Standardansicht";
 "Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in." = "In welcher Ansicht eine Datei geöffnet wird. Diff (vollständig) zeigt die gesamte Datei mit an Ort und Stelle eingefärbten Änderungen; Vorschau und Web (nur Markdown) rendern die Datei selbst — Vorschau benötigt viewmd, Web ist integriert.";
+"Wrap lines" = "Zeilen umbrechen";
+"Wrap long lines to the pane width. Turn off to keep each line on one row and scroll horizontally instead." = "Bricht lange Zeilen auf die Breite des Bereichs um. Deaktivieren, um jede Zeile in einer Zeile zu behalten und stattdessen horizontal zu scrollen.";
 "Preview width" = "Vorschaubreite";
 "Render width, in columns, passed to viewmd." = "An viewmd übergebene Renderbreite, in Spalten.";
 "Keep preview files" = "Vorschaudateien behalten";

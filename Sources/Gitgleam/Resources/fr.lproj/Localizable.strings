@@ -107,6 +107,8 @@
 "Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "Emplacement du lanceur viewmd.sh utilisé pour le bouton Aperçu. Laissez vide pour masquer ce bouton ; l'aperçu Web intégré fonctionne toujours.";
 "Default view" = "Vue par défaut";
 "Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in." = "Dans quelle vue un fichier s'ouvre. Diff (complet) affiche le fichier entier avec les modifications colorées sur place ; Aperçu et Web (Markdown uniquement) rendent le fichier lui-même — Aperçu nécessite viewmd, Web est intégré.";
+"Wrap lines" = "Retour à la ligne";
+"Wrap long lines to the pane width. Turn off to keep each line on one row and scroll horizontally instead." = "Retourne à la ligne les lignes longues à la largeur du panneau. Désactivez pour garder chaque ligne sur une seule rangée et faire défiler horizontalement à la place.";
 "Preview width" = "Largeur de l'aperçu";
 "Render width, in columns, passed to viewmd." = "Largeur de rendu, en colonnes, transmise à viewmd.";
 "Keep preview files" = "Conserver les fichiers d'aperçu";

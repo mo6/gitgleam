@@ -29,6 +29,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(settings.repos, config.initialRepos)
         XCTAssertTrue(settings.showOpenInFinder) // no CLI flag for it either
         XCTAssertTrue(settings.showOpenInTerminal)
+        XCTAssertTrue(settings.wrapDiffLines) // no CLI flag for it either
     }
 
     func testLanguagePersistsAcrossInstances() {
@@ -64,6 +65,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(settings.repos, config.initialRepos) // the one repo migrates in
         XCTAssertTrue(settings.showOpenInFinder) // absent from the legacy blob too
         XCTAssertTrue(settings.showOpenInTerminal)
+        XCTAssertTrue(settings.wrapDiffLines) // absent from the legacy blob too
     }
 
     func testOpenInFinderAndTerminalTogglesPersistAcrossInstances() {
@@ -77,6 +79,17 @@ final class SettingsTests: XCTestCase {
         let second = Settings(config: config, defaults: defaults)
         XCTAssertFalse(second.showOpenInFinder)
         XCTAssertFalse(second.showOpenInTerminal)
+    }
+
+    func testWrapDiffLinesPersistsAcrossInstances() {
+        let config = parse([])
+        let defaults = freshDefaults()
+
+        let first = Settings(config: config, defaults: defaults)
+        first.wrapDiffLines = false
+
+        let second = Settings(config: config, defaults: defaults)
+        XCTAssertFalse(second.wrapDiffLines)
     }
 
     func testNoViewmdPathSeedsEmptyString() {

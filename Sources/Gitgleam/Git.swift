@@ -61,9 +61,17 @@ enum Git {
         return nil
     }
 
-    /// `git status --porcelain` → list of changed files, or an error.
+    /// `git status --porcelain --untracked-files=all` → list of changed
+    /// files, or an error.
+    ///
+    /// `--untracked-files=all` overrides git's default of collapsing an
+    /// entirely untracked directory to a single `?? dir/` entry: every file
+    /// inside is reported individually (recursively, still respecting
+    /// `.gitignore`), so a brand-new folder shows up in the sidebar, the
+    /// change count, and the menu-bar count as its actual files rather than
+    /// one opaque row with nothing to diff.
     static func status(at path: String) async -> StatusResult {
-        let output = await run(["status", "--porcelain"], at: path)
+        let output = await run(["status", "--porcelain", "--untracked-files=all"], at: path)
 
         // git can fail without throwing (e.g. not a repo): exit code ≠ 0.
         guard output.status == 0 else {

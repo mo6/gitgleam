@@ -8,13 +8,20 @@ import SwiftUI
 /// added/removed line counts without instantiating the view.
 ///
 /// Unlike `MonospacedTextScroll` (used for the viewmd ANSI preview, which
-/// needs a fixed-size single `Text` to preserve box-drawing alignment and
-/// scrolls horizontally), diff lines wrap to the available width and each
-/// gets its own row so a two-column old/new line-number gutter can stay
-/// aligned with it.
+/// always needs a fixed-size single `Text` to preserve box-drawing
+/// alignment and scrolls horizontally), a diff line's own wrapping is a
+/// Settings choice (`Settings.wrapDiffLines`, the Diff section's "Wrap
+/// lines" toggle): wrapped, each gets its own row so a two-column old/new
+/// line-number gutter can stay aligned with it; unwrapped, each row keeps
+/// its natural single-line width and the whole view scrolls horizontally to
+/// reach it — matching what `MonospacedTextScroll` did before per-line
+/// gutters made a single merged `Text` impossible.
 struct ColoredDiffView: View {
     /// The raw unified-diff text.
     let diff: String
+    /// Wrap long lines to the pane width, vs. keep them on one line and
+    /// scroll horizontally to read them.
+    let wrapLines: Bool
 
     // Added/removed row tints are theme-aware (see `DiffLine.Kind.background`).
     @Environment(\.colorScheme) private var colorScheme
@@ -22,30 +29,39 @@ struct ColoredDiffView: View {
     var body: some View {
         let all = Self.lines(from: diff)
         let columnWidth = Self.numberColumnWidth(for: all)
-        ScrollView(.vertical) {
-            LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(all.enumerated()), id: \.offset) { _, line in
-                    HStack(alignment: .top, spacing: 0) {
-                        Text(line.oldLine.map(String.init) ?? "")
-                            .foregroundStyle(.secondary)
-                            .frame(width: columnWidth, alignment: .trailing)
-                        Text(line.newLine.map(String.init) ?? "")
-                            .foregroundStyle(.secondary)
-                            .frame(width: columnWidth, alignment: .trailing)
-                            .padding(.trailing, 8)
-                        Text(Self.attributedText(for: line, colorScheme: colorScheme))
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+        GeometryReader { geo in
+            ScrollView(wrapLines ? .vertical : [.horizontal, .vertical]) {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(all.enumerated()), id: \.offset) { _, line in
+                        HStack(alignment: .top, spacing: 0) {
+                            Text(line.oldLine.map(String.init) ?? "")
+                                .foregroundStyle(.secondary)
+                                .frame(width: columnWidth, alignment: .trailing)
+                            Text(line.newLine.map(String.init) ?? "")
+                                .foregroundStyle(.secondary)
+                                .frame(width: columnWidth, alignment: .trailing)
+                                .padding(.trailing, 8)
+                            if wrapLines {
+                                Text(Self.attributedText(for: line, colorScheme: colorScheme))
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            } else {
+                                Text(Self.attributedText(for: line, colorScheme: colorScheme))
+                                    .fixedSize()
+                            }
+                        }
+                        .textSelection(.enabled)
+                        .font(.system(.body, design: .monospaced))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 1)
+                        .background(line.kind.background(for: colorScheme))
+                        .frame(maxWidth: wrapLines ? .infinity : nil, alignment: .leading)
                     }
-                    .textSelection(.enabled)
-                    .font(.system(.body, design: .monospaced))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 1)
-                    .background(line.kind.background(for: colorScheme))
                 }
+                .padding(.vertical, 8)
+                .frame(minWidth: wrapLines ? nil : geo.size.width, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

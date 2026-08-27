@@ -60,7 +60,8 @@ struct GitgleamApp: App {
             if let entry {
                 CommitDetailView(
                     commit: entry.commit, repoPath: entry.repoPath,
-                    preview: settings.previewSettings, defaultView: settings.defaultView
+                    preview: settings.previewSettings, defaultView: settings.defaultView,
+                    wrapLines: settings.wrapDiffLines
                 )
                     .navigationTitle(entry.commit.shortSHA)
             }
@@ -77,7 +78,8 @@ struct GitgleamApp: App {
                let repo = settings.repos.first(where: { $0.id == repoID }) {
                 UncommittedView(
                     monitor: repoMonitor, repo: repo,
-                    preview: settings.previewSettings, defaultView: settings.defaultView
+                    preview: settings.previewSettings, defaultView: settings.defaultView,
+                    wrapLines: settings.wrapDiffLines
                 )
                     .navigationTitle(repo.label)
             } else {

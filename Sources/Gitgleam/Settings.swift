@@ -55,6 +55,12 @@ final class Settings: ObservableObject {
     /// The built-in Web preview does not need this.
     @Published var viewmdPath: String { didSet { save() } }
     @Published var defaultView: ViewMode { didSet { save() } }
+    /// Whether Diff/Diff (full) wrap long lines to the pane width (`true`)
+    /// or keep each line on one row and scroll horizontally to read it.
+    /// Not seeded from `AppConfig` — there's no CLI flag for it, so `true`
+    /// (today's only behavior before this setting existed) is always the
+    /// first-launch default.
+    @Published var wrapDiffLines: Bool { didSet { save() } }
     @Published var previewWidth: Int {
         didSet {
             let clamped = max(20, previewWidth)
@@ -123,6 +129,7 @@ final class Settings: ObservableObject {
         commits = seed?.commits ?? config.commits
         viewmdPath = seed?.viewmdPath ?? (config.viewmdPath ?? "")
         defaultView = seed?.defaultView ?? (config.defaultView ?? .preview)
+        wrapDiffLines = seed?.wrapDiffLines ?? true
         previewWidth = seed?.previewWidth ?? config.previewWidth
         debugKeepPreviewFiles = seed?.debugKeepPreviewFiles ?? false
         showOpenInFinder = seed?.showOpenInFinder ?? true
@@ -156,7 +163,7 @@ final class Settings: ObservableObject {
         StoredSettings(
             language: language, repos: repos, warnThreshold: warnThreshold, criticalThreshold: criticalThreshold,
             refreshInterval: refreshInterval, commits: commits,
-            viewmdPath: viewmdPath, defaultView: defaultView, previewWidth: previewWidth,
+            viewmdPath: viewmdPath, defaultView: defaultView, wrapDiffLines: wrapDiffLines, previewWidth: previewWidth,
             debugKeepPreviewFiles: debugKeepPreviewFiles,
             showOpenInFinder: showOpenInFinder, showOpenInTerminal: showOpenInTerminal
         )
@@ -171,6 +178,7 @@ final class Settings: ObservableObject {
         commits = seed.commits
         viewmdPath = seed.viewmdPath
         defaultView = seed.defaultView
+        wrapDiffLines = seed.wrapDiffLines ?? true
         previewWidth = seed.previewWidth
         debugKeepPreviewFiles = seed.debugKeepPreviewFiles
         showOpenInFinder = seed.showOpenInFinder ?? true
@@ -196,6 +204,9 @@ final class Settings: ObservableObject {
         var commits: Int
         var viewmdPath: String
         var defaultView: ViewMode
+        /// Optional for the same reason as `language`/`repos`: absent from
+        /// settings persisted before this existed.
+        var wrapDiffLines: Bool?
         var previewWidth: Int
         var debugKeepPreviewFiles: Bool
         /// Optional for the same reason as `language`/`repos`: absent from

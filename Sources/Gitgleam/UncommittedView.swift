@@ -18,6 +18,8 @@ struct UncommittedView: View {
     let preview: AppConfig.PreviewSettings?
     /// Which view a file should open in.
     let defaultView: ViewMode
+    /// Whether Diff/Diff (full) wrap long lines or scroll horizontally.
+    let wrapLines: Bool
 
     @State private var selection: FileChange.ID?
 
@@ -51,7 +53,10 @@ struct UncommittedView: View {
             .navigationSplitViewColumnWidth(min: 220, ideal: 300, max: 460)
         } detail: {
             if let file = selectedFile {
-                FileDiffPane(change: file, repoPath: repo.path, preview: preview, defaultView: defaultView)
+                FileDiffPane(
+                    change: file, repoPath: repo.path, preview: preview,
+                    defaultView: defaultView, wrapLines: wrapLines
+                )
             } else {
                 Text(L10n.noChanges)
                     .foregroundStyle(.secondary)

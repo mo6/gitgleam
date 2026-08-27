@@ -150,6 +150,10 @@ enum L10n {
     static var defaultViewDescription: String {
         s("Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in.")
     }
+    static var wrapDiffLines: String { s("Wrap lines") }
+    static var wrapDiffLinesDescription: String {
+        s("Wrap long lines to the pane width. Turn off to keep each line on one row and scroll horizontally instead.")
+    }
     static var previewWidth: String { s("Preview width") }
     static var previewWidthDescription: String { s("Render width, in columns, passed to viewmd.") }
     static var debugKeepPreviewFiles: String { s("Keep preview files") }

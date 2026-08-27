@@ -125,6 +125,10 @@ struct SettingsView: View {
                     .labelsHidden()
                     .fixedSize()
                 }
+                Divider()
+                Row(label: L10n.wrapDiffLines, description: L10n.wrapDiffLinesDescription) {
+                    Toggle("", isOn: $settings.wrapDiffLines).labelsHidden()
+                }
             }
         case .preview:
             SettingsCard {

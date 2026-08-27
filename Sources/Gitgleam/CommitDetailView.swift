@@ -12,6 +12,8 @@ struct CommitDetailView: View {
     let preview: AppConfig.PreviewSettings?
     /// Which view a file should open in.
     let defaultView: ViewMode
+    /// Whether Diff/Diff (full) wrap long lines or scroll horizontally.
+    let wrapLines: Bool
 
     @State private var files: [CommitFile] = []
     @State private var selection: CommitFile.ID?
@@ -65,7 +67,7 @@ struct CommitDetailView: View {
             if let file = selectedFile {
                 CommitFilePane(
                     sha: commit.sha, file: file, repoPath: repoPath,
-                    preview: preview, defaultView: defaultView
+                    preview: preview, defaultView: defaultView, wrapLines: wrapLines
                 )
             } else if isLoading {
                 ProgressView()

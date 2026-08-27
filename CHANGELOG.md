@@ -30,6 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one-line edit), the specific words that changed get a stronger background
   tint on top of the row's tint, so a small edit inside a long line stands
   out instead of requiring a read of the whole line.
+- **Wrap lines** setting (Settings → Diff), on by default: turn it off to
+  keep Diff/Diff (full) lines on one row and scroll horizontally instead of
+  wrapping them.
+- **A brand-new, entirely untracked folder now lists its files individually**
+  instead of collapsing to one unopenable "folder" row: `git status` runs
+  with `--untracked-files=all`, so every file inside (recursively, still
+  respecting `.gitignore`) gets its own sidebar row, change count, and diff
+  — same as any other new file.
 
 ## [1.6.0] - 2026-08-26
 

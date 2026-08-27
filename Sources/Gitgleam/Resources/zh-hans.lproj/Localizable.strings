@@ -107,6 +107,8 @@
 "Location of the viewmd.sh launcher used for the Preview toggle. Leave empty to hide that toggle; the built-in Web preview still works." = "用于“预览”切换按钮的 viewmd.sh 启动器的位置。留空以隐藏该切换按钮；内置的网页预览仍可使用。";
 "Default view" = "默认视图";
 "Which view a file opens in. Diff (full) shows the whole file with changes colored in place; Preview and Web (Markdown only) render the file itself — Preview needs viewmd, Web is built-in." = "文件默认以哪种视图打开。“差异（完整）”会显示整个文件，并将更改就地着色；“预览”和“网页”（仅限 Markdown）会渲染文件本身 —— “预览”需要 viewmd，“网页”为内置功能。";
+"Wrap lines" = "自动换行";
+"Wrap long lines to the pane width. Turn off to keep each line on one row and scroll horizontally instead." = "将长行按面板宽度换行。关闭后每行保持一行，改为水平滚动查看。";
 "Preview width" = "预览宽度";
 "Render width, in columns, passed to viewmd." = "传递给 viewmd 的渲染宽度（以列为单位）。";
 "Keep preview files" = "保留预览文件";
