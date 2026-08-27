@@ -16,6 +16,9 @@ struct ColoredDiffView: View {
     /// The raw unified-diff text.
     let diff: String
 
+    // Added/removed row tints are theme-aware (see `DiffLine.Kind.background`).
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         let all = Self.lines(from: diff)
         let columnWidth = Self.numberColumnWidth(for: all)
@@ -31,7 +34,7 @@ struct ColoredDiffView: View {
                             .frame(width: columnWidth, alignment: .trailing)
                             .padding(.trailing, 8)
                         Text(line.text.isEmpty ? " " : line.text)
-                            .foregroundColor(line.color)
+                            .foregroundColor(line.kind.textColor)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -39,6 +42,7 @@ struct ColoredDiffView: View {
                     .font(.system(.body, design: .monospaced))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 1)
+                    .background(line.kind.background(for: colorScheme))
                 }
             }
             .padding(.vertical, 8)
@@ -48,14 +52,40 @@ struct ColoredDiffView: View {
 
     // MARK: - Diff processing
 
-    /// One diff line with the color that goes with it and its position in the
-    /// old/new files (nil where a number doesn't apply, e.g. header lines, or
-    /// on the side a line doesn't exist on).
+    /// One diff line with the kind that determines its coloring, and its
+    /// position in the old/new files (nil where a number doesn't apply, e.g.
+    /// header lines, or on the side a line doesn't exist on).
     struct DiffLine {
         let text: String
-        let color: Color
+        let kind: Kind
         var oldLine: Int?
         var newLine: Int?
+    }
+
+    /// What a diff line is, driving both its text color and (for added/
+    /// removed lines) its full-width background tint — mirrors the
+    /// background-tinted diff style of editors like VS Code/Claude Code
+    /// rather than colored +/- text on an unmarked background.
+    enum Kind {
+        case added, removed, hunkHeader, fileHeader, context
+
+        var textColor: Color {
+            switch self {
+            case .added, .removed, .context: return .primary
+            case .hunkHeader: return .cyan
+            case .fileHeader: return .secondary
+            }
+        }
+
+        /// A translucent, theme-aware row tint — nil (no background) for
+        /// anything but added/removed lines.
+        func background(for colorScheme: ColorScheme) -> Color? {
+            switch self {
+            case .added: return .green.opacity(colorScheme == .dark ? 0.18 : 0.15)
+            case .removed: return .red.opacity(colorScheme == .dark ? 0.18 : 0.13)
+            case .hunkHeader, .fileHeader, .context: return nil
+            }
+        }
     }
 
     /// Splits a diff into colored lines (empty subsequences preserved so blank
@@ -70,10 +100,10 @@ struct ColoredDiffView: View {
             if let (start1, start2) = hunkStarts(text) {
                 oldLine = start1
                 newLine = start2
-                result.append(DiffLine(text: text, color: color(for: text), oldLine: nil, newLine: nil))
+                result.append(DiffLine(text: text, kind: kind(for: text), oldLine: nil, newLine: nil))
                 continue
             }
-            var line = DiffLine(text: text, color: color(for: text), oldLine: nil, newLine: nil)
+            var line = DiffLine(text: text, kind: kind(for: text), oldLine: nil, newLine: nil)
             if text.hasPrefix("+") && !text.hasPrefix("+++"), let n = newLine {
                 line.newLine = n
                 newLine = n + 1
@@ -120,31 +150,33 @@ struct ColoredDiffView: View {
 
     /// Number of added lines (`+`, excluding the `+++` file header).
     static func addedCount(in lines: [DiffLine]) -> Int {
-        lines.filter { $0.text.hasPrefix("+") && !$0.text.hasPrefix("+++") }.count
+        lines.filter { $0.kind == .added }.count
     }
 
     /// Number of removed lines (`-`, excluding the `---` file header).
     static func removedCount(in lines: [DiffLine]) -> Int {
-        lines.filter { $0.text.hasPrefix("-") && !$0.text.hasPrefix("---") }.count
+        lines.filter { $0.kind == .removed }.count
     }
 
-    /// Colors a diff line: green for additions, red for deletions, cyan for
-    /// hunk headers and gray for the file header.
-    static func color(for line: String) -> Color {
+    /// Classifies a diff line: added/removed for `+`/`-` content lines
+    /// (excluding the `+++`/`---` file headers), hunk header for `@@` lines,
+    /// file header for the `diff --git`/`index`/etc. preamble, context
+    /// otherwise.
+    static func kind(for line: String) -> Kind {
         if line.hasPrefix("+++") || line.hasPrefix("---") {
-            return .secondary
+            return .fileHeader
         } else if line.hasPrefix("+") {
-            return .green
+            return .added
         } else if line.hasPrefix("-") {
-            return .red
+            return .removed
         } else if line.hasPrefix("@@") {
-            return .cyan
+            return .hunkHeader
         } else if line.hasPrefix("diff ") || line.hasPrefix("index ")
             || line.hasPrefix("new file") || line.hasPrefix("deleted file")
             || line.hasPrefix("rename ") || line.hasPrefix("similarity ") {
-            return .secondary
+            return .fileHeader
         } else {
-            return .primary
+            return .context
         }
     }
 }

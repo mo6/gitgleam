@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   row with a two-column gutter (old file line # | new file line #, parsed
   from each hunk's `@@ -l,s +l,s @@` header); added lines show only their new
   line number, removed lines only their old one, context lines show both.
+- **Added/removed diff lines are now marked with a full-width background
+  tint** (translucent green/red, theme-aware for light and dark) instead of
+  colored +/- text, matching the diff style used by editors like Claude
+  Code/VS Code.
 
 ## [1.6.0] - 2026-08-26
 
