@@ -82,15 +82,19 @@ is enough for Markdown notes; it is thin for code.
 - **Syntax highlighting inside the diff** (already in the backlog) — color
   the line *contents*, keep +/- as the status color. Harder than a full-file
   highlighter because each line is a fragment.
-- **Word-level** highlighting on changed lines, so a one-word edit in a long
-  paragraph is visible.
+- ~~**Word-level** highlighting on changed lines, so a one-word edit in a long
+  paragraph is visible.~~
 - **Jump to first change** — full-context diffs (`-U1000000`) open at the
   top of the file.
 - **Wrap vs horizontal scroll** as a setting; wrapping helps prose, scrolling
-  helps code.
-- **Deleted files** are non-clickable text in the menu and in
+  helps code. (Diff/Diff (full) now always wrap, with line-number gutters
+  and inline word-level highlighting added alongside — but there is no
+  scroll-instead-of-wrap toggle.)
+- ~~**Deleted files** are non-clickable text in the menu and in
   `AllChangesView`. Opening them should show `git show HEAD:path` (and
-  preview, if a viewer matches).
+  preview, if a viewer matches).~~ (The per-category menu/`AllChangesView`
+  this described is gone — deleted files are a normal, clickable section in
+  `UncommittedView`, diffed via `git diff HEAD` same as any tracked file.)
 - **Rename** — porcelain is parsed to the new path only (`FileChange`).
   Showing old → new in the menu row, and a rename-aware diff, would match
   what git actually did.
@@ -347,8 +351,8 @@ starts to matter.
 - Remember the last Diff/Preview choice per file kind (not only the default).
 - Clicking a conflict (`UU` / `AA` / `DD`) could say so more loudly than
   `statusDescription`.
-- `AllChangesView` could take a search field and keep deleted files
-  clickable (see above).
+- A search field for the file list when a vault dumps many files (deleted
+  files are already clickable, see above).
 
 None of this needs to land together. The viewer-rule table is the change
 that unlocks images, binaries, and custom tools without another
