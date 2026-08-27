@@ -28,6 +28,10 @@ below.)
   grouped into **Changed**, **New**, and **Deleted** sections, and a detail
   pane (`FileDiffPane`) shows the colored diff for the selected file (deleted
   files included — `git diff HEAD` diffs them same as any tracked file).
+  `Git.status` runs with `--untracked-files=all`, so a brand-new, entirely
+  untracked folder lists its files individually (recursively, still
+  respecting `.gitignore`) rather than collapsing to one unopenable
+  `?? folder/` row — git's own default behavior, which this flag overrides.
   Clicking a commit row opens a `CommitDetailView` split-view window: a
   sidebar lists the files the commit changed and a detail pane
   (`CommitFilePane`) shows the colored diff for the selected file. The first
@@ -44,8 +48,14 @@ below.)
   toggle (`ViewModePicker`, shown for every file, not just Markdown): **Diff**
   is the colored unified diff at git's default context (a few lines around
   each change); **Diff (full)** is the same diff at unlimited context, so the
-  whole file is shown with the +/- lines colored in place. For **Markdown
-  files**, the same toggle gains a **Web** segment: a `WKWebView` loads
+  whole file is shown with the +/- lines colored in place. Both
+  (`ColoredDiffView`) render old/new line-number gutters, a full-width
+  background tint on added/removed rows (green/red, theme-aware), and — for a
+  removed line immediately followed by an added line — a stronger inner tint
+  on just the words that changed between them. Lines wrap to the pane width
+  by default; `Settings.wrapDiffLines` (Settings → Diff's **Wrap lines**
+  toggle) switches to unwrapped rows with horizontal scrolling instead. For
+  **Markdown files**, the same toggle gains a **Web** segment: a `WKWebView` loads
   bundled `preview.html` + marked + mermaid.js (offline) and renders the file
   as HTML with Mermaid as SVG. When `--viewmd-path` points at a `viewmd.sh`
   launcher, a further **Preview** segment shells out to viewmd and parses its
@@ -183,7 +193,7 @@ Sources/Gitgleam/
   FileDiffPane.swift                   — detail pane: one uncommitted file, colored diff (short/full) + Markdown Web/Preview toggle
   CommitDetailView.swift               — commit window: split view (file sidebar + per-file diff pane)
   CommitFilePane.swift                 — detail pane: one commit file, colored diff (short/full) + Markdown Web/Preview toggle
-  ColoredDiffView.swift                — colored unified-diff renderer (builds an AttributedString from a diff)
+  ColoredDiffView.swift                — colored, line-numbered unified-diff renderer; wrap-vs-scroll + word-level inline highlighting
   MonospacedTextScroll.swift           — shared scroll shell: one fixed-size monospaced Text (diff + viewmd preview)
   ANSIText.swift                       — parses ANSI/SGR escapes into a colored AttributedString (viewmd output)
   Viewmd.swift                         — runs the external viewmd launcher to render Markdown to ANSI
@@ -193,7 +203,7 @@ Sources/Gitgleam/
   MarkdownHighlighter.swift            — wraps changed blocks in viewmd:mark sentinels (diff → markers)
   FileKind.swift                       — file-type detection (currently: is this path Markdown?)
   ViewMode.swift                       — enum diff | diffFull | preview | web (the pane's current/default rendering)
-  Settings.swift                       — live, persisted defaults (repos, thresholds, interval, viewmd, language, debug flag); export/import JSON
+  Settings.swift                       — live, persisted defaults (repos, thresholds, interval, viewmd, diff wrap, language, debug flag); export/import JSON
   SettingsView.swift                   — the Settings window: sidebar sections + card rows
   RepositoriesSettingsView.swift       — Settings Repositories tab (pause, reorder, thresholds, export/import)
   AppInfo.swift                        — static version string + GitHub URL, shown in Settings' Info section
@@ -297,12 +307,37 @@ SECURITY.md, CODE_OF_CONDUCT.md, LICENSE, THIRD_PARTY_NOTICES.md — repo govern
   while we block waiting for it to exit. Large commit diffs exceed that and the
   window spins forever. (stderr for these commands is small, so reading it
   second is safe.)
-- **Horizontal diff scrolling needs a single `Text`.** The diff is rendered as
-  one monospaced `Text` from an `AttributedString` (`ColoredDiffView`), not a
-  `LazyVStack` of per-line `Text`s. A lazy stack sizes its cross axis to the
-  viewport rather than to its widest row, so long lines get clipped with nothing
-  to scroll to horizontally. A single `.fixedSize()` `Text` grows to the content
-  in both axes and scrolls.
+- **`ColoredDiffView` needs one row per line, not a single merged `Text`,
+  because of the line-number gutters — wrapping vs. horizontal scroll is a
+  per-row sizing toggle, not a rendering-strategy switch.** Each row is an
+  `HStack` (fixed-width old/new number columns + the content `Text`) in a
+  `LazyVStack`; a merged single `Text` (still used by `MonospacedTextScroll`
+  for the viewmd preview) can't carry a per-line gutter at all, so it was
+  dropped once gutters shipped. Wrapping (`Settings.wrapDiffLines == true`):
+  the content `Text` gets `.frame(maxWidth: .infinity)` and wraps normally,
+  `ScrollView(.vertical)` only. Horizontal scroll (`== false`): the content
+  `Text` gets `.fixedSize()` instead (report its natural unwrapped width) and
+  the row drops `maxWidth: .infinity`, so the `LazyVStack` hugs its widest
+  row instead of the viewport — the same reason the old single-`Text` design
+  needed `.fixedSize()` — and `ScrollView([.horizontal, .vertical])`. A
+  `GeometryReader` wrapping the `ScrollView` supplies `geo.size.width` as a
+  `minWidth` floor on the `LazyVStack` in scroll mode, so short diffs still
+  fill the pane instead of collapsing to content width.
+- **A line's inner word-level highlight is a `backgroundColor` attribute on
+  a sub-range of its `AttributedString`, converted from `String.Index`.**
+  `ColoredDiffView.highlightsForPair` runs a classic LCS token diff (`\S+`/
+  `\s+` runs, via `tokenize`) between a removed/added line pair — but only
+  pairs found by `addInlineHighlights` scanning for a contiguous run of
+  `.removed` lines immediately followed by a run of `.added` lines (git's
+  usual layout for a one-line edit) and zipping same-position lines within
+  it; a block with an uneven removed/added count only highlights the
+  overlapping prefix pairs. The changed tokens' ranges are `Range<String.
+  Index>` into the *line's own `text`* (tokenizing a `Substring` — `text.
+  dropFirst()` to skip the `+`/`-` — keeps indices valid for the parent
+  string). `attributedText(for:)` builds the row's `AttributedString` from
+  that same `text`, so those ranges convert directly via `Range(range, in:
+  attr)` — this only works because the `AttributedString` was constructed
+  from the identical `String`, not a copy or a different line's text.
 - **Markdown preview shells out to viewmd.** `Viewmd.render` launches the
   configured `viewmd.sh` via `/bin/bash` (a GUI app has no shell PATH), on a
   temporary `.md` file, with `--color=always` (a `Process` pipe is not a TTY, so

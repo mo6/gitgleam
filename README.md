@@ -18,14 +18,21 @@ changed file to see a colored (full or minimal) diff. Built with Swift + SwiftUI
   counts (e.g. "1 changed, 1 new"), then — below a divider — its last few
   commits (default 10, configurable via `--commits`), each its own row.
   Clicking Uncommitted opens a split-view window with a sidebar of every
-  changed file — grouped into **Changed**, **New**, and **Deleted** — and a
-  colored diff for the selected file; clicking a commit opens the same kind
-  of split-view window for the files that commit changed. Each repo's
-  submenu ends with **Open in Finder** / **Open in Terminal** rows for its
-  folder (each can be turned off in Settings; both on by default).
+  changed file — grouped into **Changed**, **New**, and **Deleted** (a
+  brand-new folder's files are listed individually, recursively, rather than
+  as one unopenable folder row) — and a colored diff for the selected file;
+  clicking a commit opens the same kind of split-view window for the files
+  that commit changed. Each repo's submenu ends with **Open in Finder** /
+  **Open in Terminal** rows for its folder (each can be turned off in
+  Settings; both on by default).
 - Every file has a **Diff / Diff (full)** toggle: **Diff** shows a concise
   diff (a few lines of context around each change); **Diff (full)** shows
-  the whole file with the +/- lines colored in place.
+  the whole file with the +/- lines colored in place. Both show old/new
+  line-number gutters and a full-width background tint on added/removed
+  lines, with the specific words that changed highlighted more strongly
+  within a replaced line. Lines wrap to the pane width by default; turn off
+  **Wrap lines** in Settings → Diff to keep each line on one row and scroll
+  horizontally instead.
 - **Markdown files** can additionally be previewed as formatted Markdown —
   including Mermaid diagrams — instead of a diff. A built-in **Web** view
   (HTML + mermaid.js) is always available; a
